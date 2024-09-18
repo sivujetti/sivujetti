@@ -6,7 +6,6 @@ import {
     Icon,
     LoadingSpinner,
     objectUtils,
-    traverseRecursively,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {createBlockFromBlueprint, createBlockFromType} from '../../includes/block/utils.js';
@@ -28,14 +27,11 @@ class AddReusableContentTab extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        fetchOrGetGlobalBlockTrees()
-            .then(gbts => {
-                const saveButton = api.saveButton.getInstance();
-                const alreadyInCurrentPage = getGbtIdsFrom(saveButton.getChannelState('theBlockTree'));
-                this.setState({selectableGlobalBlockTrees: gbts.filter(gbt =>
-                    alreadyInCurrentPage.indexOf(gbt.id) < 0
-                )});
-            });
+        if (!this.props.omitGbts)
+            fetchOrGetGlobalBlockTrees()
+                .then(gbts => {
+                    this.setState({globalBlockTrees: [...gbts]});
+                });
         fetchOrGetReusableBranches()
             .then((reusables) => {
                 this.setState({reusables});
@@ -44,7 +40,7 @@ class AddReusableContentTab extends preact.Component {
     /**
      * @access protected
      */
-    render({onContentPicked}, {reusables, selectableGlobalBlockTrees}) {
+    render({onContentPicked}, {reusables, globalBlockTrees}) {
         return <div class="block-buttons-list mt-1" data-list-of="reusables">
             { [
                 ...(reusables || []).map(reusable => {
@@ -58,7 +54,7 @@ class AddReusableContentTab extends preact.Component {
                         <span class="d-inline-block text-ellipsis">{ root.initialDefaultsData.title || __(blockType.friendlyName) }</span>
                     </button>;
                 }),
-                ...(selectableGlobalBlockTrees || []).map(gbt =>
+                ...(globalBlockTrees || []).map(gbt =>
                     <button
                         class={ `globalBlockTree-block ${blockBtnClses}` }
                         onClick={ () => onContentPicked(createGbtBlockSpawnDescriptor(gbt)) }
@@ -95,19 +91,6 @@ function createReusableBlockSpawnDescriptor(rootBlock) {
         styles.push(...initialStyles.map(replacer)); // 'data-block-id="@placeholder"' -> 'data-block-id="uagNk..."'
     });
     return {block, isReusable: true, styles};
-}
-
-/*
- * @param {Array<Block>} currentBlockTree
- * @returns {Array<string>}
- */
-function getGbtIdsFrom(currentBlockTree) {
-    const ids = [];
-    traverseRecursively(currentBlockTree, b => {
-        if (b.type === 'GlobalBlockReference') ids.push(b.globalBlockTreeId);
-    });
-    ids.sort();
-    return ids;
 }
 
 ////
@@ -318,6 +301,7 @@ function createContentTemplateSpawnDescriptor(template) {
 /**
  * @typedef {{
  *   onContentPicked: (descr: SpawnDescriptor) => void;
+ *   omitGbts?: boolean;
  * }} AddContentTabProps
  *
  * @typedef {{

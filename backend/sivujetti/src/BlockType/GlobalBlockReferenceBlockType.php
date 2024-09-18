@@ -9,6 +9,8 @@ use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
 final class GlobalBlockReferenceBlockType implements BlockTypeInterface,
                                                      RenderAwareBlockTypeInterface {
     public const EMPTY_OVERRIDES = "{}";
+    /** @var array<int, \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree|null> */
+    private static array $trees = [];
     /**
      * @inheritdoc
      */
@@ -25,17 +27,18 @@ final class GlobalBlockReferenceBlockType implements BlockTypeInterface,
     public function onBeforeRender(Block $block,
                                    BlockTypeInterface $blockType,
                                    Injector $di): void {
-        $di->execute([$this, "doPerformBeforeRender"], [
-            ":block" => $block,
-        ]);
+        $gbtId = $block->globalBlockTreeId;
+        if (!array_key_exists($gbtId, self::$trees))
+            $di->execute($this->fetchAndCacheGbt(...), [":gbtId" => $gbtId]);
+        $block->__globalBlockTree = self::$trees[$gbtId];
     }
     /**
-     * @param \Sivujetti\Block\Entities\Block $block
+     * @param string $gbtId
      * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $gbtRepo
-    */
-    public function doPerformBeforeRender(Block $block,
-                                          GlobalBlockTreesRepository $gbtRepo): void {
-        $entry = $gbtRepo->getSingle($block->globalBlockTreeId);
-        $block->__globalBlockTree = $entry;
+     */
+    public function fetchAndCacheGbt(string $gbtId,
+                                     GlobalBlockTreesRepository $gbtRepo): void {
+        $entry = $gbtRepo->getSingle($gbtId);
+        self::$trees[$gbtId] = $entry;
     }
 }

@@ -34,7 +34,11 @@ class AddContentPopup extends preact.Component {
             { (() => {
                 if (currentTabIdx === 0)
                     return <AddReusableContentTab
-                        onContentPicked={ this.handleContentPicked.bind(this) }/>;
+                        onContentPicked={ this.handleContentPicked.bind(this) }
+                        omitGbts={
+                            (this.props.targetInfo.isGbtRef && this.props.insertPos === 'as-child') ||
+                            (!this.props.targetInfo.isGbtRef && this.props.targetInfo.isStoredToTreeId !== 'main')
+                        }/>;
                 if (currentTabIdx === 1)
                     return <AddSimpleContentBlocksTab
                         onContentPicked={ this.handleContentPicked.bind(this) }/>;

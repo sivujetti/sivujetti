@@ -13,7 +13,7 @@ import {
     timingUtils,
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
-import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
+import {getIsStoredToTreeIdFrom, isMetaBlock, unAppenfidyGbtRefBlockId} from '../../includes/block/utils.js';
 import CustomClassStylesList, {extractClassName} from '../block-styles/CustomClassStylesList.jsx';
 import StyleClassesPicker from '../block-styles/StyleClassesPicker.jsx';
 import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
@@ -179,16 +179,7 @@ class BlockEditForm extends preact.Component {
                         <StyleClassesPicker
                             currentClasses={ blockCopyForEditForm.styleClasses }
                             onClassesChanged={ newClasses => {
-                                const saveButton = api.saveButton.getInstance();
-                                saveButton.pushOp(
-                                    'theBlockTree',
-                                    blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                                        const [blockRef] = blockTreeUtils.findBlockMultiTree(blockId, newTreeCopy);
-                                        blockRef.styleClasses = newClasses;
-                                        return newTreeCopy;
-                                    }),
-                                    {event: 'update-single-block-prop', blockId},
-                                );
+                                this.pushBlockChanges(blockId, {styleClasses: newClasses});
                             } }/>
                     ];
                 }
@@ -212,40 +203,73 @@ class BlockEditForm extends preact.Component {
      * @param {{[key: String]: any;}} changes
      * @param {Boolean} hasErrors = false
      * @param {blockPropValueChangeFlags} flags = null
-     * @access public
+     * @access private
      */
     handleValuesChanged(changes, hasErrors = false, flags = null) {
         if (this.state.currentTabKind.indexOf('content') < 0) return;
 
+        this.pushBlockChanges(this.props.block.id, changes, flags);
+    }
+    /**
+     * @param {String} blockId
+     * @param {{[key: String]: any;}} changes
+     * @param {blockPropValueChangeFlags} flags = null
+     * @access private
+     */
+    pushBlockChanges(blockId, changes, flags = null) {
         const saveButton = api.saveButton.getInstance();
-        const blockId = this.props.block.id;
-        saveButton.pushOp(
-            'theBlockTree',
-            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                const [blockRef] = blockTreeUtils.findBlockMultiTree(blockId, newTreeCopy);
-                /*
-                Note: this mutates block from 1. (main/root tree)
-                [
-                    <mainTreeBlock1>,
-                    <mainTreeBlock2> <------------------- here (main/root tree)
-                ], or 2. (embedded global block tree)
-                [
-                    <mainTreeBlock1>,
-                    <mainTreeBlock2>,
-                    <mainTreeBlockThatIsGbtReference __globalBlockTree: [
-                        <gbtBlock1>,
-                        <gbtBlock2>, <------------------- here
-                    ]>
-                ]*/
-                writeBlockProps(blockRef, changes);
-                return newTreeCopy;
-            }),
-            {event: 'update-single-block-prop', blockId},
-            flags
-        );
+        const root1 = blockTreeUtils.findBlockMultiTree(blockId, saveButton.getChannelState('theBlockTree'))[3];
+        const trid = blockTreeUtils.getIdFor(root1);
+        if (trid === 'main')
+            saveButton.pushOp(
+                'theBlockTree',
+                blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+                    const [blockRef] = blockTreeUtils.findBlockMultiTree(blockId, newTreeCopy);
+                    /*
+                    mutates block from main/root tree
+                    [
+                        <mainTreeBlock1>,
+                        <mainTreeBlock2> <------------------- here (main/root tree)
+                    ]*/
+                    writeBlockProps(blockRef, changes);
+                    return newTreeCopy;
+                }),
+                {event: 'update-single-block-prop', blockId},
+                flags
+            );
+        else
+            saveButton.pushOp(
+                'theBlockTree',
+                blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+                    const allReferences = [];
+                    const blockIdNorm = unAppenfidyGbtRefBlockId(blockId);
+                    blockTreeUtils.traverseWithIdRecursively(newTreeCopy, b => {
+                        if (b.type === 'GlobalBlockReference' && b.globalBlockTreeId === trid)
+                            allReferences.push(blockTreeUtils.findRecursively(b.__globalBlockTree.blocks, b =>
+                                unAppenfidyGbtRefBlockId(b.id) === blockIdNorm
+                            ));
+                    });
+                    for (const ref of allReferences)
+                        /*
+                        mutates block from embedded global block tree
+                        [
+                            <mainTreeBlock1>,
+                            <mainTreeBlock2>,
+                            <mainTreeBlockThatIsGbtReference __globalBlockTree: [
+                                <gbtBlock1>,
+                                <gbtBlock2>, <------------------- here
+                            ]>
+                        ]*/
+                        writeBlockProps(ref, changes);
+                    return newTreeCopy;
+                }),
+                {event: 'update-many-blocks-prop', blockId},
+                flags
+            );
     }
     /**
      * @returns {[Array<TabInfo>, boolean]}
+     * @access private
      */
     createTabsInfo() {
         let tabs = createTabsInfo(this.userCanEditScss ? [

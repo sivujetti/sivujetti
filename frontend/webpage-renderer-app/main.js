@@ -2,6 +2,7 @@
 An entry point for global file "public/sivujetti/sivujetti-webpage-renderer-app.js".
 Included by backend/sivujetti/src/Page/WebPageAwareTemplate.php jsFiles().
 */
+import {traverseRecursively} from '../shared-inline.js';
 import ReRenderingWebPage, {api} from './ReRenderingWebPage.jsx';
 
 /**
@@ -10,6 +11,7 @@ import ReRenderingWebPage, {api} from './ReRenderingWebPage.jsx';
  * @param {CurrentPageData} dataBundle
  */
 function mountWebPageRendererApp(dataBundle) {
+    appenfidyBlockBlockRefBlockIds(dataBundle.page.blocks);
     printBlockWarnings(dataBundle.page.blocks);
 
     /** @type {preact.Ref<RenderAllOuter>} */
@@ -79,9 +81,22 @@ function getCssEl(attrPrefix = '') {
 }
 
 /**
- * @param {Array<Block>} blocks
+ * @param {Array<Block>} blocksMut
  */
-function printBlockWarnings(blocks) {
+function appenfidyBlockBlockRefBlockIds(blocksMut) {
+    traverseRecursively(blocksMut, b1Mut => {
+        if (b1Mut.type === 'GlobalBlockReference') {
+            traverseRecursively(b1Mut.__globalBlockTree.blocks, b2Mut => {
+                b2Mut.id += `__${b1Mut.id}`;
+            });
+        }
+    });
+}
+
+/**
+ * @param {Array<Block>} blocksMut
+ */
+function printBlockWarnings(blocksMut) {
     // todo warn if listing block contains children
     // todo warn if code block contains children
 }

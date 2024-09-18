@@ -5,8 +5,10 @@ import {
     env,
     http,
     objectUtils,
+    traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
-import {treeToTransferable} from '../includes/block/utils.js';
+import {treeToTransferable, unAppenfidyGbtRefBlockId} from '../includes/block/utils.js';
+import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../includes/global-block-trees/repository.js';
 import toasters from '../includes/toasters.jsx';
 import {pathToFullSlug} from '../includes/utils.js';
 import globalData from '../includes/globalData.js';
@@ -138,6 +140,101 @@ function createGlobalBlockTreesChannelHandler() {
             );
         }
     };
+}
+
+/**
+ * @param {Array<StateHistory>} out
+ * @param {{theBlockTree: Array<Array<Block>>; [others: String]: any;}} activeStates
+ * @returns {Promise<Array<StateHistory>|null>}
+ */
+async function globalBlockTreeSaveOpFilter(out, activeStates) {
+    const blockTreeStates = activeStates['theBlockTree'];
+    // Found block changes, check if any of them is a global block tree block
+    if (blockTreeStates) {
+        const refBlocksThatMayHaveChanges = getGbtRefBlocksFrom(blockTreeStates);
+        // Some were -> dynamically create, or patch $out's 'globalBlockTrees' item
+        if (refBlocksThatMayHaveChanges.length) {
+            const _ = await fetchOrGetGlobalBlockTrees(); // ensure saveButton.initChannel('globalBlockTrees', gbts)
+            const gbtsHistoryItem = out.find(({channelName}) => channelName === 'globalBlockTrees');
+            if (!gbtsHistoryItem) {
+                const initial = this.states['globalBlockTrees'][0];                               // [<existing>,            <existing>]
+                const maybePatchedInitial = createGbtState(initial, refBlocksThatMayHaveChanges); // [<maybePatchedExisting>,<maybePatchedExisting>]
+                // None of the 'GlobalBlockReference' blocks had changes
+                if (!maybePatchedInitial)
+                    return out;
+                // else one ore more gbts in $initial (<existing>) changed -> add history item to $out
+                return [...out, {
+                    channelName: 'globalBlockTrees',
+                    initial,
+                    first: maybePatchedInitial,
+                    latest: maybePatchedInitial
+                }];
+            } else {
+                const latest = gbtsHistoryItem.latest;                                          // [<existing>,            <existing>,            <maybeNew>]
+                const maybePatchedLatest = createGbtState(latest, refBlocksThatMayHaveChanges); // [<maybePatchedExisting>,<maybePatchedExisting>,<maybePatchedNew>]
+                if (!maybePatchedLatest)
+                    return out;
+                // else one ore more gbts in $gbtsHistoryItem.latest (<existing>) changed, patch $out's history item
+                return out.map(item => item !== gbtsHistoryItem ? item : {
+                    ...item,
+                    ...{latest: maybePatchedLatest}
+                });
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Returns a patched $initialState that contains changes from $refBlocksThatMayHaveChanges.
+ *
+ * @param {Array<GlobalBlockTree>} initialState
+ * @param {Array<Block>} refBlocksThatMayHaveChanges
+ * @returns {Array<GlobalBlockTree>|null}
+ */
+function createGbtState(stateArr, refBlocksThatMayHaveChanges) {
+    const patchInfo = stateArr.map(_ => ({status: 'no-changes', newBlocks: null}));
+    for (const block of refBlocksThatMayHaveChanges) {
+        const fromStateArrIdx = stateArr.findIndex(gbt => gbt.id === block.globalBlockTreeId);
+        const fromBlockTree = normalizeGbtRefBlockBlocks(treeToTransferable(block.__globalBlockTree.blocks));
+        if (JSON.stringify(stateArr[fromStateArrIdx].blocks) !== JSON.stringify(fromBlockTree))
+            patchInfo[fromStateArrIdx] = {status: 'has-changes', newBlocks: fromBlockTree};
+    }
+    if (patchInfo.findIndex(p => p.status === 'has-changes') < 0) {
+        return null;
+    }
+    return stateArr.map((gbt, i) => {
+        const pInfo = patchInfo[i];
+        return pInfo.status === 'no-changes' ? gbt : {...gbt, ...{blocks: pInfo.newBlocks}};
+    });
+}
+
+/**
+ * @param {Array<Block>} blocks
+ * @returns {Array<Block>}
+ */
+function normalizeGbtRefBlockBlocks(blocks) {
+    return blockTreeUtils.createMutation(blocks, copyOfBlocks => {
+        traverseRecursively(copyOfBlocks, b => {
+            b.id = unAppenfidyGbtRefBlockId(b.id);
+        });
+    });
+}
+
+/**
+ * @param {Array<Array<Block>>} blockTreeStates
+ * @returns {Array<Block>}
+ */
+function getGbtRefBlocksFrom(blockTreeStates) {
+    const map = new Map;
+    for (const item of blockTreeStates) {
+        for (const block of item) {
+            if (block.type === 'GlobalBlockReference')
+                // Set or override previous, so map has always the latest change
+                map.set(block.globalBlockTreeId, block);
+        }
+    }
+    return [...map.values()];
 }
 
 function createQuicklyAddedPagesChannelHandler() {
@@ -335,90 +432,6 @@ function createSaveableItems({initial, latest}, key = 'id') {
 }
 
 /**
- * @param {Array<StateHistory>} out
- * @param {{theBlockTree: Array<Array<Block>>; [others: String]: any;}} activeStates
- * @returns {Promise<Array<StateHistory>|null>}
- */
-async function globalBlockTreeSaveOpFilter(out, activeStates) {
-    const blockTreeStates = activeStates['theBlockTree'];
-    // Found block changes, check if any of them is a global block tree block
-    if (blockTreeStates) {
-        const refBlocksThatMaybeHaveChanges = getGbtRefBlocksFrom(blockTreeStates);
-        // Some were -> dynamically create, or patch $out's 'globalBlockTrees' item
-        if (refBlocksThatMaybeHaveChanges.length) {
-            const _ = await fetchOrGetGlobalBlockTrees();
-            const gbtsHistoryItem = out.find(({channelName}) => channelName === 'globalBlockTrees');
-            if (!gbtsHistoryItem) {
-                const initial = this.states['globalBlockTrees'][0];                                 // [<existing>,             <existing>]
-                const maybePatchedInitial = createGbtState(initial, refBlocksThatMaybeHaveChanges); // [<maybePatchedExisting>, <maybePatchedExisting>]
-
-                // None of the 'GlobalBlockReference' blocks had changes
-                if (!maybePatchedInitial)
-                    return out;
-                // else one ore more gbts in $initial (<existing>) changed -> add history item to $out
-                return [...out, {
-                    channelName: 'globalBlockTrees',
-                    initial,
-                    first: maybePatchedInitial,
-                    latest: maybePatchedInitial
-                }];
-            } else {
-                const latest = gbtsHistoryItem.latest;                                            // [<existing>,            <existing>,            <maybeNew>]
-                const maybePatchedLatest = createGbtState(latest, refBlocksThatMaybeHaveChanges); // [<maybePatchedExisting>,<maybePatchedExisting>,<maybePatchedNew>]
-                if (!maybePatchedLatest)
-                    return out;
-                // else one ore more gbts in $gbtsHistoryItem.latest (<existing>) changed, patch $out's history item
-                return out.map(item => item !== gbtsHistoryItem ? item : {
-                    ...item,
-                    ...{latest: maybePatchedLatest}
-                });
-            }
-        }
-    }
-    return null;
-}
-
-/**
- * @param {Array<Array<Block>>} blockTreeStates
- * @returns {Array<Block>}
- */
-function getGbtRefBlocksFrom(blockTreeStates) {
-    const map = new Map;
-    for (const item of blockTreeStates) {
-        for (const block of item) {
-            if (block.type === 'GlobalBlockReference')
-                // Set or override previous, so map has always the latest change
-                map.set(block.globalBlockTreeId, block);
-        }
-    }
-    return [...map.values()];
-}
-
-/**
- * Returns a patched $initialState that contains changes from $refBlocksThatMaybeHaveChanges.
- *
- * @param {Array<GlobalBlockTree>} initialState
- * @param {Array<Block>} refBlocksThatMaybeHaveChanges
- * @returns {Array<GlobalBlockTree>|null}
- */
-function createGbtState(stateArr, refBlocksThatMaybeHaveChanges) {
-    const patchInfo = stateArr.map(_ => ({status: 'no-changes', newBlocks: null}));
-    for (const block of refBlocksThatMaybeHaveChanges) {
-        const fromStateArrIdx = stateArr.findIndex(gbt => gbt.id === block.globalBlockTreeId);
-        const fromBlockTree = treeToTransferable(block.__globalBlockTree.blocks);
-        if (JSON.stringify(stateArr[fromStateArrIdx].blocks) !== JSON.stringify(fromBlockTree))
-            patchInfo[fromStateArrIdx] = {status: 'has-changes', newBlocks: fromBlockTree};
-    }
-    if (patchInfo.findIndex(p => p.status === 'has-changes') < 0) {
-        return null;
-    }
-    return stateArr.map((gbt, i) => {
-        const pInfo = patchInfo[i];
-        return pInfo.status === 'no-changes' ? gbt : {...gbt, ...{blocks: pInfo.newBlocks}};
-    });
-}
-
-/**
  * @param {Array<StateHistory>} queue
  * @returns {{[channelName: String]: state;}}
  */
@@ -464,10 +477,8 @@ function createInitialState() {
  */
 
 export {
-    createGbtState,
     createInitialState,
     createSignalName,
-    getGbtRefBlocksFrom,
     getLatestItemsOfEachChannel,
     handlerFactoriesMap,
     normalizeItem,

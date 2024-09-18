@@ -36,7 +36,7 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
     public function onBeforeRender(Block $block,
                                    BlockTypeInterface $blockType,
                                    Injector $di): void {
-        $di->execute([$this, "doPerformBeforeRender"], [
+        $di->execute($this->doPerformBeforeRender(...), [
             ":block" => $block,
         ]);
     }
@@ -46,7 +46,7 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $req 
      */
-    public function doPerformBeforeRender(Block $block,
+    private function doPerformBeforeRender(Block $block,
                                           PagesRepository2 $pagesRepo,
                                           TheWebsite $theWebsite,
                                           Request $req): void {

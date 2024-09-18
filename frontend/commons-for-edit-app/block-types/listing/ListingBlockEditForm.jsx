@@ -224,10 +224,14 @@ class ListingBlockEditForm extends preact.Component {
             return {howManyType: this.state.howManyType, howManyAmountNotCommitted: this.state.howManyAmountNotCommitted, howManyAmountError: this.state.howManyAmountError, parent: this};
         if (PopupRendererCls === DefinePageTypePopup)
             return {howManyType: this.state.howManyType, filterPageType: this.state.filterPageType, parent: this};
-        if (PopupRendererCls === AddFilterPopup)
+        if (PopupRendererCls === AddFilterPopup) {
+            const hasCategoryOwnField = this.selectedPageTypeBundle.pageType.ownFields.some(f => typeof f.dataType.rel === 'string');
             return {filtersParsed: this.state.filtersParsed,
                     howManyTypeAdjusted: createAdjustedHowManyType(this.state.howManyType, this.state.howManyAmount),
-                    currentFiltersJson: this.state.additionalFiltersJson, parent: this};
+                    currentFiltersJson: this.state.additionalFiltersJson,
+                    showAddCategoryFilterButton: hasCategoryOwnField,
+                    parent: this};
+        }
         if (PopupRendererCls === DefineOrderPopup)
             return {order: this.state.order, parent: this};
         if (PopupRendererCls === ChooseRendererPopup)

@@ -41,13 +41,17 @@ function createStylesBundleChannelHandler() {
          * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
-            const toTransferable = bundle => ({
-                styleChunks: bundle.styleChunks,
-                cachedCompiledCss: bundle.cachedCompiledCss,
-            });
-            const {theme} = globalData;
+            const toTransferable = bundle => {
+                const {id, type} = api.saveButton.getInstance().getChannelState('currentPageData');
+                return {
+                    styleChunks: bundle.styleChunks,
+                    cachedCompiledCss: bundle.cachedCompiledCss,
+                    pageId: id,
+                    pageType: type,
+                };
+            };
             return doPostOrPut(http.put(
-                `/api/themes/${theme.id}/styles/all`,
+                `/api/themes/${globalData.theme.id}/styles/all`,
                 toTransferable(stateHistory.latest)
             ));
         }

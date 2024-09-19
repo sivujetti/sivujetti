@@ -111,12 +111,12 @@ class SaveButton extends preact.Component {
         this.pushHistoryItem(group);
     }
     /**
-     * @param {() => any} fn
+     * @param {() => any} thenDo
      * @returns {Function} Unregister
      * @access public
      */
-    onAfterItemsSynced(fn) {
-        return saveButtonEvents2.on('after-items-synced', fn);
+    onAfterItemsSynced(thenDo) {
+        return saveButtonEvents2.on('after-items-synced', thenDo);
     }
     /**
      * @access public
@@ -133,6 +133,20 @@ class SaveButton extends preact.Component {
      */
     setHotkeyUndoLockIsOn(isOn) {
         this.hotkeyUndoLockIsOn = isOn;
+    }
+    /**
+     * @template T
+     * @param {(queue: Array<StateHistory<T>>, activeState: Array<T>) => Array<StateHistory<T>>|null} fn
+     * @param {Boolean} toEnd
+     * @returns {() => void} Unregister
+     * @access public
+     */
+    registerSyncQueueFilter(fn, toEnd = true) {
+        if (toEnd) this.syncQueueFilters.push(fn);
+        else this.syncQueueFilters.unshift(fn);
+        return () => {
+            this.syncQueueFilters = this.syncQueueFilters.filter(fn2 => fn2 !== fn);
+        };
     }
     /**
      * @access protected
@@ -155,6 +169,7 @@ class SaveButton extends preact.Component {
         if (!isVisible) return;
         const cls = !isStickied ? '' : ' stickied pl-1';
         const icon = <Icon iconId="arrow-back-up" className={ `${!isStickied ? 'size-sm' : 'size-xs'} color-dimmed3` }/>;
+        const canSave = !canUndo && canRedo ? false : true;
         return <div class={ `save-button d-flex col-ml-auto flex-centered${cls}` }>
             <button
                 onClick={ this.doUndo.bind(this) }
@@ -174,7 +189,7 @@ class SaveButton extends preact.Component {
                 onClick={ this.syncQueuedOpsToBackend.bind(this) }
                 class="btn btn-link flex-centered px-2"
                 title={ __('Save changes') }
-                disabled={ isSubmitting }>
+                disabled={ !canSave || isSubmitting }>
                 <Icon iconId="device-floppy" className={ !isStickied ? '' : 'size-sm' }/>
                 <span class="mt-1 ml-1">*</span>
             </button>
@@ -188,7 +203,7 @@ class SaveButton extends preact.Component {
         if (this.opHistoryCursor < this.opHistory.length)
             this.opHistory.splice(this.opHistoryCursor);
         this.opHistoryCursor = this.opHistory.push(item);
-        this.setState({isVisible: true, canUndo: true});
+        this.setState({isVisible: true, canUndo: true, canRedo: false});
         if (!this.unregisterUnsavedChangesAlert) {
             // #1 Register a function that will prompt the user for confirmation during the next navigation
             const unregisterBlocker = historyInstance.block(__('You have unsaved changes, do you want to navigate away?'));
@@ -257,43 +272,23 @@ class SaveButton extends preact.Component {
      */
     async syncQueuedOpsToBackend() {
         this.unregisterAndClearUnsavedChagesAlertIfSet();
-        const next = (queue, i) => {
-            const top = queue[i];
-            if (top) {
-                const handler = this.channelImpls[top.channelName];
-                handler.syncToBackend(top, queue).then(doProceed => {
-                    const hadRecoverableException = doProceed === false; // Note: false = recoverableException, anyOtherValue = ok
-                    // Promise returned any value other than false (undefined, true, etc.) -> interpret this as a success and continue
-                    if (!hadRecoverableException)
-                        next(queue, i + 1);
-                    // Handler returned false (i.e., a recoverable error occurred) -> do not call next() and stop
-                    else {
-                        this.removeOpHistoryItemsBetween(/*?, ? todo*/);
-                        this.setState({isSubmitting: false});
-                    }
-                });
-            } else { // Got them all
-                this.reset(getLatestItemsOfEachChannel(queue));
-                saveButtonEvents2.emit('after-items-synced');
-            }
-        };
         this.setState({isSubmitting: true});
+
         const syncQueue = await this.createSynctobackendQueue();
-        next(syncQueue, 0);
-    }
-    /**
-     * @template T
-     * @param {(queue: Array<StateHistory<T>>, activeState: Array<T>) => Array<StateHistory<T>>|null} fn
-     * @param {Boolean} toEnd
-     * @returns {() => void} Unregister
-     * @access public
-     */
-    registerSyncQueueFilter(fn, toEnd = true) {
-        if (toEnd) this.syncQueueFilters.push(fn);
-        else this.syncQueueFilters.unshift(fn);
-        return () => {
-            this.syncQueueFilters = this.syncQueueFilters.filter(fn2 => fn2 !== fn);
-        };
+        for (const top of syncQueue) {
+            const handler = this.channelImpls[top.channelName];
+            const result = await handler.syncToBackend(top, syncQueue);
+            // If handler returns false -> stop processing. If it returns any other value
+            // (undefined, true, etc.) -> interpret this as a success and continue
+            const isStopSignal = result === false;
+            if (isStopSignal) {
+                this.removeOpHistoryItemsBetween(/*?, ? todo*/);
+                this.setState({isSubmitting: false});
+            }
+        }
+
+        this.reset(getLatestItemsOfEachChannel(syncQueue));
+        saveButtonEvents2.emit('after-items-synced');
     }
     /**
      * @returns {state}

@@ -105,15 +105,13 @@ function createReusableBranchesChannelHandler() {
          * @param {Array<StateHistory>} _otherHistories
          * @returns {Promise<Boolean|any>}
          */
-        syncToBackend(stateHistory, _otherHistories) {
+        async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory);
-            return Promise.all(saveable.map(({type, arg}) =>
-                type === 'insert'
-                    ? http.post('/api/reusable-branches', arg)
-                    : (window.console.error(`${type}:ng to backend not implemented yet`), {ok: 'ok'})
-            )).then(results =>
-                results.every(resp => resp?.ok === 'ok')
-            );
+            const results = await Promise.all(saveable.map(({type, arg}) => type === 'insert'
+                ? http.post('/api/reusable-branches', arg)
+                : (window.console.error(`${type}:ng to backend not implemented yet`), {ok: 'ok'})
+            ));
+            return results.every(resp => resp?.ok === 'ok');
         }
     };
 }
@@ -133,15 +131,13 @@ function createGlobalBlockTreesChannelHandler() {
          * @param {Array<StateHistory>} _otherHistories
          * @returns {Promise<Boolean|any>}
          */
-        syncToBackend(stateHistory, _otherHistories) {
+        async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory);
-            return Promise.all(saveable.map(({type, arg}) =>
-                type === 'update'
-                    ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks})
-                    : http.post(`/api/global-block-trees`, arg)
-            )).then(results =>
-                results.every(resp => resp?.ok === 'ok')
-            );
+            const results = await Promise.all(saveable.map(({type, arg}) => type === 'update'
+                ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks})
+                : http.post('/api/global-block-trees', arg)
+            ));
+            return results.every(resp => resp?.ok === 'ok');
         }
     };
 }
@@ -256,13 +252,12 @@ function createQuicklyAddedPagesChannelHandler() {
          * @param {Array<StateHistory>} _otherHistories
          * @returns {Promise<Boolean|any>}
          */
-        syncToBackend(stateHistory, _otherHistories) {
+        async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory);
-            return Promise.all(saveable.map(({arg}) =>
+            const results = await Promise.all(saveable.map(({arg}) =>
                 http.post(`/api/pages/${arg.type}/upsert-quick`, arg)
-            )).then(results =>
-                results.every(resp => resp?.ok === 'ok')
-            );
+            ));
+            return results.every(resp => resp?.ok === 'ok');
         }
     };
 }
@@ -352,13 +347,12 @@ function createPageTypesChannelHandler() {
          * @param {Array<StateHistory>} _otherHistories
          * @returns {Promise<Boolean|any>}
          */
-        syncToBackend(stateHistory, _otherHistories) {
+        async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory, 'name');
-            return Promise.all(saveable.map(({arg}) =>
-                http.post(`/api/page-types`, arg)
-            )).then(results =>
-                results.every(resp => resp?.ok === 'ok')
-            );
+            const results = await Promise.all(saveable.map(({arg}) =>
+                http.post('/api/page-types', arg)
+            ));
+            return results.every(resp => resp?.ok === 'ok');
         }
     };
 }
@@ -399,13 +393,14 @@ function toTransferable(page, notTheseKeys = []) { // todo yhdistä jonnekin uti
  * @param {adjustErrorToastArgsFn} adjustErrorToastArgs = null
  * @returns {Promise<Boolean>}
  */
-function doPostOrPut(httpCall, adjustErrorToastArgs = null) {
-    return httpCall
-        .then(resp => {
-            if (resp.ok !== 'ok') throw new Error(typeof resp.err !== 'string' ? '-' : resp.err);
-            return true;
-        })
-        .catch(err => handleHttpError(err, adjustErrorToastArgs));
+async function doPostOrPut(httpCall, adjustErrorToastArgs = null) {
+    try {
+        const resp = await httpCall;
+        if (resp.ok !== 'ok') throw new Error(typeof resp.err !== 'string' ? '-' : resp.err);
+        return true;
+    } catch (err) {
+        return handleHttpError(err, adjustErrorToastArgs);
+    }
 }
 
 /**

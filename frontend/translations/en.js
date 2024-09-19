@@ -114,6 +114,8 @@ stringBundles.push({
     'Link to image/file: ': 'Link to image/file: ',
     'Link to an address: ': 'Link to an address: ',
     'Anchor': 'Anchor',
+    'First, select the text you want to mark as an anchor.': 'First, select the text you want to mark as an anchor.',
+    'First, highlight the entire text of the anchor you want to edit.': 'First, highlight the entire text of the anchor you want to edit.',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Styles',
     'Styles (customizations)': 'Tyylit (customizations)',

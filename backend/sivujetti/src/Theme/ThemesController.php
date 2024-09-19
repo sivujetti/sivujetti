@@ -227,15 +227,29 @@ final class ThemesController {
      */
     private static function createData(object $input): ?object {
         if (($data = $input->data ?? null)) {
-            if ($input->scope->kind === "custom-class")
+            if ($input->scope->kind === "custom-class") {
+                $title = $data->title ?? null;
+                $custSettings = $data->customizationSettings ?? null;
+                $assocBlockTypes = $data->associatedBlockTypes ?? null;
                 return (object) [
-                    ...(($data->title ?? null) ? ["title" => substr($data->title, 0, ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)] : []),
-                    ...(($data->customizationSettings ?? null) ? ["customizationSettings" => $data->customizationSettings] : []),
-                    ...(($data->associatedBlockTypes ?? null) ? ["associatedBlockTypes" => array_map(function(string $bt) {
-                        if (!Validation::isIdentifier($bt)) throw new PikeException("", PikeException::BAD_INPUT);
-                        return substr($bt, 0, ValidationUtils::INDEX_STR_MAX_LENGTH);
-                    }, $data->associatedBlockTypes)] : []),
+                    ...($title
+                        ? ["title" => substr($title, 0, ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)]
+                        : []),
+                    ...($custSettings
+                        ? ["customizationSettings" => (object) [
+                            "varDefs" => array_map(function(object $v) {
+                                return $v; // todo
+                            }, $custSettings->varDefs)
+                        ]]
+                        : []),
+                    ...($assocBlockTypes
+                        ? ["associatedBlockTypes" => array_map(function(string $bt) {
+                            if (!Validation::isIdentifier($bt)) throw new PikeException("", PikeException::BAD_INPUT);
+                            return substr($bt, 0, ValidationUtils::INDEX_STR_MAX_LENGTH);
+                        }, $assocBlockTypes)]
+                        : []),
                 ];
+            }
         }
         return null;
     }

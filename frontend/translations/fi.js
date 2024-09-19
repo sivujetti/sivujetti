@@ -115,6 +115,8 @@ stringBundles.push({
     'Link to image/file: ': 'Linkki kuvaan/tiedostoon: ',
     'Link to an address: ': 'Linkki osoitteeseen: ',
     'Anchor': 'Ankkuri',
+    'First, select the text you want to mark as an anchor.': 'Maalaa ensin teksti jonka haluat merkata ankkuriksi.',
+    'First, highlight the entire text of the anchor you want to edit.': 'Maalaa ensin muokattavan ankkurin teksti kokonaisuudessaan.',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Tyylit',
     'Styles (customizations)': 'Tyylit (kustomoinnit)',

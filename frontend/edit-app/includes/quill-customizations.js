@@ -2,7 +2,6 @@ import {
     __,
     determineModeFromPreview,
     doubleNormalizeUrl,
-    env,
     getVisibleSlug,
     iconAsString,
     stringUtils,
@@ -222,6 +221,14 @@ class MySnowTheme extends Quill.import('themes/snow') {
             e.preventDefault();
             e.stopPropagation();
             const curval = this.quill.getFormat()['id-anchor'];
+            if (!window.sivujettiUserFlags?.useBlockIdPickerScope &&
+                !this.quill.selection.getRange()[0]?.length) {
+                window.alert(__(!curval
+                    ? 'First, select the text you want to mark as an anchor.'
+                    : 'First, highlight the entire text of the anchor you want to edit.'
+                ));
+                return false;
+            }
             input.value = curval || '';
             if (curval) clearIdBtn.style.display = 'block';
             appliedVal = curval;
@@ -308,7 +315,7 @@ class MyLink extends Quill.import('formats/link') {
         const isLocal = isEmpty || isLocalJump || (
             value.startsWith('/') &&
             !value.startsWith('//') &&
-            node.host === env.window.location.host
+            node.host === window.location.host
         );
         if (isLocal) {
             node.removeAttribute('rel');
@@ -334,7 +341,7 @@ class MyLink extends Quill.import('formats/link') {
      */
     format(name, value) {
         super.format(name, value);
-        const isLocal = this.domNode.host === env.window.location.host;
+        const isLocal = this.domNode.host === window.location.host;
         // Local link turned to external -> clear 'data-href-original'
         if (this.domNode.getAttribute('data-href-original') && !isLocal) {
             this.domNode.removeAttribute('data-href-original');
@@ -357,7 +364,7 @@ function addOrReplaceHrefAttrsPatch(linkEl) {
 
 const Parchment = Quill.import('parchment');
 const IdAttributor = new Parchment.Attributor('id-anchor', 'id', {
-    scope: !window.sivujettiUserFlags?.useInlineIdPickerScope
+    scope: window.sivujettiUserFlags?.useBlockIdPickerScope
         ? Parchment.Scope.BLOCK
         : Parchment.Scope.INLINE_ATTRIBUTE
 });

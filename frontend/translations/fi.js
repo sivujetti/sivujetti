@@ -130,7 +130,6 @@ stringBundles.push({
     '↳ Add content as child': '↳ Lisää lapsisisältöä',
     'Duplicate': 'Monista',
     'Duplicate content': 'Monista sisältö',
-    'no styles': 'ei tyylejä',
     'Delete': 'Poista',
     'Delete content': 'Poista sisältö',
     'Save as reusable': 'Tallenna uudelleenkäytettäväksi',

@@ -321,8 +321,6 @@ interface ContextMenuLink {
     id: String;
 }
 
-type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undoUpdateDefPropsOf'|'theBlockTree/addBlockOrBranch'|'theBlockTree/updatePropsOf'|'theBlockTree/updateDefPropsOf';
-
 type blockPropValueChangeFlags = 'is-throttled'|'is-group'|'is-initial'|null;
 
 interface BlockEditFormProps {

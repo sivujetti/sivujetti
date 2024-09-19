@@ -241,8 +241,7 @@ class BlockTree extends preact.Component {
                 {maxWidth: 580, offsetY: !placeAtBefore ? 4 : -25},
             );
         } else if (link.id === 'duplicate-block') {
-            const withStyles = link.text.indexOf('(') < 0;
-            this.cloneBlock(this.blockWithMoreMenuOpened, withStyles);
+            this.cloneBlock(this.blockWithMoreMenuOpened);
         } else if (link.id === 'delete-block') {
             this.deleteBlock(this.blockWithMoreMenuOpened);
         } else if (link.id === 'save-block-as-reusable') {
@@ -269,24 +268,17 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} openBlock
-     * @param {Boolean} alsoCloneStyles
      * @access private
      */
-    cloneBlock(openBlock, alsoCloneStyles) {
+    cloneBlock(openBlock) {
         const saveButton = api.saveButton.getInstance();
         let cloned;
 
-        let newUserStyles = [];
-        let newDevStyles = [];
         const newTree = blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
             const [origBlockRef, refBranch] = blockTreeUtils.findBlockMultiTree(openBlock.id, newTreeCopy);
             const cloned2 = duplicateDeepAndReAssignIds(origBlockRef);
             const changes = callGetBlockPropChangesEvent(cloned2.type, 'cloneBlock', [cloned2]);
             if (changes) writeBlockProps(cloned2, changes);
-
-            if (alsoCloneStyles) {
-                // todo
-            }
 
             // insert after current
             refBranch.splice(refBranch.indexOf(origBlockRef) + 1, 0, cloned2);
@@ -294,13 +286,7 @@ class BlockTree extends preact.Component {
             return newTreeCopy;
         });
 
-        const pushNewTreeArgs = ['theBlockTree', newTree, {event: 'duplicate'}];
-
-        if (newUserStyles.length || newDevStyles.length) {
-            // todo
-        } else {
-            saveButton.pushOp(...pushNewTreeArgs);
-        }
+        saveButton.pushOp('theBlockTree', newTree, {event: 'duplicate'});
 
         api.webPagePreview.scrollToBlockAsync(cloned);
     }
@@ -493,16 +479,18 @@ class BlockTree extends preact.Component {
         ];
         return {
             getLinks: () => {
-                const links = [
-                    ...(!isPageInfo ? spawnLinks : [spawnLinks[1]]),
-                    ...(!isPageInfo ? [
+                const links = !isPageInfo
+                    ? [
+                        ...spawnLinks,
                         {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
                         {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
-                    ] : []),
-                    ...(!isPageInfo && (api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')) ? [
-                        {text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}
-                    ] : []),
-                ];
+                        ...(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees') ? [
+                            {text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}
+                        ] : [])
+                    ]
+                    : [
+                        spawnLinks[1],
+                    ];
                 const notThese = blockIsGbtsOutermostBlock ? ['duplicate-block'] : [];
                 return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
             },
@@ -571,23 +559,6 @@ class BlockTree extends preact.Component {
         api.webPagePreview.unHighlightBlock(this.currentlyHoveredLi.getAttribute('data-block-id'));
         this.currentlyHoveredLi = null;
     }
-}
-
-/**
- * @param {Block} original
- * @param {Block} cloned
- * @returns {[Array<Block>, Array<Block]}
- */
-function flattenBlocksRecursive(original, cloned) {
-    const flatOriginal = [];
-    traverseRecursively([original], b1 => {
-        flatOriginal.push(b1);
-    });
-    const flatCloned = [];
-    traverseRecursively([cloned], b2 => {
-        flatCloned.push(b2);
-    });
-    return [flatOriginal, flatCloned];
 }
 
 export default BlockTree;

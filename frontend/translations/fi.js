@@ -168,7 +168,6 @@ stringBundles.push({
     'Page categories#partitive': 'Sivukategoriaa',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Muokkaustila',
-    'Hide edit menu': 'Piilota muokkausvalikko',
     'Go to dashboard': 'Siirry dashboardiin',
     'Log out': 'Kirjaudu ulos',
     'You can add content by dragging': 'Voit lisätä sisältöä raahaamalla',

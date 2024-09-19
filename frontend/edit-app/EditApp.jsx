@@ -28,11 +28,11 @@ class EditApp extends preact.Component {
     componentWillMount() {
         this.changeViewOptions = [
             {name: 'edit-mode', label: __('Edit mode')},
-            {name: 'hide-edit-menu', label: __('Hide edit menu')},
-        ].concat(this.props.showGoToDashboardMode
-            ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
-            : []
-        ).concat({name: 'log-out', label: __('Log out')});
+            ...(this.props.showGoToDashboardMode
+                ? [{name: 'go-to-dashboard', label: __('Go to dashboard')}]
+                : []),
+            {name: 'log-out', label: __('Log out')},
+        ];
         this.resizeHandleEl = preact.createRef();
     }
     /**
@@ -88,22 +88,19 @@ class EditApp extends preact.Component {
      * @access protected
      */
     render({outerEl}) {
-        const hidePanels = false;
         const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo-shape-only.png');
         return [
-            <header class={ !hidePanels ? 'd-flex' : 'd-none' }>
+            <header class="d-flex">
                 <div class="mode-chooser ml-2 d-flex p-1" style="margin-bottom: -.2rem; margin-top: .1rem;">
                     <a href={ urlUtils.makeUrl('_edit', true) } class="d-inline-block mr-1">
                         <img src={ logoUrl }/>
                     </a>
                     <span class="d-inline-block ml-1">
                         <span class="d-block">Sivujetti</span>
-                        <select value={ this.changeViewOptions[!hidePanels ? 0 : 1].name } onChange={ e => {
-                            if (e.target.value === this.changeViewOptions[1].name) {
-                                alert('This feature is currently disabled.');
-                            } else if (e.target.value === this.changeViewOptions.at(-1).name)
+                        <select value={ this.changeViewOptions[0].name } onChange={ e => {
+                            if (e.target.value === this.changeViewOptions.at(-1).name)
                                 this.logUserOut();
-                            else if (e.target.value === (this.changeViewOptions[2] || {}).name)
+                            else if (e.target.value === 'go-to-dashboard')
                                 env.window.location.href = this.props.dashboardUrl;
                             else
                                 env.window.console.error(`Unkown option ${e.target.value}`);

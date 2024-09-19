@@ -167,7 +167,6 @@ stringBundles.push({
     'Page categories#partitive': 'Page categories',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Edit mode',
-    'Hide edit menu': 'Hide edit menu',
     'Go to dashboard': 'Go to dashboard',
     'Log out': 'Log out',
     'You can add content by dragging': 'You can add content by dragging',

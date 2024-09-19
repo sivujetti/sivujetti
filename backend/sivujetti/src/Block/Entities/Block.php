@@ -70,10 +70,10 @@ final class Block extends \stdClass {
 
     /* If "MyListing"
     public string $filterPageType; Example "Pages"
-    public string $filterLimit; Example 10
+    public int $filterLimit; Example 10
     public string $filterLimitType; "all"|"single"|"atMost"
     public string $filterOrder; "desc"|"asc"|"rand"
-    public string $filterAdditional; Example: {slug: {$startsWith: "foo"}}
+    public object $filterAdditional; Example: {slug: {$startsWith: "foo"}}
     public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page>
     public ?\Sivujetti\PageType\Entities\PageType $__pageType; */
 

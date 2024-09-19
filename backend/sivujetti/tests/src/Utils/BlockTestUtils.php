@@ -69,16 +69,6 @@ final class BlockTestUtils {
         return BlockTree::findBlockById($id, $page->blocks);
     }
     /**
-     * @param object $rawBlock An object returned by $this->makeBlockData()
-     * @param string $html
-     * @return string
-     */
-    public static function decorateWithRef(object $rawBlock, string $html): string {
-        return $rawBlock->type !== Block::TYPE_GLOBAL_BLOCK_REF
-            ? $html
-            : "<!-- block-start {$rawBlock->id}:{$rawBlock->type} -->{$html}<!-- block-end {$rawBlock->id} -->";
-    }
-    /**
      * @param object $rawBlock
      * @param string $key
      * @param mixed $val
@@ -138,11 +128,11 @@ final class BlockTestUtils {
     /**
      * @param object $rawBlock
      * @param ?string $cls = null
-     * @param string $childHtml = "<!-- children-start --><!-- children-end -->"
+     * @param string $childHtml = ""
      */
     public function getExpectedParagraphBlockOutput(object $rawBlock,
                                                     ?string $cls = null,
-                                                    string $childHtml = "<!-- children-start --><!-- children-end -->"): string {
+                                                    string $childHtml = ""): string {
         return "<p class=\"j-Paragraph{$cls}\" data-block-type=\"Paragraph\" data-block=\"{$rawBlock->id}\">" .
             "{$rawBlock->text}{$childHtml}" .
         "</p>";
@@ -151,12 +141,12 @@ final class BlockTestUtils {
      * @param object $rawBlock
      * @param ?string $expectedTag = null
      * @param ?string $cls = null
-     * @param string $childHtml = "<!-- children-start --><!-- children-end -->"
+     * @param string $childHtml = ""
      */
     public function getExpectedHeadingBlockOutput(object $rawBlock,
                                                   ?string $expectedTag = null,
                                                   ?string $cls = null,
-                                                  string $childHtml = "<!-- children-start --><!-- children-end -->"): string {
+                                                  string $childHtml = ""): string {
         if (!$expectedTag) $expectedTag = "h{$rawBlock->level}";
         return "<{$expectedTag} class=\"j-Heading{$cls}\" data-block-type=\"Heading\" data-block=\"{$rawBlock->id}\">" .
             "{$rawBlock->text}{$childHtml}" .
@@ -166,14 +156,7 @@ final class BlockTestUtils {
         if (!$links)
             $links = (object) ["id" => "", "slug" => "/", "text" => "", "children" => []];
         return [
-            "tree" => json_encode($links),
-            "wrapStart" => "<nav{defaultAttrs}>",
-            "wrapEnd" => "</nav>",
-            "treeStart" => "<ul>",
-            "treeEnd" => "</ul>",
-            "itemAttrs" => json_encode(["data-prop" => "val"]),
-            "itemStart" => "<li>",
-            "itemEnd" => "</li>",
+            "tree" => $links,
         ];
     }
 }

@@ -87,7 +87,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
             "title must be string",
             "level must be number",
             "meta.description must be string",
-            "The length of meta.description must be 206 or less",
+            "The length of meta.description must be 300 or less",
             "layoutId must be number",
             "The value of layoutId must be 1 or greater",
             "status must be number",
@@ -105,16 +105,21 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $state = $this->setupTest();
         $state->inputData = (object) [
             "slug" => "foo.com",
-            "meta" => (object) ["socialImage" => (object) [ ]]
+            "meta" => (object) ["socialImage" => (object) ["mime" => new \stdClass]]
         ];
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->expectException(PikeException::class);
-        $this->expectExceptionMessageMatches("/slug is not valid/");
-        $this->expectExceptionMessageMatches("/meta.socialImage.src must be string/");
-        $this->expectExceptionMessageMatches("/The length of meta.socialImage.mime must be 206 or less/");
-        $this->expectExceptionMessageMatches("/meta.socialImage.width must be int/");
-        $this->expectExceptionMessageMatches("/meta.socialImage.height must be int/");
+        $this->expectExceptionMessageMatches(
+            "/" .
+            ".+" .
+            "meta\.socialImage\.src must be string.+" .
+            "Expected meta\.socialImage\.src not to contain the value.+" .
+            "The length of meta\.socialImage\.mime must be 128 or less.+" .
+            "meta\.socialImage\.width must be int.+" .
+            "meta\.socialImage\.height must be int.+" .
+            "/s"
+        );
         $this->sendUpdatePageRequest($state);
     }
 

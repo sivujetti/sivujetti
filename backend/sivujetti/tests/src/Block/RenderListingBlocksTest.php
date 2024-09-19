@@ -29,7 +29,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $this->makeTestSivujettiApp($state);
         $expectedHtml = (
             "<div class=\"j-Listing page-type-pages\" data-block-type=\"Listing\" data-block=\"{$state->testBlocks[0]->id}\">\r\n" .
-                "    <p>No pages found.</p>\r\n<!-- children-start --><!-- children-placeholder --><!-- children-end -->" .
+                "    <p>No pages found.</p>\r\n" .
             "</div>"
         );
         $this->renderAndVerify($state, 0, $expectedHtml);
@@ -49,19 +49,19 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
                     "filterLimit" => 0,
                     "filterLimitType" => "all",
                     "filterOrder" => "desc",
-                    "filterAdditional" => "{}"],
+                    "filterAdditional" => new \stdClass],
                 id: "@auto"),
         ];
         $makeExpectedListItem = fn(object $pageData) =>
             "        <article class=\"list-item list-item-{$pageData->slug}\">\r\n" .
             "        <h2>".Template::e($pageData->title)."</h2>\r\n" .
-            "        <div><a href=\"".(new Template("dummy"))->makeUrl($pageData->slug)."\">Read more</a></div>\r\n" .
+            "        <div><a href=\"".self::createTemplate()->makeUrl($pageData->slug)."\">Read more</a></div>\r\n" .
             "    </article>\r\n";
         $state->makeExpectedHtml = fn(object $b, object $page1Data, object $page2Data = null) =>
             "<div class=\"j-Listing page-type-pages\" data-block-type=\"Listing\" data-block=\"{$b->id}\">\r\n" .
                 ($makeExpectedListItem($page1Data)) .
                 ($page2Data ? $makeExpectedListItem($page2Data) : "") .
-            "    <!-- children-start --><!-- children-placeholder --><!-- children-end --></div>";
+            "    </div>";
         return $state;
     }
     private function insertTestPages(\TestState $state): void {
@@ -182,7 +182,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithoutFilter);
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $f = json_encode(["p.slug" => ["\$startsWith" => "/hello"]]);
+        $f = (object) ["p.slug" => ["\$startsWith" => "/hello"]];
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f);
         $expectedListItemsWithFilter = [$state->testPageData[0]];
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithFilter);
@@ -204,7 +204,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithoutFilter);
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $f = json_encode(["p.categories" => ["\$contains" => "\"{$state->testCatData->id}\""]]);
+        $f = (object) ["p.categories" => ["\$contains" => "\"{$state->testCatData->id}\""]];
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f);
         $expectedListItemsWithLimit = [$state->testPageData[0]];
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithLimit);
@@ -230,14 +230,14 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $fn = $state->makeExpectedHtml;
         //
         $f1v = ["\$contains" => "\"{$state->testCatData->id}\""];
-        $f1 = json_encode(["p.categories" => $f1v]);
+        $f1 = (object) ["p.categories" => $f1v];
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f1);
         $expectedListItemsWithSingleFilter = [$state->testPageData[1], $state->testPageData[0]];
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithSingleFilter);
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $f2 = json_encode(["p.categories" => $f1v,
-                           "p.slug" => ["\$startsWith" => "/hello"]]);
+        $f2 = (object) ["p.categories" => $f1v,
+                        "p.slug" => ["\$startsWith" => "/hello"]];
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f2);
         $expectedListItemsWithBothFilters = [$state->testPageData[0]];
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithBothFilters);

@@ -51,7 +51,7 @@ class PageInfoBlockEditForm extends preact.Component {
              label: __('Url (slug)'), onAfterValueChanged: (value, hasErrors, source) => {
                 throttler(createSlugAndPath(value, this.pageType), hasErrors, source);
             }},
-            {name: 'description', value: initialFormState[2].value, validations: [['maxLength', 206]],
+            {name: 'description', value: initialFormState[2].value, validations: [['maxLength', 300]],
              label: __('Meta description'), onAfterValueChanged: (value, hasErrors, source) => {
                 throttler(mut => { mut.meta.description = value; }, hasErrors, source);
              }},

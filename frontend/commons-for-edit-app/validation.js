@@ -3,10 +3,10 @@ import {validationConstraints} from './constants.js';
 
 const urlValidatorImpl = {doValidate: (val, hints = {}) => {
     const [allowExternal, allowLocal, allowEmpty, allowLongLocal] = [
-        Object.prototype.hasOwnProperty.call(hints, 'allowExternal') ? hints.allowExternal : true,
-        Object.prototype.hasOwnProperty.call(hints, 'allowLocal') ? hints.allowLocal : true,
-        Object.prototype.hasOwnProperty.call(hints, 'allowEmpty') ? hints.allowEmpty : false,
-        Object.prototype.hasOwnProperty.call(hints, 'allowLongLocal') ? hints.allowLongLocal : true,
+        Object.hasOwn(hints, 'allowExternal') ? hints.allowExternal : true,
+        Object.hasOwn(hints, 'allowLocal') ? hints.allowLocal : true,
+        Object.hasOwn(hints, 'allowEmpty') ? hints.allowEmpty : false,
+        Object.hasOwn(hints, 'allowLongLocal') ? hints.allowLongLocal : true,
     ];
     //
     const [comp, isLocal] = createCanonicalUrl(val);
@@ -29,7 +29,7 @@ const urlValidatorImpl = {doValidate: (val, hints = {}) => {
 
 const mediaUrlValidatorImpl = {doValidate: (val, hints = {}) => {
     if (!val) {
-        const allowEmpty = Object.prototype.hasOwnProperty.call(hints, 'allowEmpty') ? hints.allowEmpty : true;
+        const allowEmpty = Object.hasOwn(hints, 'allowEmpty') ? hints.allowEmpty : true;
         return allowEmpty;
     }
     const containsDotSlash = val.indexOf('./') > -1;

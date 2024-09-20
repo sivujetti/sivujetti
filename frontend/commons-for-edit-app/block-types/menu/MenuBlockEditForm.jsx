@@ -165,10 +165,10 @@ class CountingLinkItemFactory {
     makeLinkItem(vals = {slug: '/', text: __('Link text')}) {
         return {
             ...vals,
-            ...(!Object.prototype.hasOwnProperty.call(vals, 'id')
+            ...(!Object.hasOwn(vals, 'id')
                 ? {id: (++this.counter).toString()}
                 : {}),
-            ...(!Object.prototype.hasOwnProperty.call(vals, 'children')
+            ...(!Object.hasOwn(vals, 'children')
                 ? {children: []}
                 : {}),
         };

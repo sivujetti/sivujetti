@@ -88,13 +88,22 @@ class SaveButton extends preact.Component {
         this.stateCursors[channelName] = stateArr.push(state) - 1;
         this.emitStateChange(channelName, state, userCtx, 'push');
 
-        if (!flags || flags === 'is-throttled') {
-            if (!flags) { // normal push, check if there's mergeable items before this one
-                // todo
-                this.pushHistoryItem({channelName, userCtx, flags});
+        const isNormalPush = !flags;
+        if (isNormalPush || flags === 'is-throttled') {
+            if (isNormalPush) {
+                const latest = this.opHistory[this.opHistoryCursor - 1];
+                const doMergeThrottled = latest?.flags === 'is-throttled';
+                // rewrite/pack [<maybeUnrelated>, <firstThrottled>, ..., <lastThrottled>] -> [<maybeUnrelated>, <lastThrottled>]
+                if (doMergeThrottled) {
+                    const firstI = this.opHistory.findIndex(it => it.channelName === channelName && it.flags === 'is-throttled');
+                    const delCount = this.opHistoryCursor - firstI;
+                    this.opHistory = [...this.opHistory.slice(0, firstI)];
+                    this.opHistoryCursor = this.opHistory.length;
+                    this.states[channelName] = [...this.states[channelName].slice(0, this.stateCursors[channelName] - delCount), this.states[channelName].at(-1)];
+                    this.stateCursors[channelName] = this.states[channelName].length - 1;
+                }
             }
-            else
-               this.pushHistoryItem({channelName, userCtx, flags});
+            this.pushHistoryItem({channelName, userCtx, flags});
         }
     }
     /**

@@ -135,6 +135,16 @@ function createDefProps(type, additions) {
     };
 }
 
+/**
+ * Example in/out 'uowHFoKTteV__uowHMRffw9f' -> 'uowHFoKTteV'.
+ *
+ * @param {String} compositeId blockId + '__' + gbRefBlockId (see appenfidyGbtRefBlockIds() @../../../webpage-renderer-app/main.js)
+ * @returns {String}
+ */
+function unAppenfidyGbtRefBlockId(compositeId) {
+    return compositeId.split('__')[0];
+}
+
 export {
     createBlock,
     createBlockFromBlueprint,
@@ -142,4 +152,5 @@ export {
     getIsStoredToTreeIdFrom,
     isMetaBlock,
     treeToTransferable,
+    unAppenfidyGbtRefBlockId,
 };

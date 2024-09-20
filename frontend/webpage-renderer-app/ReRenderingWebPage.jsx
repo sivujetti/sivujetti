@@ -199,6 +199,9 @@ class RenderAll extends preact.Component {
         });
         docBody.addEventListener('click', e => {
             const currentBlock = this.curHoveredBlockEl;
+            if (!currentBlock)
+                return;
+
             if (this.isMouseListenersDisabled) {
                 const blockId = getBlockId(currentBlock);
                 if (blockId) this.messagePortToEditApp.postMessage(['onClicked', blockId]);

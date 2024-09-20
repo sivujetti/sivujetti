@@ -82,6 +82,17 @@ export default [
             inputId: 'baseStyleLinkColor',
         },
     },
+//   --jet-headings-color: #222;
+    {
+        varName: 'baseStyleHeadingsColor',
+        cssProp: '--jet-headings-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Headings',
+            inputId: 'baseStyleHeadingsColor',
+        },
+    },
 //   --spectre-link-color-dark: #226892; /* darken(--spectre-link-color, 10%) */
     {
         varName: 'baseStyleLinkColorDark',
@@ -608,6 +619,7 @@ const essentialVarNames = [
     'baseStylePrimaryColor',
     'baseStyleBodyFontColor',
     'baseStyleLinkColor',
+    'baseStyleHeadingsColor',
     'baseStyleBaseFont',
     'baseStyleFontSize',
     'baseStyleHeadingsFont',

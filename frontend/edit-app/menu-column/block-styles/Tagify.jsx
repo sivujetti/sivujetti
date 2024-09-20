@@ -1,6 +1,8 @@
+/** @extends {preact.Component<{tags: string; createTagsDropdownChoices: () => Array<string>; onChanged: (newTags: string) => void; onTagClicked: () => void;}>, any>} */
 class Tagify extends preact.Component {
     // inputEl;
     // currentVal;
+    // tagify;
     /**
      * @param {string} newTags
      * @access public
@@ -55,7 +57,7 @@ class Tagify extends preact.Component {
      */
     render({tags}) {
         return <input
-            value={ tags }
+            value={ tags.split(' ') }
             name="input-custom-dropdown"
             class="tagify--custom-dropdown"
             placeholder="e.g. float-left mt-1 pt-1"

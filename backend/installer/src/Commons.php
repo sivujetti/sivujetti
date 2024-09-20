@@ -103,7 +103,7 @@ final class Commons {
 "<?php
 
 return [
-    'app' => [
+    'env' => [
         'BASE_URL'    => '{$config["baseUrl"]}',
         'QUERY_VAR'   => '{$config["mainQueryVar"]}',
         'SITE_SECRET' => '{$config["secret"]}',

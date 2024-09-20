@@ -89,6 +89,7 @@ final class Exporter {
             "storedObjects",
             "plugins",
             "jobs",
+            "snapshots",
         ];
         $noBuiltin = array_filter($noPrefixes, fn($tableName) => !in_array($tableName, $builtins, true));
         return array_values($noBuiltin);

@@ -11,7 +11,7 @@ final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase 
         "Expected `initialDefaultsData` to be an object",
         "Expected `initialDefaultsData` to be an object",
         "Expected `initialDefaultsData` to be an object",
-        "Expected `initialDefaultsData` to be an object",
+        "Expected `initialDefaultsData` to be an object"
     ];
     private const ERRORS_EMPTY_STYLES = [
         "initialStyles must be array",
@@ -19,6 +19,9 @@ final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase 
         "Expected `initialStyles` to be an array",
         "Expected `initialStyles` to be an array",
         "Expected `initialStyles` to be an array",
+        "Expected `initialStyles` to be an array",
+        "Expected `initialStyles` to be an array",
+        "initialChildren must be array",
     ];
     public function testCreateReusableBranchInsertsReusableBranchesToDb(): void {
         $state = $this->setupTest();
@@ -68,7 +71,6 @@ final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase 
             "The value of blockType was not in the list",
             ...self::ERRORS_EMPTY_OWN_DATA,
             ...self::ERRORS_EMPTY_STYLES,
-            "initialChildren must be array",
         ], $state->spyingResponse);
         //
         $state->inputData = (object) [
@@ -89,10 +91,11 @@ final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase 
             "The value of initialDefaultsData.renderer was not in the list",
             "initialDefaultsData.styleClasses must be string",
             "The length of initialDefaultsData.styleClasses must be 1024 or less",
+            "initialStyles.0.scss must be string",
             "Expected `initialStyles.0.scope` to be an object",
             "Expected `initialStyles.0.scope` to be an object",
             "Expected `initialStyles.0.scope` to be an object",
-            "initialStyles.0.scss must be string"
+            "Expected `initialStyles.0.scope` to be an object",
         ], $state->spyingResponse);
     }
 
@@ -110,7 +113,6 @@ final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase 
             "The value of blockType was not in the list",
             ...self::ERRORS_EMPTY_OWN_DATA,
             ...self::ERRORS_EMPTY_STYLES,
-            "initialChildren must be array",
         ], $state->spyingResponse);
     }
 }

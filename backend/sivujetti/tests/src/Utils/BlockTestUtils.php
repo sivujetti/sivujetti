@@ -152,11 +152,4 @@ final class BlockTestUtils {
             "{$rawBlock->text}{$childHtml}" .
         "</{$expectedTag}>";
     }
-    public function createMenuBlockData(array $links = null): array {
-        if (!$links)
-            $links = (object) ["id" => "", "slug" => "/", "text" => "", "children" => []];
-        return [
-            "tree" => $links,
-        ];
-    }
 }

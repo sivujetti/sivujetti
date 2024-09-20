@@ -10,7 +10,6 @@ use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\Entities\Page;
-use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\Template;
 use Sivujetti\Tests\Utils\{BlockTestUtils, TestData};
 use Sivujetti\Theme\ThemesController;
@@ -202,13 +201,19 @@ final class RenderBasicPageTest extends RenderPageTestCase {
             "blockTypeName" => $itm->blockTypeName,
         ], $orderStyles($ts)), JSON_UNESCAPED_UNICODE);
         $this->assertEquals(
-            "document.head.appendChild({$expectedStyles}.reduce((out, {css, blockTypeName}) => {\n" .
-            "  const bundle = document.createElement('style');\n" .
-            "  bundle.innerHTML = css;\n" .
-            "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
-            "  out.appendChild(bundle);\n" .
-            "  return out;\n" .
-            "}, document.createDocumentFragment()))",
+        "(function () {\n" .
+        "    const {head} = document;\n" .
+        "    head.appendChild(createStyleEl(\"\", 'edit-app-all'));\n" .
+        "    head.appendChild(createStyleEl(\"\", 'all'));\n" .
+        "    head.appendChild(createStyleEl('', 'fast-all'));\n" .
+        "    \n" .
+        "    function createStyleEl(css, scopeId) {\n" .
+        "        const styleEl = document.createElement('style');\n" .
+        "        styleEl.innerHTML = css;\n" .
+        "        styleEl.setAttribute('data-scope', scopeId);\n" .
+        "        return styleEl;\n" .
+        "    }\n" .
+        "})();",
             $injectJs
         );
     }
@@ -240,8 +245,5 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $state->spyingResponse = null;
         $state->app = null;
         return $state;
-    }
-    private static function makeUrl(...$args): string {
-        return (new WebPageAwareTemplate("dummy", env: (require TEST_CONFIG_FILE_PATH)["env"]))->makeUrl(...$args);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace Sivujetti\Page;
 
-use Envms\FluentPDO\Queries\Select;
 use Pike\{ArrayUtils, PikeException};
 use Pike\Db\{FluentDb2, Query};
 use Sivujetti\Block\Entities\Block;
@@ -29,9 +28,9 @@ final class PagesRepository2 {
     /**
      * @param string $pageTypeName = "Pages"
      * @param string[] $fields = [] array<int, "@simple"|"@blocks">
-     * @return \Pike\Db\MySelect|\Pike\Db\Query
+     * @return \Pike\Db\Query
      */
-    public function select(string $pageTypeName = "Pages", array $fields = []): Select|Query {
+    public function select(string $pageTypeName = "Pages", array $fields = []): Query {
         $pageType = $this->getPageTypeOrThrow($pageTypeName);
         $sqliteVersion = "3.37";
         $db2 = version_compare($sqliteVersion, "3.38", ">=")

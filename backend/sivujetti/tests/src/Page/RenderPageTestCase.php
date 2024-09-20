@@ -3,6 +3,7 @@
 namespace Sivujetti\Tests\Page;
 
 use Pike\Request;
+use Sivujetti\Page\WebPageAwareTemplate;
 
 abstract class RenderPageTestCase extends PagesControllerTestCase {
     protected function insertTestPageToDb(\TestState $state): void {
@@ -21,5 +22,8 @@ abstract class RenderPageTestCase extends PagesControllerTestCase {
                     ? ["PHPSESSID" => "--------------------------"]
                     : [],
             ));
+    }
+    protected static function makeUrl(...$args): string {
+        return (new WebPageAwareTemplate("dummy", env: (require TEST_CONFIG_FILE_PATH)["env"]))->makeUrl(...$args);
     }
 }

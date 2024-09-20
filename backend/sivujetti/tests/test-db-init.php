@@ -17,11 +17,11 @@ $statements = array_merge($statements, [
 
 "INSERT INTO `themes` (`id`,`name`,`styleChunkBundlesAll`,`cachedCompiledScreenSizesCssHashes`," .
     "`stylesOrder`,`globalStyles`,`isActive`,`generatedScopedStylesCss`,`stylesLastUpdatedAt`) VALUES
-('1','test-suite-theme','[]',',,,,','" .
+('1','test-suite-theme','{\"styleChunks\":[],\"cachedCompiledCss\":\"\"}','','" .
     json_encode(["Text", "Section"])
 . "','[]',1,'" .
     \Sivujetti\Tests\Utils\CssGenTestUtils::generateScopedStyles($styles) .
-"','0,0,0,0,0')",
+"','0')",
 
 "INSERT INTO `themeStyles` (`units`,`themeId`,`blockTypeName`) VALUES
 ('{$styles[0]->units}','1','{$styles[0]->blockTypeName}'),

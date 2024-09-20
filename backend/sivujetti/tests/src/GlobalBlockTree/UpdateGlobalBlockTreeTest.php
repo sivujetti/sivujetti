@@ -93,7 +93,7 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
         $state = $this->setupTryToUpdateBlockWithoutSufficientPermissionTest();
         $this->simulateMenuBlocksSensitiveDataChanges($state);
         $this->insertTestGlobalBlockTreeToDb($state);
-        $this->createAppUsingThatUsesThisAsLoggedInUserRole(ACL::ROLE_ADMIN_EDITOR, $state);
+        $this->createAppUsingThatUsesThisAsLoggedInUserRole(ACL::ROLE_EDITOR, $state);
         $this->sendUpdateGlobalBlockTreeRequest($state);
         $this->verifyResponseMetaEquals(403, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals(["err" => "Not permitted."], $state->spyingResponse);
@@ -101,14 +101,14 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
     private function setupTryToUpdateBlockWithoutSufficientPermissionTest(): \TestState {
         $state = parent::setupTest();
         $btu = new BlockTestUtils();
-        $state->inputData->blocks = [$btu->makeBlockData(Block::TYPE_MENU,
-            renderer: "sivujetti:block-menu", propsData: $btu->createMenuBlockData(), id: "@auto")];
+        $state->inputData->blocks = [$btu->makeBlockData(Block::TYPE_CODE,
+            propsData: (object) ["code" => "<script>test"], id: "@auto")];
         $state->originalData = json_decode(json_encode($state->inputData));
         return $state;
     }
     private function simulateMenuBlocksSensitiveDataChanges(\TestState $state): void {
-        $menuBlock = $state->inputData->blocks[0];
-        (new BlockTestUtils())->setBlockProp($menuBlock, "itemStart", "<li><img onerror=\"xss\">...");
+        $buttonBlock = $state->inputData->blocks[0];
+        (new BlockTestUtils())->setBlockProp($buttonBlock, "code", "<script>updated");
     }
     private function createAppUsingThatUsesThisAsLoggedInUserRole(int $userRole, \TestState $state): void {
         $this->makeTestSivujettiApp($state, function ($bootModule) use ($userRole) {

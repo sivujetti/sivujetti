@@ -6,6 +6,7 @@ use Pike\ArrayUtils;
 use Pike\Db\FluentDb2;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\PageType\{FieldCollection, PageTypeMigrator, PageTypesController};
+use Sivujetti\ReusableBranch\ReusableBranchesController;
 use Sivujetti\Tests\Utils\{BlockTestUtils, DbDataHelper, HttpApiTestTrait};
 use Sivujetti\TheWebsite\TheWebsiteRepository;
 
@@ -48,14 +49,14 @@ abstract class PageTypesControllerTestCase extends DbTestCase {
         $this->assertEquals($expected->friendlyNamePlural, $actual->friendlyNamePlural);
         $this->assertEquals($expected->description, $actual->description);
         $this->assertEquals($expected->defaultLayoutId, $actual->defaultLayoutId);
-        $this->assertEquals(self::createExpectedBlockBlueprintFields($expected), $actual->blockBlueprintFields);
+        $this->assertEquals(self::createExpectedBlockBlueprintFields($expected), $actual->blockBlueprintFields); 
         $this->assertEquals(self::createExpectedDefaultFields($expected), $actual->defaultFields);
         $this->assertEquals(self::createExpectedOwnFields($expected), $actual->ownFields);
         $this->assertEquals($expectedStatus, $actual->status);
         $this->assertEquals($expected->isListable, $actual->isListable);
     }
     private static function createExpectedBlockBlueprintFields(object $input): array {
-        return array_map([PageTypeMigrator::class, "inputToBlueprint"],
+        return array_map(ReusableBranchesController::objectToBlueprint(...),
                          $input->blockBlueprintFields);
     }
     private static function createExpectedDefaultFields(object $input): object {

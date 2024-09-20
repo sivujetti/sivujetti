@@ -2,9 +2,8 @@
 
 namespace Sivujetti\Tests\Theme;
 
-use Pike\Db\FluentDb2;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
-use Sivujetti\Tests\Utils\{CssGenTestUtils, DbDataHelper, HttpApiTestTrait};
+use Sivujetti\Tests\Utils\{DbDataHelper, HttpApiTestTrait};
 
 abstract class ThemesControllerTestCase extends DbTestCase {
     use HttpTestUtils;
@@ -19,45 +18,20 @@ abstract class ThemesControllerTestCase extends DbTestCase {
     }
     protected function createDefaultTestState(): \TestState {
         $state = new \TestState;
-        $state->testGlobalStyles = [
-            (object)["name"=>"textColor","friendlyName"=>"1",
-                     "value"=>(object)["type"=>"color","value"=>["ff","00","00","ff"]]],
-            (object)["name"=>"headerColor","friendlyName"=>"2",
-                     "value"=>(object)["type"=>"color","value"=>["00","ff","00","ff"]]],
-        ];
-        $state->testStyles = [
-            (object)["units" => json_encode([["title"=>"Default","id"=>"default","scss"=>"padding: 6rem 3rem",
-                                    "generatedCss"=>".j-Section-default{padding:6rem 3rem;}","origin"=>"","specifier"=>"",
-                                    "isDerivable"=>false,"deritedFrom"=>null]]),
-                     "themeId"=>"@filledAfter",
-                     "blockTypeName"=>"Section"],
-            (object)["units" => json_encode([["title"=>"Default","id"=>"default","scss"=>"color: #444",
-                                  "generatedCss"=>".j-Text-default{color:#444;}","origin"=>"","specifier"=>"",
-                                  "isDerivable"=>false,"deritedFrom"=>null]]),
-                     "themeId"=>"@filledAfter",
-                     "blockTypeName"=>"Text"],
-        ];
         $state->testTheme = null;
         $state->spyingResponse = null;
         return $state;
     }
     protected function insertTestTheme(\TestState $state, string $themeName): void {
         $state->testTheme = (object) [
-            "id" => $this->dbDataHelper->insertData((object) [
-                "name" => $themeName,
-                "stylesOrder" => json_encode([]),
-                "globalStyles" => json_encode($state->testGlobalStyles),
-            ], "themes"),
-            "name" => $themeName
+            "name" => $themeName,
+            "styleChunkBundlesAll" => "{\"styleChunks\":[],\"cachedCompiledCss\":\"\"}",
+            "cachedCompiledScreenSizesCssHashes" => "",
+            "stylesOrder" => json_encode([]),
+            "globalStyles" => "{}",
+            "generatedScopedStylesCss" => "",
+            "generatedScopedStylesCss" => "0",
         ];
-        for ($i = 0; $i < count($state->testStyles); ++$i)
-            $state->testStyles[$i]->themeId = $state->testTheme->id;
-    }
-    protected function insertTestStylesForTestTheme(\TestState $state): void {
-        $this->dbDataHelper->insertData($state->testStyles, "themeStyles");
-        (new FluentDb2(self::$db))->update("\${p}themes")
-            ->values((object) ["generatedScopedStylesCss" => CssGenTestUtils::generateScopedStyles($state->testStyles)])
-            ->where("id=?", [$state->testTheme->id])
-            ->execute();
+        $state->testTheme->id = $this->dbDataHelper->insertData($state->testTheme, "themes");
     }
 }

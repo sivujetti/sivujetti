@@ -125,7 +125,7 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
     public function testOverwritePageBlocksFailsIfUserTriesToUpdateBlockPropWithoutSufficientPermission(): void {
         $state = $this->setupTryToUpdateBlockWithoutSufficientPermissionTest();
         $this->simulateMenuBlocksSensitiveDataChanges($state);
-        $this->createAppUsingThatUsesThisAsLoggedInUserRole(ACL::ROLE_ADMIN_EDITOR, $state);
+        $this->createAppUsingThatUsesThisAsLoggedInUserRole(ACL::ROLE_EDITOR, $state);
         $this->insertTestPageDataToDb($state);
         $this->sendOverwritePageBlocksRequest($state);
         $this->verifyResponseMetaEquals(403, "application/json", $state->spyingResponse);
@@ -134,14 +134,14 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
     private function setupTryToUpdateBlockWithoutSufficientPermissionTest(): \TestState {
         $state = $this->setupTest();
         $btu = new BlockTestUtils();
-        $state->testPageData->blocks[0]->children = [$btu->makeBlockData(Block::TYPE_MENU,
-            renderer: "sivujetti:block-menu", propsData: $btu->createMenuBlockData(), id: "@auto")];
+        $state->testPageData->blocks[0]->children = [$btu->makeBlockData(Block::TYPE_CODE,
+            propsData: (object) ["code" => "<script>test"], id: "@auto")];
         return $state;
     }
     private function simulateMenuBlocksSensitiveDataChanges(\TestState $state): void {
         $cloneAll = json_decode(json_encode($state->testPageData->blocks));
         $cloneMenu = $cloneAll[0]->children[0];
-        (new BlockTestUtils())->setBlockProp($cloneMenu, "wrapStart", "<nav><script>xss...");
+        (new BlockTestUtils())->setBlockProp($cloneMenu, "code", "<script>updated");
         $state->inputData = (object) ["blocks" => $cloneAll];
     }
     private function createAppUsingThatUsesThisAsLoggedInUserRole(int $userRole, \TestState $state): void {
@@ -178,10 +178,10 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
     private function setupOverwriteProcUsesSanitizerTest(): \TestState {
         $state = $this->setupTest();
         $state->inputData = (object) ["blocks" =>
-            [(new BlockTestUtils())->makeBlockData(Block::TYPE_SECTION2, id: "@auto", propsData: [
-                "settings" => [
-                    (object) ["innerBg" => null, "outerBg" => null],
-                ],
+            [(new BlockTestUtils())->makeBlockData(type: Block::TYPE_MENU, propsData: [
+                "tree" => [
+                    (object) ["id" => "", "slug" => "/", "text" => "", "children" => [], "junk" => "data"]
+                ]
             ])]
         ];
         return $state;
@@ -191,14 +191,10 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
         $this->assertCount(1, $page->blocks);
         $actual = $page->blocks[0];
         //
-        $columnsPropFromRoot = $actual->columns;
-        $mainScreenSize = $columnsPropFromRoot[0];
-        $mainScreenFirstColObj = $mainScreenSize[0];
-        $this->assertObjectNotHasProperty("junk", $mainScreenFirstColObj);
+        $actualFromRoot = $actual->tree[0];
+        $this->assertObjectNotHasProperty("junk", $actualFromRoot);
         //
-        $columnsPropFromPropsDataArr = $actual->propsData[0]->value;
-        $mainScreenSize2 = $columnsPropFromPropsDataArr[0];
-        $mainScreenFirstColObj2 = $mainScreenSize2[0];
-        $this->assertObjectNotHasProperty("junk", $mainScreenFirstColObj2);
+        $actualFromPropsDataArr = $actual->propsData[0]->value[0];
+        $this->assertObjectNotHasProperty("junk", $actualFromPropsDataArr);
     }
 }

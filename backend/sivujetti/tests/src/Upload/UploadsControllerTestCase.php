@@ -14,6 +14,7 @@ abstract class UploadsControllerTestCase extends DbTestCase {
     /** @var Sivujetti\Tests\Utils\DbDataHelper */
     protected DbDataHelper $dbDataHelper;
     /**
+     * @inheritdoc
      */
     protected function setUp(): void {
         parent::setUp();
@@ -23,7 +24,7 @@ abstract class UploadsControllerTestCase extends DbTestCase {
      * @inheritdoc
      */
     public static function getDbConfig(): array {
-        return require TEST_CONFIG_FILE_PATH;
+        return (require TEST_CONFIG_FILE_PATH)["app"];
     }
     /**
      * @param \TestState $state

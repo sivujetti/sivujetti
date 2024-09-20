@@ -255,9 +255,9 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_MENU,
-                propsData: $this->blockTestUtils->createMenuBlockData([
-                    (object) ["id" => "", "slug" => "/", "text" => "", "children" => []]
-                ]),
+                propsData: ["tree" =>
+                    [(object) ["id" => "", "slug" => "/", "text" => "", "children" => []]]
+                ],
                 id: "@auto"),
         ];
         return $state;

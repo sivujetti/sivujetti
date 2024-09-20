@@ -7,7 +7,7 @@ use Sivujetti\Upload\Entities\UploadsEntry;
 
 final class UploadFilesTest extends UploadsControllerTestCase {
     private const MOCK_UPLOADED_FILE_NAME = "SourceSansPro-Semibold-lettersOnly.ttf";
-    private const MOCK_UPLOADED_FILE_PATH = SIVUJETTI_BACKEND_PATH . "installer/sample-content/minimal/\$index/public/uploads/" . self::MOCK_UPLOADED_FILE_NAME;
+    private const MOCK_UPLOADED_FILE_PATH = SIVUJETTI_BACKEND_PATH . "sivujetti/tests/assets/" . self::MOCK_UPLOADED_FILE_NAME;
     public function testUploadFileUploadsImage(): void {
         $state = $this->setupUploadFileTest();
         $this->makeSivujettiAppForUploadsTest($state);

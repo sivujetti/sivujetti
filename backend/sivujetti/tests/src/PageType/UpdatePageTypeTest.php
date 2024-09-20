@@ -238,7 +238,7 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
         $this->insertPlaceholderPageTypeToDb();
         $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
-        $this->expectExceptionMessage("Unknown block type `not-valid-block`");
+        $this->expectExceptionMessage("The value of blockType was not in the list");
         $this->sendUpdatePlaceholderPageTypeRequest($state);
     }
 }

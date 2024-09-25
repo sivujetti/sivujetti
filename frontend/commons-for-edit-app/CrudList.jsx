@@ -9,10 +9,10 @@ let counter = 0;
  */
 class CrudList extends preact.Component {
     // editFormRef;
-    // sortable;
+    // sortable; // public
     // itemWithNavOpened; // public
     /**
-     * @param {{items: Array<T>; onListMutated: (newList: Array<T>, prop: string = null) => void; createNewItem: () => T; editForm: preact.AnyComponent; editFormProps?: {[key: string]: any;}; itemTypeFriendlyName: string; itemTitleKey?: string; getTitle?: (item: T) => preact.ComponentChild; contextMenuPos?: string; contextMenuZIndex?: number; onCreateCtxMenuCtrl?: (ctrl: ContextMenuController) => ContextMenuController;}} props
+     * @param {{items: Array<T>; onListMutated: (newList: Array<T>, prop: string = null) => void; createNewItem: (...varArgs: any) => T; editForm: preact.AnyComponent; editFormProps?: {[key: string]: any;}; itemTypeFriendlyName: string; itemTitleKey?: string; getTitle?: (item: T) => preact.ComponentChild; contextMenuPos?: string; contextMenuZIndex?: number; onCreateCtxMenuCtrl?: (ctrl: ContextMenuController) => ContextMenuController; renderAddItemButton?: () => preact.ComponentChild;}} props
      */
     constructor(props) {
         super(props);
@@ -45,7 +45,7 @@ class CrudList extends preact.Component {
     /**
      * @access protected
      */
-    render({editForm, itemTypeFriendlyName, editFormProps}, {items, tab}) {
+    render({editForm, itemTypeFriendlyName, editFormProps, renderAddItemButton}, {items, tab}) {
         if (!items)
             return;
         if (tab === 'default') return [
@@ -66,7 +66,7 @@ class CrudList extends preact.Component {
                     </div>
                 </li>) : <li>-</li> }
             </ul>,
-            <button
+            renderAddItemButton ? renderAddItemButton() : <button
                 onClick={ this.addNewItem.bind(this) }
                 title={ __('Add %s', itemTypeFriendlyName) }
                 class="btn btn-sm text-tiny with-icon-inline color-dimmed mt-1"
@@ -166,10 +166,11 @@ class CrudList extends preact.Component {
         }}));
     }
     /**
+     * @access private 
      * @access private
      */
-    addNewItem() {
-        const newItem = {...this.props.createNewItem()};
+    addNewItem(...varArgs) {
+        const newItem = {...this.props.createNewItem(...varArgs)};
         if (!newItem.key) newItem.key = (++counter).toString();
         const newList = this.state.items.concat(newItem);
         this.setState({items: newList});

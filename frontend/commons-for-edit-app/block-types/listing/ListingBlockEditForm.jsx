@@ -1,7 +1,9 @@
 import {env} from '@sivujetti-commons-for-web-pages';
+import CrudList from '../../CrudList.jsx';
 import {__, api} from '../../edit-app-singletons.js';
 import {InputError} from '../../Form.jsx';
 import {Icon} from '../../Icon.jsx';
+import {objectUtils} from '../../utils.js';
 import AddFilterPopup, {
     buildWorkableFilters,
     FilterKind,
@@ -10,6 +12,8 @@ import AddFilterPopup, {
     removeIsInCatFilter,
     UrlStartsWithPart,
 } from './AddFilterPopup.jsx';
+import RendererPartEditForm from './RendererPartEditForm.jsx';
+/** @typedef {import('./RendererPartEditForm.jsx').RendererPartData} RendererPartData */
 
 const orderToText = {
     desc: 'newest to oldest',
@@ -46,6 +50,7 @@ class ListingBlockEditForm extends preact.Component {
             additionalFiltersJson: JSON.stringify(block.filterAdditional),
             filtersParsed: buildWorkableFilters(block.filterAdditional),
             renderWith: block.renderer || block.renderWith,
+            rendererSettings: block.rendererSettings ? objectUtils.cloneDeep(block.rendererSettings) : null,
             order: block.filterOrder,
         });
     }
@@ -57,8 +62,8 @@ class ListingBlockEditForm extends preact.Component {
         const {block} = props;
         if (block === this.props.block)
             return;
-        const current = JSON.stringify(this.props.block.propsData);
-        const incoming = JSON.stringify(props.block.propsData);
+        const current = JSON.stringify(this.props.block.propsData) + this.props.block.renderer;
+        const incoming = JSON.stringify(props.block.propsData) + props.block.renderer;
         if (current === incoming)
             return;
         //
@@ -98,6 +103,7 @@ class ListingBlockEditForm extends preact.Component {
         const a1 = __('and');
         const a2 = `${__(howManyType !== 'single' ? 'which#nominative' : 'which') }/${ __(howManyType !== 'single' ? 'whose' : 'which#genitive')}`;
         const howManyTypeAdjusted = createAdjustedHowManyType(howManyType, howManyAmount);
+        const rendererIsConfigurable = renderWith === 'sivujetti:block-listing-pages-default';
         /*
                1       2          3*                              4                             5
         --------------------------------------------------------------------------------------------------------------------
@@ -177,17 +183,23 @@ class ListingBlockEditForm extends preact.Component {
             }
 
             { this.selectedPageTypeBundle.renderers.length > 1 ? [
-            <span class="group-4 ml-1 px-2 no-round-right">{ __('rendering %s using template', __(howManyTypeAdjusted !== 'single' ? 'them' : 'it')) }</span>,
-            <div class="group-4 no-round-left">
-                <button
-                    onClick={ e => this.openPartPopup(ChooseRendererPopup, e) }
-                    class="form-select poppable pl-1"
-                    type="button">{ __(this.selectedPageTypeBundle.renderers.find(({fileId}) =>
-                        fileId === renderWith
-                    ).friendlyName || renderWith) }
-                </button>
-            </div>] : null
-            }
+                <span class="group-4 ml-1 pl-2 pr-0 no-round-right">{ __('rendering %s using template', __(howManyTypeAdjusted !== 'single' ? 'them' : 'it')) }</span>,
+                <div class="group-4 no-round-left">
+                    <button
+                        onClick={ e => this.openPartPopup(ChooseRendererPopup, e) }
+                        class="form-select poppable pl-1"
+                        type="button">{ __(this.selectedPageTypeBundle.renderers.find(({fileId}) =>
+                            fileId === renderWith
+                        ).friendlyName || renderWith) }
+                    </button>
+                </div>,
+                ...(rendererIsConfigurable ? [
+                    <div class="group-4 ml-1 pl-2 pr-0 no-round-left">
+                        <button onClick={ e => this.openPartPopup(ConfigureRendererPopup, e) } class="d-flex poppable pr-1 pl-0" type="button" title="">
+                        { __('using settings') } <Icon iconId="settings" className="size-xs color-dimmed mx-1"/>
+                        </button>
+                    </div>] : [])
+            ] : null }
         </div>
         <div class="pt-1">
             <hr/>
@@ -222,6 +234,9 @@ class ListingBlockEditForm extends preact.Component {
             return {order: this.state.order, parent: this};
         if (PopupRendererCls === ChooseRendererPopup)
             return {renderWith: this.state.renderWith, parent: this};
+        if (PopupRendererCls === ConfigureRendererPopup)
+            return {rendererSettings: this.state.rendererSettings, parent: this};
+    }
     /**
      * @access private
      */
@@ -244,10 +259,11 @@ class ListingBlockEditForm extends preact.Component {
      * @access private
      */
     openPartPopup(RendererCls, e) {
-        this.setState({
-            curPopupRenderer: RendererCls,
-            curPopupButton: getTargetButton(e.target)
-        });
+        api.mainPopper.open(
+            RendererCls,
+            getTargetButton(e.target),
+            this.createCurrentPopupProps(RendererCls),
+        );
     }
     /**
      * @param {String} selectedPageTypeName
@@ -433,6 +449,51 @@ class ChooseRendererPopup extends preact.Component {
     }
 }
 
+class ConfigureRendererPopup extends preact.Component {
+    // crudListRef;
+    // partKindsTranslated;
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        this.crudListRef = preact.createRef();
+        this.partKindsTranslated = {
+            heading: __('Heading'),
+            link: __('Link'),
+            image: __('Image'),
+        };
+    }
+    /**
+     * @param {{rendererSettings: RendererSettings|null;}} props
+     * @access protected
+     */
+    render({rendererSettings}) {
+        return <div class="pt-2 mt-2" style="min-width: 10rem;">
+            <CrudList
+                items={ rendererSettings.parts }
+                itemTitleKey="kind"
+                getTitle={ item => this.partKindsTranslated[item.kind] || item.kind }
+                onListMutated={ (newParsedItems, _prop) => {
+                    this.props.parent.handleFilterPropMaybeChanged('rendererSettings', {target: {value: {parts: newParsedItems}}});
+                } }
+                renderAddItemButton={ () => <span class="btn btn-dropdown p-relative d-inline-flex btn-primary btn-sm mt-1">
+                    <label htmlFor="addPartDropdown">{ __('Add part') }</label>
+                    <select onChange={ e => this.crudListRef.current.addNewItem(e.target.value) } value="" id="addPartDropdown">
+                        <option disabled selected value>{ __('Select part') }</option>
+                        { Object.keys(this.partKindsTranslated).map(kind =>
+                            <option value={ kind }>{ this.partKindsTranslated[kind] }</option>
+                        ) }
+                    </select>
+                </span>}
+                createNewItem={ kind => ({kind, data: RendererPartEditForm.createPartData(kind)}) }
+                editForm={ RendererPartEditForm }
+                editFormProps={ {partKindsTranslated: this.partKindsTranslated} }
+                itemTypeFriendlyName={ __('part') }
+                ref={ this.crudListRef }/>
+        </div>;
+    }
+}
+
 /**
  * @param {howManyType} howManyType
  * @param {Number?} howManyAmount
@@ -444,6 +505,8 @@ function createAdjustedHowManyType(howManyType, howManyAmount) {
 
 /**
  * @typedef {'all'|'single'|'atMost'} howManyType
+ *
+ * @typedef {{parts: Array<{kind: string; data: RendererPartData|null}>;}} RendererSettings
  */
 
 export default ListingBlockEditForm;

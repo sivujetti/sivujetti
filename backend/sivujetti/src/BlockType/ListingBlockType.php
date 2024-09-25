@@ -28,6 +28,7 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
                 ["in", ["desc", "asc", "rand"]]
             ])
             ->newProperty("filterAdditional", $builder::DATA_TYPE_OBJECT/*, sanitizeWith: omit/allow object as it is */)
+            ->newProperty("rendererSettings")->dataType($builder::DATA_TYPE_OBJECT/*, sanitizeWith: omit/allow object as it is */, isNullable: true)
             ->getResult();
     }
     /**

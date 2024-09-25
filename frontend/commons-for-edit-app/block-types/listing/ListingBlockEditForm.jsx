@@ -1,5 +1,4 @@
 import {env} from '@sivujetti-commons-for-web-pages';
-import Popup from '../../Popup.jsx';
 import {__, api} from '../../edit-app-singletons.js';
 import {InputError} from '../../Form.jsx';
 import {Icon} from '../../Icon.jsx';
@@ -20,7 +19,6 @@ const orderToText = {
 
 class ListingBlockEditForm extends preact.Component {
     // showTechnicalHints;
-    // curPopup;
     // pageTypeBundles;
     // selectedPageTypeBundle;
     // selectedPageTypeFriendlyName;
@@ -31,7 +29,6 @@ class ListingBlockEditForm extends preact.Component {
      */
     componentWillMount() {
         this.showTechnicalHints = api.user.getRole() <= api.user.ROLE_ADMIN_EDITOR;
-        this.curPopup = preact.createRef();
         const renderers = api.getBlockRenderers();
         this.pageTypeBundles = api.getPageTypes()
             .map(pageType => ({pageType, renderers: renderers.filter(({associatedWith}) =>
@@ -95,11 +92,9 @@ class ListingBlockEditForm extends preact.Component {
      * @param {BlockEditFormProps} props
      * @access protected
      */
-    render(_, {filterPageType, howManyType, howManyAmount,
-               additionalFiltersJson, filtersParsed, order, renderWith,
-               curPopupRenderer, curPopupButton}) {
+    render(_, {filterPageType, howManyType, howManyAmount, additionalFiltersJson,
+               filtersParsed, order, renderWith}) {
         if (!filterPageType) return;
-        const curPopupProps = curPopupRenderer ? this.getCurrentPopupProps(curPopupRenderer) : null;
         const a1 = __('and');
         const a2 = `${__(howManyType !== 'single' ? 'which#nominative' : 'which') }/${ __(howManyType !== 'single' ? 'whose' : 'which#genitive')}`;
         const howManyTypeAdjusted = createAdjustedHowManyType(howManyType, howManyAmount);
@@ -203,15 +198,6 @@ class ListingBlockEditForm extends preact.Component {
                 <span class="group-1">{ this.selectedPageTypeFriendlyName }</span>
             </a>
         </div>
-        { curPopupRenderer
-            ? <Popup
-                Renderer={ curPopupRenderer }
-                rendererProps={ curPopupProps }
-                btn={ curPopupButton }
-                close={ this.closeCurrentPopup.bind(this) }
-                ref={ this.curPopup }/>
-            : null
-        }
         </div>;
     }
     /**
@@ -219,7 +205,7 @@ class ListingBlockEditForm extends preact.Component {
      * @returns {{[key: String]: any;}}
      * @access private
      */
-    getCurrentPopupProps(PopupRendererCls) {
+    createCurrentPopupProps(PopupRendererCls) {
         if (PopupRendererCls === DefineLimitPopup)
             return {howManyType: this.state.howManyType, howManyAmountNotCommitted: this.state.howManyAmountNotCommitted, howManyAmountError: this.state.howManyAmountError, parent: this};
         if (PopupRendererCls === DefinePageTypePopup)
@@ -236,12 +222,11 @@ class ListingBlockEditForm extends preact.Component {
             return {order: this.state.order, parent: this};
         if (PopupRendererCls === ChooseRendererPopup)
             return {renderWith: this.state.renderWith, parent: this};
-    }
     /**
      * @access private
      */
     closeCurrentPopup() {
-        this.setState({curPopupRenderer: null});
+        api.mainPopper.close();
     }
     /**
      * @param {'filterOrder'|'renderWith'} propName

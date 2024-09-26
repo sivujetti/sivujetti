@@ -166,7 +166,7 @@ class CrudList extends preact.Component {
         }}));
     }
     /**
-     * @access private 
+     * @param {any[]} ...varArgs
      * @access private
      */
     addNewItem(...varArgs) {

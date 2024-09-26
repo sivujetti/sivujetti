@@ -125,7 +125,8 @@ final class TestDataBundles {
                 "filterLimit" => 0,
                 "filterLimitType" => "all",
                 "filterOrder" => "desc",
-                "filterAdditional" => new \stdClass],
+                "filterAdditional" => new \stdClass,
+                "rendererSettings" => null],
             id: "@auto");
         return $out;
     }

@@ -24,7 +24,8 @@ class RendererPartEditForm extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        // ??
+        if (JSON.stringify(this.state.data) !== JSON.stringify(maybeNext[1].data))
+            this.setState(reHookValues(this, ...maybeNext));
     }
     /**
      * @access protected
@@ -43,20 +44,6 @@ class RendererPartEditForm extends preact.Component {
                 disabled={ hasErrors(this) }
                 title={ __('Done') }
                 type="button">&lt;</button>
-            <FormGroupInline className="my-1">
-                <label class="form-label">{ __('Type') }</label>
-                <div>
-                    <select
-                        onChange={ this.handlePartKindChanged.bind(this) }
-                        value={ kind }
-                        class="form-select"
-                        name="varType">
-                        { Object.keys(this.props.partKindsTranslated).map(kind =>
-                            <option value={ kind }>{ this.props.partKindsTranslated[kind] }</option>
-                        ) }
-                    </select>
-                </div>
-            </FormGroupInline>
             { this.renderDataInputs(kind) }
         </div>;
     }
@@ -100,8 +87,8 @@ class RendererPartEditForm extends preact.Component {
                 </FormGroupInline>
             ];
         if (kind === 'link')
-            return <FormGroupInline>
-                <label htmlFor="text" class="form-label">{ __('Link text') }</label>
+            return <FormGroupInline className="my-1">
+                <label htmlFor="text" class="form-label">{ __('Text') }</label>
                 <Input vm={ this } prop="text" id="text"/>
                 <InputErrors vm={ this } prop="text"/>
             </FormGroupInline>;
@@ -130,11 +117,11 @@ class RendererPartEditForm extends preact.Component {
     }
     /**
      * @param {string} kind
+     * @param {RendererPartData} data
      * @returns {[Array<InputDef>|null, {[key: string]: any;}]}
      * @access private
      */
-    doCreateHookFormArgs(kind) {
-        const data = RendererPartEditForm.createPartData(kind);
+    doCreateHookFormArgs(kind, data) {
         if (kind === 'heading') {
             return [null, {headingLevel: `h${data.level}`}];
         } else if (kind === 'image') {
@@ -148,7 +135,7 @@ class RendererPartEditForm extends preact.Component {
             }];
         } else if (kind === 'link') {
             return [[{name: 'text', value: data.text, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
-                label: __('Link text'),
+                label: __('Text'),
                 onAfterValueChanged: (value, hasErrors, _source) => {
                     if (!hasErrors) this.props.onValueChanged({...this.state.data, text: value}, 'data'); // throttle ?
                 }
@@ -157,14 +144,6 @@ class RendererPartEditForm extends preact.Component {
             }];
         }
         return [null, {}];
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    handlePartKindChanged(e) {
-        const newVal = e.target.value;
-        reHookValues(this, ...this.createHookFormArgs(newVal, {}));
     }
 }
 

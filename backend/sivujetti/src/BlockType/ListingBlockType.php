@@ -28,7 +28,30 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
                 ["in", ["desc", "asc", "rand"]]
             ])
             ->newProperty("filterAdditional", $builder::DATA_TYPE_OBJECT/*, sanitizeWith: omit/allow object as it is */)
-            ->newProperty("rendererSettings")->dataType($builder::DATA_TYPE_OBJECT/*, sanitizeWith: omit/allow object as it is */, isNullable: true)
+            ->newProperty("rendererSettings")->dataType(
+                $builder::DATA_TYPE_OBJECT,
+                sanitizeWith: fn(?object $s) => $s
+                    ? (object) [
+                        "parts" => array_map(fn(object $p) => (object) [
+                            "kind" => strval($p->kind),
+                            "data" => match ($p->kind) {
+                                "heading" => (object) [
+                                    "level" => (int) $p->data->level,
+                                ],
+                                "image" => (object) [
+                                    "primarySource" => strval($p->data->primarySource),
+                                    "fallbackImageSrc" => strval($p->data->fallbackImageSrc),
+                                ],
+                                "link" => (object) [
+                                    "text" => strval($p->data->text),
+                                ],
+                                default => null,
+                            }
+                        ], $s->parts)
+                    ]
+                    : null,
+                isNullable: true
+            )
             ->getResult();
     }
     /**

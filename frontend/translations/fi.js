@@ -265,11 +265,7 @@ stringBundles.push({
     'Columns': 'Sarakkeet',
     'Num columns': 'Sarakkeita',
     'Full width': 'Täysileveä',
-    // edit-app/src/block-types/heading.js
-    'Level': 'Taso',
-    'Add content after': 'Lisää sisältöä jälkeen',
-    'Heading text': 'Otsikon teksti',
-    // edit-app/src/block-types/listing/AdditionalFiltersBuilder.jsx
+    // commons-for-edit-app/block-types/listing/*
     'which are': 'jotka on',
     'which is': 'joka on',
     'added to category': 'merkitty kategoriaan',
@@ -283,7 +279,6 @@ stringBundles.push({
     'and': 'ja',
     'Delete filter': 'Poista filtteri',
     'Add filter': 'Lisää filtteri',
-    // edit-app/src/block-types/listing/EditForm.jsx
     'List': 'Listaa',
     'all': 'kaikki',
     'single': 'yksi',
@@ -295,11 +290,16 @@ stringBundles.push({
     'oldest to newest': 'vanhimmasta uusimpaan',
     'randomly': 'satunnaisesti',
     'rendering %s using template': 'tulostaen %s templaatilla',
+    'using settings': 'asetuksilla',
     'it': 'sen',
     'them': 'ne',
     'Add new %s': 'Lisää uusi %s',
     '%s must be a number': '%s tulisi olla numero',
-    // edit-app/src/block-types/listing/listing.js
+    'Level': 'Taso',
+    'Primary source': 'Lähde',
+    'Fallback': 'Fallback',
+    'Text': 'Teksti',
+    'Link': 'Linkki',
     'Listing': 'Listaus',
     // edit-app/src/block-types/image.js
     'Image file': 'Kuvatiedosto',

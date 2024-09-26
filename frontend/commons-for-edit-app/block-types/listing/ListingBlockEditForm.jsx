@@ -50,7 +50,6 @@ class ListingBlockEditForm extends preact.Component {
             additionalFiltersJson: JSON.stringify(block.filterAdditional),
             filtersParsed: buildWorkableFilters(block.filterAdditional),
             renderWith: block.renderer || block.renderWith,
-            rendererSettings: block.rendererSettings ? objectUtils.cloneDeep(block.rendererSettings) : null,
             order: block.filterOrder,
         });
     }
@@ -63,7 +62,7 @@ class ListingBlockEditForm extends preact.Component {
         if (block === this.props.block)
             return;
         const current = JSON.stringify(this.props.block.propsData) + this.props.block.renderer;
-        const incoming = JSON.stringify(props.block.propsData) + props.block.renderer;
+        const incoming = JSON.stringify(props.block.propsData) + block.renderer;
         if (current === incoming)
             return;
         //
@@ -85,6 +84,9 @@ class ListingBlockEditForm extends preact.Component {
         //
         } else if (this.state.renderWith !== block.renderer) {
             this.setState({renderWith: block.renderer});
+        //
+        } else if (JSON.stringify(this.state.rendererSettings) !== JSON.stringify(block.rendererSettings)) {
+            api.mainPopper.refresh(this.createCurrentPopupProps(ConfigureRendererPopup, props));
         }
         //
         const filtersJson = JSON.stringify(block.filterAdditional);
@@ -214,10 +216,11 @@ class ListingBlockEditForm extends preact.Component {
     }
     /**
      * @param {preact.Component} PopupRendererCls
+     * @param {BlockEditFormProps} props = this.props
      * @returns {{[key: String]: any;}}
      * @access private
      */
-    createCurrentPopupProps(PopupRendererCls) {
+    createCurrentPopupProps(PopupRendererCls, props = this.props) {
         if (PopupRendererCls === DefineLimitPopup)
             return {howManyType: this.state.howManyType, howManyAmountNotCommitted: this.state.howManyAmountNotCommitted, howManyAmountError: this.state.howManyAmountError, parent: this};
         if (PopupRendererCls === DefinePageTypePopup)
@@ -235,7 +238,7 @@ class ListingBlockEditForm extends preact.Component {
         if (PopupRendererCls === ChooseRendererPopup)
             return {renderWith: this.state.renderWith, parent: this};
         if (PopupRendererCls === ConfigureRendererPopup)
-            return {rendererSettings: this.state.rendererSettings, parent: this};
+            return {rendererSettings: props.block.rendererSettings ? objectUtils.cloneDeep(props.block.rendererSettings) : null, parent: this};
     }
     /**
      * @access private
@@ -489,6 +492,7 @@ class ConfigureRendererPopup extends preact.Component {
                 editForm={ RendererPartEditForm }
                 editFormProps={ {partKindsTranslated: this.partKindsTranslated} }
                 itemTypeFriendlyName={ __('part') }
+                contextMenuPos="left"
                 ref={ this.crudListRef }/>
         </div>;
     }

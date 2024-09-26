@@ -265,11 +265,7 @@ stringBundles.push({
     'Columns': 'Columns',
     'Num columns': 'Num columns',
     'Full width': 'Full width',
-    // edit-app/src/block-types/heading.js
-    'Level': 'Level',
-    'Add content after': 'Add content after',
-    'Heading text': 'Heading text',
-    // edit-app/src/block-types/listing/AdditionalFiltersBuilder.jsx
+    // commons-for-edit-app/block-types/listing/*
     'which are': 'which are',
     'which is': 'which is',
     'added to category': 'added to category',
@@ -283,7 +279,6 @@ stringBundles.push({
     'and': 'and',
     'Delete filter': 'Delete filter',
     'Add filter': 'Add filter',
-    // edit-app/src/block-types/listing/EditForm.jsx
     'List': 'List',
     'all': 'all',
     'single': 'single',
@@ -295,11 +290,16 @@ stringBundles.push({
     'oldest to newest': 'oldest to newest',
     'randomly': 'randomly',
     'rendering %s using template': 'rendering %s using template',
+    'using settings': 'using settings',
     'it': 'it',
     'them': 'them',
     'Add new %s': 'Add new %s',
     '%s must be a number': '%s must be a number',
-    // edit-app/src/block-types/listing/listing.js
+    'Level': 'Level',
+    'Primary source': 'Primary source',
+    'Fallback': 'Fallback',
+    'Text': 'Text',
+    'Link': 'Link',
     'Listing': 'Listing',
     // edit-app/src/block-types/image.js
     'Image file': 'Image file',

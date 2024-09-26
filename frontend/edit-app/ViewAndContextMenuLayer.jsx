@@ -33,7 +33,7 @@ class ViewAndContextMenuLayer extends preact.Component {
             if (cmp && api.contextMenu.initialized === false) api.contextMenu = cmp;
         } }/>,
         <MainPopper ref={ cmp => {
-            if (cmp && !api.mainPopper.render) { api.mainPopper = cmp;}
+            if (cmp && !api.mainPopper.render) api.mainPopper = cmp;
         } }/>,
         <div id="view">
             <MainColumnViews rootEl={ rootEl }/>
@@ -63,6 +63,16 @@ class MainPopper extends preact.Component {
     close() {
         if (this.settings.onClose) this.settings.onClose();
         this.setState({Renderer: null, arrowRefEl: null, rendererProps: null});
+    }
+    /**
+     * @param {Object} newRendererProps
+     * @param {{onClose?: () => void; maxWidth?: number; offsetY?: number;}} newSettings = {}
+     * @access public
+     */
+    refresh(newRendererProps, newSettings = null) {
+        if (!this.state.Renderer) return;
+        if (newSettings !== null) this.settings = newSettings;
+        this.setState({newRendererProps});
     }
     /**
      * @access protected

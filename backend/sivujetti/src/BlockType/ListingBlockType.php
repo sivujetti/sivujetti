@@ -45,6 +45,9 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
                                 "link" => (object) [
                                     "text" => strval($p->data->text),
                                 ],
+                                "excerpt" => (object) [
+                                    "primarySource" => strval($p->data->primarySource),
+                                ],
                                 default => null,
                             }
                         ], $s->parts)

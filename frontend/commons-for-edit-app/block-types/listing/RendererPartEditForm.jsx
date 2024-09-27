@@ -16,7 +16,7 @@ import ImagePicker from '../../ImagePicker.jsx';
 class RendererPartEditForm extends preact.Component {
     // crudListRef;
     /**
-     * @param {{item: RendererPart; onValueChanged: (value: string, key: keyof RendererPart, key2: keyof HeadingPartData | keyof ImagePartData | keyof LinkPartData) => void; done: () => void;}} props
+     * @param {{item: RendererPart; onValueChanged: (value: string, key: keyof RendererPart, key2: keyof HeadingPartData | keyof ImagePartData | keyof LinkPartData | keyof ExcerptPartData) => void; done: () => void;}} props
      */
     componentWillMount() {
         this.crudListRef = preact.createRef();
@@ -63,7 +63,7 @@ class RendererPartEditForm extends preact.Component {
                     onChange={ e => this.emitPartDataChange(parseInt(e.target.value[1], 10), 'level') }
                     value={ this.state.headingLevel }
                     class="form-select"
-                    name="varType">
+                    name="headingLevel">
                     { ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map(level =>
                         <option value={ level }>{ level }</option>
                     ) }
@@ -85,15 +85,15 @@ class RendererPartEditForm extends preact.Component {
                         onChange={ e => this.emitPartDataChange(e.target.value, 'primarySource') }
                         value={ this.state.primarySource }
                         class="form-select"
-                        name="varType">
+                        name="primarySource">
                         <option value="content">{ __('Page content') }</option>
                         <option value="meta">{ `${__('PageInfo')} (${__('Social image').toLowerCase()})` }</option>
                     </select>
                     </div>
                 </FormGroupInline>,
-                <div>
+                <FormGroupInline className="my-1">
                     <label htmlFor="fallbackImageSrc" class="form-label">{ __('Fallback') }</label>
-                    <ImagePicker
+                    <div class="pl-2"><ImagePicker
                         src={ this.state.fallbackImageSrc }
                         onSrcCommitted={
                         /**
@@ -107,8 +107,8 @@ class RendererPartEditForm extends preact.Component {
                             else
                                 this.emitPartDataChange(src || '', 'fallbackImageSrc');
                         } }
-                        inputId="fallbackImageSrc"/>
-                </div>
+                        inputId="fallbackImageSrc"/></div>
+                </FormGroupInline>,
             ];
         if (kind === 'link')
             return <FormGroupInline className="my-1">
@@ -116,6 +116,29 @@ class RendererPartEditForm extends preact.Component {
                 <Input vm={ this } prop="text" id="text"/>
                 <InputErrors vm={ this } prop="text"/>
             </FormGroupInline>;
+        if (kind === 'excerpt')
+            return [
+                <FormGroupInline className="my-1">
+                    <label class="form-label">
+                        { __('Primary source') }
+                        <span
+                            class="tooltip tooltip-right tooltip-auto-width p-absolute mt-1 ml-1"
+                            data-tooltip={ __('Choose where to retrieve the text from:\n\n%s: Use the first text from the page\'s content.\n%s: Use the %s from the page metadata.', __('Page content'), __('PageInfo'), __('Meta description').toLowerCase()) }>
+                            <Icon iconId="info-circle" className="color-dimmed3 size-xs"/>
+                        </span>
+                    </label>
+                    <div class="pl-2">
+                    <select
+                        onChange={ e => this.emitPartDataChange(e.target.value, 'primarySource') }
+                        value={ this.state.primarySource }
+                        class="form-select"
+                        name="primarySource">
+                        <option value="content">{ __('Page content') }</option>
+                        <option value="meta">{ `${__('PageInfo')} (${__('Meta description').toLowerCase()})` }</option>
+                    </select>
+                    </div>
+                </FormGroupInline>,
+            ];
         return null;
     }
     /**
@@ -162,6 +185,10 @@ class RendererPartEditForm extends preact.Component {
             }], {
                 primarySource: data.primarySource,
             }];
+        } else if (kind === 'excerpt') {
+            return [null, {
+                primarySource: data.primarySource,
+            }];
         }
         return [null, {}];
     }
@@ -185,6 +212,10 @@ RendererPartEditForm.createPartData = kind => {
         return {
             text: 'Read more',
         };
+    } else if (kind === 'excerpt') {
+        return {
+            primarySource: 'content',
+        };
     }
     return null;
 };
@@ -201,7 +232,9 @@ RendererPartEditForm.createPartData = kind => {
  *
  * @typedef {{text: string;}} LinkPartData
  *
- * @typedef {HeadingPartData|ImagePartData|LinkPartData} RendererPartData
+ * @typedef {{primarySource: 'content'|'meta';}} ExcerptPartData
+ *
+ * @typedef {HeadingPartData|ImagePartData|LinkPartData|ExcerptPartData} RendererPartData
  */
 
 export default RendererPartEditForm;

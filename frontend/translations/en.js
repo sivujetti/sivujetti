@@ -302,7 +302,9 @@ stringBundles.push({
     'Page content': 'Page content',
     'Fallback': 'Fallback',
     'Text': 'Text',
+    'Choose where to retrieve the text from:\n\n%s: Use the first text from the page\'s content.\n%s: Use the %s from the page metadata.': 'Choose where to retrieve the text from:\n\n%s: Use the first text from the page\'s content.\n%s: Use the %s from the page metadata.',
     'Link': 'Link',
+    'Excerpt': 'Excerpt',
     'Here you can define the elements displayed in the page listing and their order.': 'Here you can define the elements displayed in the page listing and their order.',
     'Add %s': 'Add %s',
     'part': 'part',
@@ -423,7 +425,6 @@ stringBundles.push({
     // Button
     'Background normal': 'Background normal',
     'Background hover': 'Background hover',
-    'Text': 'Text',
     'Text hover': 'Text hover',
     'Border': 'Border',
     'Border hover': 'Border hover',

@@ -18,6 +18,7 @@ import RendererPartEditForm from './RendererPartEditForm.jsx';
 /** @typedef {import('./RendererPartEditForm.jsx').HeadingPartData} HeadingPartData */
 /** @typedef {import('./RendererPartEditForm.jsx').ImagePartData} ImagePartData */
 /** @typedef {import('./RendererPartEditForm.jsx').LinkPartData} LinkPartData */
+/** @typedef {import('./RendererPartEditForm.jsx').ExcerptPartData} ExcerptPartData */
 
 const orderToText = {
     desc: 'newest to oldest',
@@ -469,6 +470,7 @@ class ConfigureRendererPopup extends preact.Component {
             heading: __('Heading'),
             link: __('Link'),
             image: __('Image'),
+            excerpt: __('Excerpt'),
         };
         this.emitPropChangeThrottled = timingUtils.debounce(
             this.emitPropChange.bind(this),
@@ -491,7 +493,7 @@ class ConfigureRendererPopup extends preact.Component {
                 /**
                  * @param {Array<RendererPart>} newParsedItems
                  * @param {keyof RendererPart} _prop
-                 * @param {keyof HeadingPartData | keyof ImagePartData | keyof LinkPartData} prop2
+                 * @param {keyof HeadingPartData | keyof ImagePartData | keyof LinkPartData | keyof ExcerptPartData} prop2
                  */
                 (newParsedItems, _prop, prop2) => {
                     if (prop2 === 'text' || prop2 === 'fallbackImageSrc')

@@ -302,7 +302,9 @@ stringBundles.push({
     'Page content': 'Sivun sisältö',
     'Fallback': 'Oletus / fallback',
     'Text': 'Teksti',
+    'Choose where to retrieve the text from:\n\n%s: Use the first text from the page\'s content.\n%s: Use the %s from the page metadata.': 'Valitse, mistä teksti haetaan:\n\n%s: Käytetään ensimmäistä listattavan sivun tekstisisällön tekstiä.\n%s: Käytetään sivun metatiedoissa määriteltyä %s -tekstiä.',
     'Link': 'Linkki',
+    'Excerpt': 'Tiivistelmä',
     'Here you can define the elements displayed in the page listing and their order.': 'Tässä voit määritellä sivulistauksessa näytettävät osat sekä niiden järjestyksen.',
     'Add %s': 'Lisää %s',
     'part': 'osio',
@@ -423,7 +425,6 @@ stringBundles.push({
     // Button
     'Background normal': 'Tausta normaali',
     'Background hover': 'Tausta hover',
-    'Text': 'Teksti',
     'Text hover': 'Teksti hover',
     'Border': 'Reunus',
     'Border hover': 'Reunus hover',

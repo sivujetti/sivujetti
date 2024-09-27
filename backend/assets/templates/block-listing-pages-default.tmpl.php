@@ -33,6 +33,29 @@
                     <!-- no image found -->
                 <?php endif; ?>
             </div>
+        <?php
+
+        // Excerpt
+        elseif ($part->kind === "excerpt"): ?>
+            <div class="article-excerpt">
+                <?php if ($part->data->primarySource === "meta" && isset($page->meta->description)):
+                    echo $page->meta->description; /* allow unescaped */
+                elseif ($part->data->primarySource === "content" &&
+                        ($_text = \Sivujetti\Block\BlockTree::findBlock($page->blocks, fn($b) => $b->type === "Text" && str_contains($b->html, "</p>"))) &&
+                        ($_paras = (function (string $html): array {
+                            $dom = new DOMDocument(encoding: "UTF-8");
+                            $dom->loadHTML($html);
+                            return array_map(fn($p) => array_reduce([...$p->childNodes->getIterator()],
+                                fn($html, $c) => "{$html}<p>{$p->ownerDocument->saveHTML($c)}</p>",
+                                ""
+                            ), [...$dom->getElementsByTagName("p")->getIterator()]);
+                        })($_text->html))):
+                    foreach ($_paras as $_p)
+                        echo $_p; /* allow unescaped */
+                else:
+                    echo "<!-- no description found -->";
+                endif; ?>
+            </div>
         <?php endif; ?>
         <?php endforeach; ?>
     </article>

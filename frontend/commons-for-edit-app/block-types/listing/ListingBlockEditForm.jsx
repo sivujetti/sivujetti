@@ -70,35 +70,16 @@ class ListingBlockEditForm extends preact.Component {
         const incoming = JSON.stringify(props.block.propsData) + block.renderer;
         if (current === incoming)
             return;
-        //
-        if (this.state.filterPageType !== block.filterPageType) {
-            this.setSelectedPageTypeBundle(block.filterPageType);
-            this.setState({filterPageType: block.filterPageType});
-        //
-        } else if (this.state.howManyType !== block.filterLimitType ||
-                this.state.howManyAmount !== block.filterLimit) {
-            this.setState({
-                howManyType: block.filterLimitType,
-                howManyAmount: block.filterLimit,
-                howManyAmountNotCommitted: block.filterLimitType !== 'atMost' ? null : block.filterLimit,
-                howManyAmountError: ''
-            });
-        //
-        } else if (this.state.order !== block.filterOrder) {
-            this.setState({order: block.filterOrder});
-        //
-        } else if (this.state.renderWith !== block.renderer) {
-            this.setState({renderWith: block.renderer});
-        //
-        } else if (JSON.stringify(this.state.rendererSettings) !== JSON.stringify(block.rendererSettings)) {
-            api.mainPopper.refresh(this.createCurrentPopupProps(ConfigureRendererPopup, props));
-        }
-        //
-        const filtersJson = JSON.stringify(block.filterAdditional);
-        if (this.state.additionalFiltersJson !== filtersJson) {
-            this.setState({additionalFiltersJson: filtersJson,
-                filtersParsed: buildWorkableFilters(block.filterAdditional)});
-        }
+
+        let [state, PopupClsToRefresh] = this.createState(props);
+
+        if (state)
+            this.setState(state);
+
+        if (state && !PopupClsToRefresh)
+            PopupClsToRefresh = api.mainPopper.getCurrentRendererCls();
+        if (PopupClsToRefresh)
+            api.mainPopper.refresh(this.createCurrentPopupProps(PopupClsToRefresh, props, state));
     }
     /**
      * @param {BlockEditFormProps} props
@@ -220,28 +201,66 @@ class ListingBlockEditForm extends preact.Component {
         </div>;
     }
     /**
+     * @param {BlockEditFormProps} props
+     * @returns {[Object|undefined, preact.Component|null]}
+     * @access private
+     */
+    createState({block}) {
+        let [state, PopupClsToRefresh] = [undefined, null];
+
+        if (this.state.filterPageType !== block.filterPageType) {
+            this.setSelectedPageTypeBundle(block.filterPageType);
+            state = {filterPageType: block.filterPageType};
+        } else if (this.state.howManyType !== block.filterLimitType ||
+                this.state.howManyAmount !== block.filterLimit) {
+            state = {
+                howManyType: block.filterLimitType,
+                howManyAmount: block.filterLimit,
+                howManyAmountNotCommitted: block.filterLimitType !== 'atMost' ? null : block.filterLimit,
+                howManyAmountError: ''
+            };
+        } else if (this.state.order !== block.filterOrder) {
+            state = {order: block.filterOrder};
+        } else if (JSON.stringify(this.state.rendererSettings) !== JSON.stringify(block.rendererSettings) &&
+                    api.mainPopper.getCurrentRendererCls() === ConfigureRendererPopup) {
+            PopupClsToRefresh = ConfigureRendererPopup;
+        }
+
+        const filtersJson = JSON.stringify(block.filterAdditional);
+        if (this.state.additionalFiltersJson !== filtersJson) {
+            state = {...(state || {}), additionalFiltersJson: filtersJson,
+                filtersParsed: buildWorkableFilters(block.filterAdditional)};
+        }
+        if (this.state.renderWith !== block.renderer) {
+            state = {...(state || {}), renderWith: block.renderer};
+        }
+
+        return [state, PopupClsToRefresh];
+    }
+    /**
      * @param {preact.Component} PopupRendererCls
      * @param {BlockEditFormProps} props = this.props
+     * @param {Object} state = this.state
      * @returns {{[key: String]: any;}}
      * @access private
      */
-    createCurrentPopupProps(PopupRendererCls, props = this.props) {
+    createCurrentPopupProps(PopupRendererCls, props = this.props, state = this.state) {
         if (PopupRendererCls === DefineLimitPopup)
-            return {howManyType: this.state.howManyType, howManyAmountNotCommitted: this.state.howManyAmountNotCommitted, howManyAmountError: this.state.howManyAmountError, parent: this};
+            return {howManyType: state.howManyType, howManyAmountNotCommitted: state.howManyAmountNotCommitted, howManyAmountError: state.howManyAmountError, parent: this};
         if (PopupRendererCls === DefinePageTypePopup)
-            return {howManyType: this.state.howManyType, filterPageType: this.state.filterPageType, parent: this};
+            return {howManyType: state.howManyType, filterPageType: state.filterPageType, parent: this};
         if (PopupRendererCls === AddFilterPopup) {
             const hasCategoryOwnField = this.selectedPageTypeBundle.pageType.ownFields.some(f => typeof f.dataType.rel === 'string');
-            return {filtersParsed: this.state.filtersParsed,
-                    howManyTypeAdjusted: createAdjustedHowManyType(this.state.howManyType, this.state.howManyAmount),
-                    currentFiltersJson: this.state.additionalFiltersJson,
+            return {filtersParsed: state.filtersParsed,
+                    howManyTypeAdjusted: createAdjustedHowManyType(state.howManyType, state.howManyAmount),
+                    currentFiltersJson: state.additionalFiltersJson,
                     showAddCategoryFilterButton: hasCategoryOwnField,
                     parent: this};
         }
         if (PopupRendererCls === DefineOrderPopup)
-            return {order: this.state.order, parent: this};
+            return {order: state.order, parent: this};
         if (PopupRendererCls === ChooseRendererPopup)
-            return {renderWith: this.state.renderWith, parent: this};
+            return {renderWith: state.renderWith, parent: this};
         if (PopupRendererCls === ConfigureRendererPopup)
             return {rendererSettings: props.block.rendererSettings ? objectUtils.cloneDeep(props.block.rendererSettings) : null, parent: this};
     }
@@ -409,7 +428,7 @@ class DefinePageTypePopup extends preact.Component {
             filterAdditional: removeIsInCatFilter(this.props.parent.state.additionalFiltersJson), // clear in case the seleted page type does not have applied property
             renderer: this.props.parent.pageTypeBundles.find(({pageType}) => pageType.name === newSelectedPageTypeName).renderers[0].fileId,
         };
-        this.props.parent.props.emitManyValuesChanged(newData, false, env.normalTypingDebounceMillis);
+        this.props.parent.props.emitManyValuesChanged(newData);
     }
 }
 

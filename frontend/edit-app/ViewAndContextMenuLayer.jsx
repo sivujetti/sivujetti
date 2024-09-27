@@ -1,4 +1,4 @@
-import {__, api, FloatingDialog, Popup} from '@sivujetti-commons-for-edit-app';
+import {__, api, events, FloatingDialog, Popup} from '@sivujetti-commons-for-edit-app';
 import MainColumnViews from './main-column/MainColumnViews.jsx';
 import toasters, {Toaster} from './includes/toasters.jsx';
 import ContextMenu from './includes/ContextMenu.jsx';
@@ -45,6 +45,7 @@ class ViewAndContextMenuLayer extends preact.Component {
 
 class MainPopper extends preact.Component {
     // settings;
+    // unregistrables;
     /**
      * @param {preact.Component} Renderer
      * @param {HTMLElement} arrowRefEl
@@ -72,7 +73,24 @@ class MainPopper extends preact.Component {
     refresh(newRendererProps, newSettings = null) {
         if (!this.state.Renderer) return;
         if (newSettings !== null) this.settings = newSettings;
-        this.setState({newRendererProps});
+        this.setState({rendererProps: newRendererProps});
+    }
+    /**
+     * @returns {preact.Component|null}
+     * @access public
+     */
+    getCurrentRendererCls() {
+        return this.state.Renderer;
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        const closeIfOpen = () => { if (this.state.Renderer) this.close(); };
+        this.unregistrables = [
+            events.on('inspector-panel-closed', closeIfOpen),
+            events.on('inspector-panel-opened', closeIfOpen), // Re-opened with different block
+        ];
     }
     /**
      * @access protected

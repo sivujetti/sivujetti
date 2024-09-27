@@ -49,7 +49,7 @@ class FloatingDialog extends preact.Component {
     }
     /**
      * @param {preact.ComponentType|string} Renderer
-     * @param {FloatingDialogSettingsInput & {[key: String]: any;}} settings
+     * @param {FloatingDialogSettingsInput & {[key: string]: any;}} settings
      * @param {Object} rendererProps
      * @access public
      */
@@ -133,9 +133,9 @@ class FloatingDialog extends preact.Component {
 }
 
 /**
- * @param {FloatingDialogSettingsInput & {[key: String]: any;}} input
+ * @param {FloatingDialogSettingsInput & {[key: string]: any;}} input
  * @param {{Renderer: preact.AnyComponent; rendererProps: Object;}} out
- * @returns {{title: String; width: Number; height: Number;}}
+ * @returns {{title: string; width: number; height: number;}}
  */
 function createState(input, out) {
     Object.assign(out, input);

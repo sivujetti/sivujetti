@@ -6,7 +6,7 @@ const toasters = {
 
 class Toaster extends preact.Component {
     /**
-     * @param {{id?: String; autoCloseTimeoutMillis?: Number; className?: String; message?: {message: preact.ComponentChild; level: messageLevel; timeout?: Number; noClickClose?: Boolean;}}} props
+     * @param {{id?: string; autoCloseTimeoutMillis?: number; className?: string; message?: {message: preact.ComponentChild; level: messageLevel; timeout?: number; noClickClose?: boolean;}}} props
      */
     constructor(props) {
         super(props);
@@ -52,7 +52,7 @@ class Toaster extends preact.Component {
     /**
      * @param {preact.ComponentChild} message
      * @param {messageLevel} level
-     * @param {Number} timeout = this.autoCloseTimeoutMillis
+     * @param {number} timeout = this.autoCloseTimeoutMillis
      * @param {() => void} onDismissed = null
      * @access private
      */
@@ -64,7 +64,7 @@ class Toaster extends preact.Component {
         this.setState({messages: this.state.messages});
     }
     /**
-     * @param {{message: preact.ComponentChild; level: messageLevel; timeoutId: Number;}?} message
+     * @param {{message: preact.ComponentChild; level: messageLevel; timeoutId: number;}?} message
      * @access private
      */
     removeMessage(message) {
@@ -86,7 +86,7 @@ class Toaster extends preact.Component {
 }
 
 /**
- * @typedef {'error'|'notice'|'info'|'success'|String} messageLevel
+ * @typedef {'error'|'notice'|'info'|'success'|string} messageLevel
  */
 
 export default toasters;

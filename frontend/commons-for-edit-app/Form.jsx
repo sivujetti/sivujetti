@@ -12,10 +12,10 @@ const validatorImplFactories = {
 };
 
 /**
- * @param {String} errorTmpl
- * @param {String|undefined} label
+ * @param {string} errorTmpl
+ * @param {string|undefined} label
  * @param {Array} args
- * @returns {String}
+ * @returns {string}
  */
 const formatError = (errorTmpl, label, args) => {
     const errorLabel = label || __('This field');
@@ -27,8 +27,8 @@ const formatError = (errorTmpl, label, args) => {
 /**
  * @param {preact.Component} cmp
  * @param {Array<InputDef>} inps
- * @param {{[key: String]: any;}} initialState = {}
- * @returns {{[key: String]: any;}}
+ * @param {{[key: string]: any;}} initialState = {}
+ * @returns {{[key: string]: any;}}
  */
 function hookForm(cmp, inps, initialState = {}) {
     const values = {};
@@ -85,7 +85,7 @@ function unhookForm(cmp) {
 
 /**
  * @param {preact.Component} cmp
- * @param {String} k
+ * @param {string} k
  * @param {InputDef} inp
  * @returns {todo2}
  */
@@ -134,7 +134,7 @@ function createApi(cmp, k, inp) {
 
 /**
  * @param {preact.Component} cmp
- * @returns {Boolean}
+ * @returns {boolean}
  */
 function validateAll(cmp) {
     const inputApis = cmp.inputApis;
@@ -153,7 +153,7 @@ function validateAll(cmp) {
 
 /**
  * @param {preact.Component} cmp
- * @returns {Boolean}
+ * @returns {boolean}
  */
 function hasErrors(cmp) {
     const errs = cmp.state.errors;
@@ -166,7 +166,7 @@ function hasErrors(cmp) {
 /**
  * @param {preact.Component} cmp
  * @param {Array<InputDef>} inps
- * @param {{[key: String]: any;}} initialState = {}
+ * @param {{[key: string]: any;}} initialState = {}
  */
 function reHookValues(cmp, inps, initialState = {}) {
     const newState = {
@@ -187,7 +187,7 @@ function reHookValues(cmp, inps, initialState = {}) {
 
 /**
  * @param {InputDef} inp
- * @returns {String}
+ * @returns {string}
  */
 function mkKey(inp) {
     return inp.id || inp.name; // todo sanity check tai throw
@@ -195,8 +195,8 @@ function mkKey(inp) {
 
 /**
  * @param {InputDef} inp
- * @param {String|Number} value = inp.value
- * @returns {String|Number}
+ * @param {string|number} value = inp.value
+ * @returns {string|number}
  */
 function getFormattedValue(inp, value = inp.value) {
     return inp.valueType !== 'int' ? value : parseInt(value, 10);
@@ -205,7 +205,7 @@ function getFormattedValue(inp, value = inp.value) {
 class Input extends preact.Component {
     // inputEl;
     /**
-     * @param {{vm: preact.Component; prop: String;}} props
+     * @param {{vm: preact.Component; prop: string;}} props
      */
     constructor(props) {
         super(props);
@@ -240,7 +240,7 @@ class Textarea extends Input {
 
 class InputError extends preact.Component {
     /**
-     * @param {{errorMessage?: String;}} props
+     * @param {{errorMessage?: string;}} props
      * @access protected
      */
     render({errorMessage}) {
@@ -250,7 +250,7 @@ class InputError extends preact.Component {
 
 class InputErrors extends preact.Component {
     /**
-     * @param {{vm?: preact.Component; prop?: String; errors?: Array<{message: String;}>;}} props
+     * @param {{vm?: preact.Component; prop?: string; errors?: Array<{message: string;}>;}} props
      * @access protected
      */
     render({vm, prop, errors}) {
@@ -275,7 +275,7 @@ class InputErrors extends preact.Component {
 
 class FormGroup extends preact.Component {
     /**
-     * @param {{className?: String;}} props
+     * @param {{className?: string;}} props
      */
     render({children, className}) {
         return <div class={ 'form-group' + (!className ? '' : ` ${className}`) }>{ children }</div>;
@@ -284,7 +284,7 @@ class FormGroup extends preact.Component {
 
 class FormGroupInline extends preact.Component {
     /**
-     * @param {{className?: String; labelFlow?: 'ellipsis'|'break';}} props
+     * @param {{className?: string; labelFlow?: 'ellipsis'|'break';}} props
      */
     render({children, className, labelFlow}) {
         return <div className={ 'form-group' + (!className ? '' : ` ${className}`) }>
@@ -301,13 +301,13 @@ class FormGroupInline extends preact.Component {
 
 /**
  * @typedef InputDef
- * @prop {String} name e.g. 'numColumns'
- * @prop {String|Number} value e.g. 1, 'foo'
- * @prop {Array<[String, ...any]>} validations e.g. [['min', 0], ['max', 12]]
- * @prop {String=} id e.g. 'numColumns'
- * @prop {String=} label e.g. 'Num columns'
- * @prop {String=} valueType e.g. 'int'
- * @prop {String=} type e.g. 'number'
+ * @prop {string} name e.g. 'numColumns'
+ * @prop {string|number} value e.g. 1, 'foo'
+ * @prop {Array<[string, ...any]>} validations e.g. [['min', 0], ['max', 12]]
+ * @prop {string=} id e.g. 'numColumns'
+ * @prop {string=} label e.g. 'Num columns'
+ * @prop {string=} valueType e.g. 'int'
+ * @prop {string=} type e.g. 'number'
  * other props
  */
 

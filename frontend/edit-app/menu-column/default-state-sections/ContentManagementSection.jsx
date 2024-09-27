@@ -4,7 +4,7 @@ class ContentManagementSection extends preact.Component {
     // userCanCreatePageTypes;
     // userCanListUploads;
     /**
-     * @param {{[key: String]: any;}} props
+     * @param {{[key: string]: any;}} props
      */
     constructor(props) {
         super(props);

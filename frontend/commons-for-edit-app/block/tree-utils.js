@@ -2,7 +2,7 @@ import {objectUtils} from '../utils.js';
 
 const blockTreeUtils = {
     /**
-     * @param {String} id
+     * @param {string} id
      * @param {Array<Block>} branch
      * @param {Block=} parentBlock = null
      * @returns {[Block|null, Array<Block>|null, Block|null]} [block, containingBranch, parentBlock]
@@ -19,9 +19,9 @@ const blockTreeUtils = {
         return [null, null, null];
     },
     /**
-     * @param {String} blockId
+     * @param {string} blockId
      * @param {Array<Block>} theBlockTree
-     * @returns {String|null}
+     * @returns {string|null}
      * @access public
      */
     getIsStoredToTreeId(blockId, theBlockTree) {
@@ -30,7 +30,7 @@ const blockTreeUtils = {
         return this.getIdFor(root);
     },
     /**
-     * @param {String} id
+     * @param {string} id
      * @param {Array<Block>} tree
      * @param {Block=} _parentBlock = null
      * @param {GlobalBlockTree|Array<Block>} _root = null
@@ -58,21 +58,21 @@ const blockTreeUtils = {
     },
     /**
      * @param {GlobalBlockTree|Array<Block>} input
-     * @returns {String} 'main' or <pushId>
+     * @returns {string} 'main' or <pushId>
      */
     getIdFor(root) {
         return this.isMainTree(root) ? 'main' : root.id;
     },
     /**
      * @param {GlobalBlockTree|Array<Block>} input
-     * @returns {Boolean}
+     * @returns {boolean}
      */
     isMainTree(root) {
         return Array.isArray(root);
     },
     /**
      * @param {Array<Object>} branch
-     * @param {(item: Object, i: Number) => any} fn
+     * @param {(item: Object, i: number) => any} fn
      * @returns {Array<Object>}
      * @access public
      */
@@ -87,7 +87,7 @@ const blockTreeUtils = {
     },
     /**
      * @param {Array<Object>} branch
-     * @param {(item: Object, i: Number) => any} fn
+     * @param {(item: Object, i: number) => any} fn
      * @returns {Array<Object>}
      * @access public
      */
@@ -99,7 +99,7 @@ const blockTreeUtils = {
     },
     /**
      * @param {Array<Object>} branch
-     * @param {(item: Object, i: Number) => Boolean} fn
+     * @param {(item: Object, i: number) => boolean} fn
      * @returns {Object}
      * @access public
      */
@@ -116,9 +116,9 @@ const blockTreeUtils = {
     },
     /**
      * @param {Array<Object>} branch
-     * @param {(item: Object, i: Number, parent: Object|null, parentIdPath: String) => any} fn
+     * @param {(item: Object, i: number, parent: Object|null, parentIdPath: string) => any} fn
      * @param {Object} parent = null
-     * @param {String} parentIdPath = ''
+     * @param {string} parentIdPath = ''
      * @returns {Array<Object>}
      * @access public
      */
@@ -131,7 +131,7 @@ const blockTreeUtils = {
         });
     },
     /**
-     * @param {String} trid 'main' or 'id-of-some-global-block-tree'
+     * @param {string} trid 'main' or 'id-of-some-global-block-tree'
      * @param {Array<Block>} from
      * @returns {Array<Block>|null}
      */

@@ -1,17 +1,17 @@
 import scssUtils, {compile, serialize, stringify} from './styles/scss-utils.js';
 
 /**
- * @param {String} scss
- * @returns {{extractVal(prop: String, scope?: String): StylisAstNode|null; getAst(): Array<StylisAstNode>;}}
+ * @param {string} scss
+ * @returns {{extractVal(prop: string, scope?: string): StylisAstNode|null; getAst(): Array<StylisAstNode>;}}
  */
 function createCssDeclExtractor(scss) {
     const ast = compile(scss);
     const rootScope = ast[0]?.type === 'rule' ? ast[0].value : ''; // Example: '[data-block="<id>"]' or ''
     return {
         /**
-         * @param {String} prop
-         * @param {String=} scope = rootScope
-         * @param {String=} propTmpl = null
+         * @param {string} prop
+         * @param {string=} scope = rootScope
+         * @param {string=} propTmpl = null
          * @returns {StylisAstNode|null}
          */
         extractVal(prop, scope = rootScope, propTmpl = null) {
@@ -48,9 +48,9 @@ function createCssDeclExtractor(scss) {
 
 /**
  * @param {Array<StyleChunk>} styles
- * @param {String} cachedCompiledCss
- * @param {String} pageIdPair
- * @returns {String} '@import "maybeExternalImport";@font-face {<maybeLocalImport>}@layer base-styles {\n<compiled>\n}\n@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
+ * @param {string} cachedCompiledCss
+ * @param {string} pageIdPair
+ * @returns {string} '@import "maybeExternalImport";@font-face {<maybeLocalImport>}@layer base-styles {\n<compiled>\n}\n@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
  */
 function stylesToBaked(styles, cachedCompiledCss, pageIdPair) {
     if (!styles.length) return '';
@@ -111,9 +111,9 @@ function stylesToBaked(styles, cachedCompiledCss, pageIdPair) {
 }
 
 /**
- * @param {String} currentCachedCompiledCss
- * @param {String} pageIdPair
- * @returns {(newCssForThisPage: String|null) => Array<String>|null}
+ * @param {string} currentCachedCompiledCss
+ * @param {string} pageIdPair
+ * @returns {(newCssForThisPage: string|null) => Array<string>|null}
  */
 function createCompiledPageScopedLinesUpdateFn(currentCachedCompiledCss, pageIdPair) {
     const prevLines = getPageScopedLines(currentCachedCompiledCss.split('\n'));
@@ -138,8 +138,8 @@ function createCompiledPageScopedLinesUpdateFn(currentCachedCompiledCss, pageIdP
 }
 
 /**
- * @param {Array<String>} linesAll
- * @returns {Array<String>}
+ * @param {Array<string>} linesAll
+ * @returns {Array<string>}
  */
 function getPageScopedLines(linesAll) {
     const idxFrom = linesAll.indexOf('/* == page-scoped:start */') + 1;
@@ -148,9 +148,9 @@ function getPageScopedLines(linesAll) {
 }
 
 /**
- * @param {String} completeScssChunk Example 'line text-align: justify;'
- * @param {String} line1 Example '[data-block="-LjHigIQtxfaaHMhENSo"] {'
- * @returns {String} Example '[data-block="-LjHigIQtxfaaHMhENSo"] {\n  text-align: initial;\n}'
+ * @param {string} completeScssChunk Example 'line text-align: justify;'
+ * @param {string} line1 Example '[data-block="-LjHigIQtxfaaHMhENSo"] {'
+ * @returns {string} Example '[data-block="-LjHigIQtxfaaHMhENSo"] {\n  text-align: initial;\n}'
  */
 function createScssBlock(completeScssChunk, line1) {
     return [
@@ -161,8 +161,8 @@ function createScssBlock(completeScssChunk, line1) {
 }
 
 /**
- * @param {String} scss
- * @returns {String}
+ * @param {string} scss
+ * @returns {string}
  */
 function normalizeScss(scss) {
     if (scss.startsWith('//'))
@@ -176,22 +176,22 @@ function normalizeScss(scss) {
 const tab = '  ';
 
 /**
- * @param {String} line
- * @param {Number} numTabs
- * @returns {String}
+ * @param {string} line
+ * @param {number} numTabs
+ * @returns {string}
  */
 function indent(line, numTabs) {
     return `${tab.repeat(numTabs)}${line}`;
 }
 
 /**
- * @param {String} scss
+ * @param {string} scss
  */
 function createScssInspectorInternal(scss) {
     const ast = compile(scss);
     return {
         /**
-         * @param {String} declName Example 'color', 'grid-template-columns'
+         * @param {string} declName Example 'color', 'grid-template-columns'
          * @returns {StylisAstNode|null}
          */
         findNodeByDeclName(declName) {
@@ -200,8 +200,8 @@ function createScssInspectorInternal(scss) {
             );
         },
         /**
-         * @param {String} declName Example 'color', 'grid-template-columns'
-         * @param {String} scope Example 'ul li', 'ul li a:hover'
+         * @param {string} declName Example 'color', 'grid-template-columns'
+         * @param {string} scope Example 'ul li', 'ul li a:hover'
          * @returns {StylisAstNode|null}
          */
         findNodeByDeclNameFromScope(declName, scope) {
@@ -278,7 +278,7 @@ function filterRecursively(ast, fn, parenNode = null) {
 /**
  * @param {StylisAstNode|null} declsParentAstNode
  * @param {StylisAstInspector} cur
- * @returns {String}
+ * @returns {string}
  */
 function getSelectorForDecl(declsParentAstNode, cur) {
     if (declsParentAstNode && typeof declsParentAstNode.value === 'string' && declsParentAstNode.value[0] === ' ') {
@@ -292,9 +292,9 @@ function getSelectorForDecl(declsParentAstNode, cur) {
 }
 
 /**
- * @param {String} scopeSpecifier
+ * @param {string} scopeSpecifier
  * @param {styleScopeKind} scopeKind = 'single-block'
- * @returns {String}
+ * @returns {string}
  * @access public
  */
 function createSelector(scopeSpecifier, scopeKind = 'single-block') {
@@ -304,8 +304,8 @@ function createSelector(scopeSpecifier, scopeKind = 'single-block') {
 }
 
 /**
- * @param {Array<String>} lines
- * @returns {Number}
+ * @param {Array<string>} lines
+ * @returns {number}
  */
 function findEmptyBlockClosingTagIndex(lines) {
     for (let l = lines.length; --l > -1; ) {
@@ -319,10 +319,10 @@ function findEmptyBlockClosingTagIndex(lines) {
 }
 
 /**
- * @param {String} scssTo
- * @param {String} codeTemplate
+ * @param {string} scssTo
+ * @param {string} codeTemplate
  * @param {any} val
- * @returns {String}
+ * @returns {string}
  */
 function addOrUpdateCodeTo(scssTo, codeTemplate, val) {
     const incoming1 = Array.isArray(codeTemplate) ? codeTemplate.join('\n') : codeTemplate;
@@ -381,10 +381,10 @@ function addOrUpdateCodeTo(scssTo, codeTemplate, val) {
 const EMPTY_LINE = '^::empty::^';
 
 /**
- * @param {String} scssFrom
- * @param {String} codeTemplate
+ * @param {string} scssFrom
+ * @param {string} codeTemplate
  * @param {any} val
- * @returns {String}
+ * @returns {string}
  */
 function deleteCodeFrom(scssFrom, codeTemplate, val) {
     const incoming1 = Array.isArray(codeTemplate) ? codeTemplate.join('\n') : codeTemplate;
@@ -435,8 +435,8 @@ function deleteCodeFrom(scssFrom, codeTemplate, val) {
 }
 
 /**
- * @param {String} uniqChunkScss
- * @returns {String}
+ * @param {string} uniqChunkScss
+ * @returns {string}
  */
 function extractBlockId(uniqChunkScss) {
     return uniqChunkScss.split('data-block="')[1].split('"')[0];

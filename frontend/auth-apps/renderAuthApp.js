@@ -5,7 +5,7 @@ import LoginApp from './LoginApp.jsx';
  * Renders $appName to document.getElementById(`${appName}-app`).
  *
  * @param {'login'} appName
- * @param {String} dashboardUrl
+ * @param {string} dashboardUrl
  * @throws {Error} If $appName is not 'login'
  */
 export default (appName, dashboardUrl) => {

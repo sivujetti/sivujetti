@@ -19,8 +19,8 @@ let prevLargest = 0;
  * //                 typically 7 characters
  * ```
  *
- * @param {Number} t = null
- * @returns {String}
+ * @param {number} t = null
+ * @returns {string}
  */
 function generateShortId(t = null) {
     const nowMilli = t || Date.now();
@@ -37,8 +37,8 @@ function generateShortId(t = null) {
 }
 
 /**
- * @param {String} shortId
- * @returns {{timestampWithMillis: Number; randomPart: String;}}
+ * @param {string} shortId
+ * @returns {{timestampWithMillis: number; randomPart: string;}}
  */
 function shortIdToComponents(shortId) {
     const timePart = shortId.substring(0, shortId.length - 4);
@@ -51,8 +51,8 @@ function shortIdToComponents(shortId) {
 }
 
 /**
- * @param {Number} nowMilli
- * @returns {String}
+ * @param {number} nowMilli
+ * @returns {string}
  */
 function genId(nowMilli) {
     const timePart = base62Encode(nowMilli);
@@ -68,8 +68,8 @@ function genId(nowMilli) {
  * Original code https://github.com/base62/base62.js/blob/9d980bb167408c0bfc61dfab28ae17bc95d0ba90/lib/ascii.js,
  * MIT-license.
  *
- * @param {Number} num
- * @returns {String}
+ * @param {number} num
+ * @returns {string}
  */
 function base62Encode(num) {
     const encoded = [];
@@ -81,8 +81,8 @@ function base62Encode(num) {
 }
 
 /**
- * @param {String} shortId
- * @returns {Number}
+ * @param {string} shortId
+ * @returns {number}
  */
 function base62Decode(shortId) {
     const chars = base62Chars.split('');
@@ -93,8 +93,8 @@ function base62Decode(shortId) {
 
 /**
  * https://stackoverflow.com/a/42321673
- * @param {Number} max
- * @returns {Number}
+ * @param {number} max
+ * @returns {number}
  */
 function getRandomIntInclusive(max) {
     const randomBuffer = new Uint32Array(1);

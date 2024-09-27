@@ -27,7 +27,7 @@ class DefaultState extends preact.Component {
         this.unregisterSignalListener();
     }
     /**
-     * @param {{url: String; path: '/:slug*'; [other: String]: any;}} _
+     * @param {{url: string; path: '/:slug*'; [other: string]: any;}} _
      * @access protected
      */
     render(_, {userDefinedSections}) {
@@ -59,7 +59,7 @@ class DefaultState extends preact.Component {
 }
 
 /**
- * @returns {Array<String>}
+ * @returns {Array<string>}
  */
 function getRegisteredMainPanelSectionNames() {
     return [...api.menuPanel.getSections().keys()];

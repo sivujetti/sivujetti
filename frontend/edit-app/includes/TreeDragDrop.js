@@ -43,7 +43,7 @@ class TreeDragDrop {
     }
     /**
      * @param {DragEvent} e
-     * @param {Boolean} isExt = false
+     * @param {boolean} isExt = false
      * @access public
      */
     handleDrag(e, isExt = false) {
@@ -280,8 +280,8 @@ class TreeDragDrop {
     }
     /**
      * @param {HTMLLIElement} li
-     * @param {Number} _idx Index of target li
-     * @returns {Boolean}
+     * @param {number} _idx Index of target li
+     * @returns {boolean}
      * @access private
      */
     checkIfDraggingToOwnParent(li, _idx) {
@@ -302,10 +302,10 @@ class TreeDragDrop {
         ?? */
     }
     /**
-     * @param {Boolean} isAfter Is target li after this.start
+     * @param {boolean} isAfter Is target li after this.start
      * @param {HTMLLIElement} li
-     * @param {Number} idx Index of target li
-     * @returns {Boolean}
+     * @param {number} idx Index of target li
+     * @returns {boolean}
      * @access private
      */
     checkIfDraggingInsideItself(isAfter, li, idx) {
@@ -325,12 +325,12 @@ class TreeDragDrop {
         }
     }
     /**
-     * @param {Boolean} isBefore Is target li before this.start
+     * @param {boolean} isBefore Is target li before this.start
      * @param {DragDropInfo} nextCandVisual
      * @param {HTMLLIElement} li
-     * @param {Boolean} isAfter Is target li after this.start
-     * @param {Number} idx Index of target li
-     * @returns {Boolean}
+     * @param {boolean} isAfter Is target li after this.start
+     * @param {number} idx Index of target li
+     * @returns {boolean}
      * @access private
      */
     checkIfTooClose(isBefore, nextCandVisual, li, isAfter, idx) {
@@ -366,7 +366,7 @@ class TreeDragDrop {
     }
     /**
      * @param {DragDropInfo} nextCandVisual
-     * @returns {Boolean}
+     * @returns {boolean}
      * @access private
      */
     checkIfBeyondLastMarker({pos, li}) {
@@ -382,7 +382,7 @@ class TreeDragDrop {
     }
     /**
      * @param {HTMLLIElement} li
-     * @returns {Number}
+     * @returns {number}
      * @access private
      */
     getIdx(li) {
@@ -438,7 +438,7 @@ function norm(e) {
 
 /**
  * @param {HTMLLIElement|null} li
- * @param {Number} nth = 0 For internal use
+ * @param {number} nth = 0 For internal use
  * @returns {HTMLLIElement|null} null, li:last-child or li:last-child's parent
  */
 function getOutermostParent(li, i = 0) {

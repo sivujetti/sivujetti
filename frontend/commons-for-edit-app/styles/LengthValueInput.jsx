@@ -85,9 +85,9 @@ class LengthValueInput extends preact.Component {
         </FormGroupInline>;
     }
     /**
-     * @param {String|null} val
-     * @param {Boolean} hasErrors = false
-     * @param {String} flags = null
+     * @param {string|null} val
+     * @param {boolean} hasErrors = false
+     * @param {string} flags = null
      * @access private
      */
     handleInput(val, hasErrors = false, flags = null) {
@@ -98,8 +98,8 @@ class LengthValueInput extends preact.Component {
         this.props.onValueChanged(val ? `${val}${this.state.unit}` : null);
     }
     /**
-     * @param {String} input examples: '1.4rem', '1.4 rem ', '12px', 'initial'
-     * @param {String} initialUnit = 'rem'
+     * @param {string} input examples: '1.4rem', '1.4 rem ', '12px', 'initial'
+     * @param {string} initialUnit = 'rem'
      * @returns {LengthValue|null}
      */
     static valueFromInput(input, initialUnit = 'rem') {
@@ -117,7 +117,7 @@ class LengthValueInput extends preact.Component {
     }
     /**
      * @param {LengthValue} value
-     * @returns {String}
+     * @returns {string}
      */
     static valueToString(value) {
         return typeof value.num === 'string' && value.num.length ? `${value.num}${value.unit}` : 'initial';
@@ -125,8 +125,8 @@ class LengthValueInput extends preact.Component {
 }
 
 /**
- * @param {(val: String|null, hasErrors: Boolean, flags: String) => any} fast
- * @returns {(val: String|null, hasErrors: Boolean, source: String) => any}
+ * @param {(val: string|null, hasErrors: boolean, flags: string) => any} fast
+ * @returns {(val: string|null, hasErrors: boolean, source: string) => any}
  */
 function createThrottler(fast) {
     let throttled = null;

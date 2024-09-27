@@ -10,8 +10,8 @@ const historyInstance = createHashHistory();
 
 class MyRouter extends preactRouter {
     /**
-     * @param {String} url
-     * @returns {Boolean|undefined}
+     * @param {string} url
+     * @returns {boolean|undefined}
      * @access public
      */
     routeTo(url) {
@@ -43,7 +43,7 @@ class MainColumnViews extends preact.Component {
         </MyRouter>;
     }
     /**
-     * @param {{url: String} & {[key: String]: any;}} e
+     * @param {{url: string} & {[key: string]: any;}} e
      * @access private
      */
     onRouteChanged(e) {
@@ -59,8 +59,8 @@ class MainColumnViews extends preact.Component {
 }
 
 /**
- * @param {String} slug
- * @returns {Boolean}
+ * @param {string} slug
+ * @returns {boolean}
  */
 function isMainColumnViewUrl(slug) {
     return [

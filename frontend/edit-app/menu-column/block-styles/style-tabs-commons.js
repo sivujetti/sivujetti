@@ -42,7 +42,7 @@ function filterTabsForLoggedInUser(allTabs) {
 /**
  * @param {tabKind} savedTabKind
  * @param {Array<TabInfo>} tabsInfo
- * @returns {Number}
+ * @returns {number}
  */
 function createInitialTabKind(savedTabKind, tabsInfo) {
     initLocals();

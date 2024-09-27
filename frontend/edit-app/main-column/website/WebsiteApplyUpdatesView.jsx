@@ -49,8 +49,8 @@ class WebsiteApplyUpdatesView extends preact.Component {
         </OverlayView>;
     }
     /**
-     * @param {String} name
-     * @returns {{[propName: String]: any;}}
+     * @param {string} name
+     * @returns {{[propName: string]: any;}}
      * @access private
      */
     createRendererProps(name) {
@@ -368,9 +368,9 @@ function reloadPage() {
 
 /**
  * @param {Array<() => any>} tasks
- * @param {Number} idx
- * @param {(idx: Number, ret: any) => void} onAfterEach
- * @returns {Promise<String>} 'ok'|'Failed at #2'
+ * @param {number} idx
+ * @param {(idx: number, ret: any) => void} onAfterEach
+ * @returns {Promise<string>} 'ok'|'Failed at #2'
  */
 function runTasks(tasks, idx, onAfterEach) {
     const fn = tasks[idx];
@@ -399,8 +399,8 @@ function liftMouseLock() {
 }
 
 /**
- * @param {{[key: String]: any;}} resp
- * @returns {Number|null}
+ * @param {{[key: string]: any;}} resp
+ * @returns {number|null}
  */
 function getCode(resp) {
     return typeof resp.detailsCode === 'number' ? resp.detailsCode : null;

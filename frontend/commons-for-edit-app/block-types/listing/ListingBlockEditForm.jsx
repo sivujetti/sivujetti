@@ -241,7 +241,7 @@ class ListingBlockEditForm extends preact.Component {
      * @param {preact.Component} PopupRendererCls
      * @param {BlockEditFormProps} props = this.props
      * @param {Object} state = this.state
-     * @returns {{[key: String]: any;}}
+     * @returns {{[key: string]: any;}}
      * @access private
      */
     createCurrentPopupProps(PopupRendererCls, props = this.props, state = this.state) {
@@ -293,7 +293,7 @@ class ListingBlockEditForm extends preact.Component {
         );
     }
     /**
-     * @param {String} selectedPageTypeName
+     * @param {string} selectedPageTypeName
      * @access private
      */
     setSelectedPageTypeBundle(selectedPageTypeName) {
@@ -327,7 +327,7 @@ function getTargetButton(target, kill = 0) {
 
 class DefineLimitPopup extends preact.Component {
     /**
-     * @param {{howManyType: howManyType; howManyAmountNotCommitted: Number|null; howManyAmountError: String;}} props
+     * @param {{howManyType: howManyType; howManyAmountNotCommitted: number|null; howManyAmountError: string;}} props
      * @access protected
      */
     render({howManyType, howManyAmountNotCommitted, howManyAmountError}) {
@@ -397,7 +397,7 @@ class DefineLimitPopup extends preact.Component {
 
 class DefinePageTypePopup extends preact.Component {
     /**
-     * @param {{filterPageType: String; howManyType: howManyType;}} props
+     * @param {{filterPageType: string; howManyType: howManyType;}} props
      * @access protected
      */
     render({filterPageType, howManyType}) {
@@ -459,7 +459,7 @@ class DefineOrderPopup extends preact.Component {
 
 class ChooseRendererPopup extends preact.Component {
     /**
-     * @param {{renderWith: String;}} props
+     * @param {{renderWith: string;}} props
      * @access protected
      */
     render({renderWith}) {
@@ -563,7 +563,7 @@ class ConfigureRendererPopup extends preact.Component {
 
 /**
  * @param {howManyType} howManyType
- * @param {Number?} howManyAmount
+ * @param {number?} howManyAmount
  * @returns {howManyType}
  */
 function createAdjustedHowManyType(howManyType, howManyAmount) {

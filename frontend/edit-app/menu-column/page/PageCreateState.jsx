@@ -97,7 +97,7 @@ class PageCreateState extends preact.Component {
 }
 
 /**
- * @param {Boolean} isDuplicated
+ * @param {boolean} isDuplicated
  * @returns {[Page, Array<Block>|null]}
  */
 function createNewCurrentPageData(isDuplicated) {
@@ -132,8 +132,8 @@ function createMenuLinkFromNewestData() {
 }
 
 /**
- * @param {{[key: String]: any;}} obj
- * @returns {Boolean}
+ * @param {{[key: string]: any;}} obj
+ * @returns {boolean}
  */
 function isPage(obj) {
     return typeof obj.slug === 'string' && typeof obj.path === 'string';

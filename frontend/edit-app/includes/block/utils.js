@@ -8,8 +8,8 @@ import {
 
 /**
  * @param {Block} block
- * @param {Boolean} includePrivates = false
- * @returns {{[key: String]: any;}}
+ * @param {boolean} includePrivates = false
+ * @returns {{[key: string]: any;}}
  */
 function toTransferableSingle(block, includePrivates = false) {
     const allKeys = Object.keys(block);
@@ -25,8 +25,8 @@ function toTransferableSingle(block, includePrivates = false) {
 
 /**
  * @param {Array<Block>} tree
- * @param {Boolean} includePrivates = false
- * @returns {Array<{[key: String]: any;}>}
+ * @param {boolean} includePrivates = false
+ * @returns {Array<{[key: string]: any;}>}
  */
 function treeToTransferable(tree, includePrivates = false) {
     return blockTreeUtils.mapRecursively(tree, block => toTransferableSingle(block, includePrivates));
@@ -34,16 +34,16 @@ function treeToTransferable(tree, includePrivates = false) {
 
 /**
  * @param {Block} block
- * @returns {Boolean}
+ * @returns {boolean}
  */
 function isMetaBlock({type}) {
     return type === 'PageInfo';
 }
 
 /**
- * @param {String} blockId
+ * @param {string} blockId
  * @param {'mainTree'|Array<Block>} from
- * @returns {String|null}
+ * @returns {string|null}
  */
 function getIsStoredToTreeIdFrom(blockId, from) {
     return blockTreeUtils.getIsStoredToTreeId(
@@ -55,8 +55,8 @@ function getIsStoredToTreeIdFrom(blockId, from) {
 }
 
 /**
- * @param {{type: String; renderer: String; id?: String; title?: String;}} defProps
- * @param {{[key: String]: any;}} ownProps
+ * @param {{type: string; renderer: string; id?: string; title?: string;}} defProps
+ * @param {{[key: string]: any;}} ownProps
  * @returns {Block}
  */
 function createBlock(defProps, ownProps) {
@@ -82,7 +82,7 @@ function createBlock(defProps, ownProps) {
 }
 
 /**
- * @param {String|BlockTypeDefinition} blockType
+ * @param {string|BlockTypeDefinition} blockType
  * @param {{[key: keyof]: any;}} ownProps
  * @returns {Block}
  */
@@ -122,7 +122,7 @@ function createBlockFromBlueprint(blueprint, onEach) {
 
 /**
  * @param {BlockTypeDefinition} type
- * @param {{[key: String]: any;}} additions
+ * @param {{[key: string]: any;}} additions
  * @returns {Block}
  */
 function createDefProps(type, additions) {
@@ -138,8 +138,8 @@ function createDefProps(type, additions) {
 /**
  * Example in/out 'uowHFoKTteV__uowHMRffw9f' -> 'uowHFoKTteV'.
  *
- * @param {String} compositeId blockId + '__' + gbRefBlockId (see appenfidyGbtRefBlockIds() @../../../webpage-renderer-app/main.js)
- * @returns {String}
+ * @param {string} compositeId blockId + '__' + gbRefBlockId (see appenfidyGbtRefBlockIds() @../../../webpage-renderer-app/main.js)
+ * @returns {string}
  */
 function unAppenfidyGbtRefBlockId(compositeId) {
     return compositeId.split('__')[0];

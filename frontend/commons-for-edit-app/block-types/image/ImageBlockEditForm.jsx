@@ -105,9 +105,9 @@ class ImageBlockEditForm extends preact.Component {
         ];
     }
     /**
-     * @param {String|null} src
-     * @param {String|null} _mime
-     * @param {Boolean} srcWasTyped
+     * @param {string|null} src
+     * @param {string|null} _mime
+     * @param {boolean} srcWasTyped
      */
     emitNewSrc(src, _mime, srcWasTyped) {
         if (!srcWasTyped)

@@ -9,7 +9,7 @@ class ManyToManyItemSelector extends preact.Component {
     // unregistrables;
     // selectionType;
     /**
-     * @param {{curSelections: Array<String>; onSelectionsChanged: (newList: Array<String>) => void; relPageType: PageType; onItemsFetched?: (manyToManyPages: Array<RelPage>) => void; useRadios?: Boolean;}} props
+     * @param {{curSelections: Array<string>; onSelectionsChanged: (newList: Array<string>) => void; relPageType: PageType; onItemsFetched?: (manyToManyPages: Array<RelPage>) => void; useRadios?: boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -56,7 +56,7 @@ class ManyToManyItemSelector extends preact.Component {
         : <LoadingSpinner/>;
     }
     /**
-     * @param {String} pageTypeName
+     * @param {string} pageTypeName
      * @access private
      */
     fetchManyToManyPagesToState(pageTypeName) {
@@ -181,7 +181,7 @@ class ManyToManyField extends preact.Component {
         </div>;
     }
     /**
-     * @param {Array<String>} newManyToManyIdList
+     * @param {Array<string>} newManyToManyIdList
      * @access private
      */
     emitManyToManyIdSelectedOrUnselected(newManyToManyIdList) {
@@ -202,7 +202,7 @@ class ManyToManyField extends preact.Component {
 }
 
 /**
- * @param {{[key: String]: any;}} from
+ * @param {{[key: string]: any;}} from
  * @returns {RelPage}
  */
 function createCompactPageFrom(from) {
@@ -217,17 +217,17 @@ function createCompactPageFrom(from) {
 
 /**
  * @param {Page} from
- * @param {String} propName
- * @returns {Array<String>}
+ * @param {string} propName
+ * @returns {Array<string>}
  */
 function getManyToManyValue(from, propName) {
     return from[propName].slice(0);
 }
 
 /**
- * @param {String} leftClass = ''
- * @param {String} rightClass = ''
- * @returns {{leftClass: String; rightClass: String;}}
+ * @param {string} leftClass = ''
+ * @param {string} rightClass = ''
+ * @returns {{leftClass: string; rightClass: string;}}
  */
 function createCreateCatPanelStateState(leftClass = '', rightClass = '') {
     return {leftClass, rightClass};

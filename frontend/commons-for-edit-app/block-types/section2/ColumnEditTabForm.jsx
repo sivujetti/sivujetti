@@ -7,7 +7,7 @@ import {FormGroupInline} from '../../Form.jsx';
 class ColumnEditTabForm extends preact.Component {
     // alignOptions;
     /**
-     * @param {{column: ColumnConfig; onPropChanged(propName: keyof ColumnConfig, val: String|Boolean|null): void; onEditEnded(): void;}} props
+     * @param {{column: ColumnConfig; onPropChanged(propName: keyof ColumnConfig, val: string|boolean|null): void; onEditEnded(): void;}} props
      */
     constructor(props) {
         super(props);

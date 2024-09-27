@@ -142,9 +142,9 @@ class PageInfoBlockEditForm extends preact.Component {
         </div>;
     }
     /**
-     * @param {String|null} newSrc
-     * @param {String|null} mime
-     * @param {Boolean} _srcWasTyped
+     * @param {string|null} newSrc
+     * @param {string|null} mime
+     * @param {boolean} _srcWasTyped
      */
     emitNewSocialImageSrc(newSrc, mime, _srcWasTyped) {
         if (newSrc) {
@@ -171,7 +171,7 @@ class PageInfoBlockEditForm extends preact.Component {
 
 /**
  * @param {Page} page
- * @returns {[{name: String; value: String;}, {name: String; value: String;}, {name: String; value: String;}]}
+ * @returns {[{name: string; value: string;}, {name: string; value: string;}, {name: string; value: string;}]}
  */
 function createFormState(page) {
     return [
@@ -182,8 +182,8 @@ function createFormState(page) {
 }
 
 /**
- * @param {{[prop: String]: any;}|(current: Page) => {[prop: String]: any;}} changesOrMutator
- * @param {Boolean} _hasErrors = false
+ * @param {{[prop: string]: any;}|(current: Page) => {[prop: string]: any;}} changesOrMutator
+ * @param {boolean} _hasErrors = false
  * @param {blockPropValueChangeFlags} flags = null
  */
 function handleValuesChanged(changesOrMutator, _hasErrors = false, flags = null) {
@@ -204,8 +204,8 @@ function handleValuesChanged(changesOrMutator, _hasErrors = false, flags = null)
 }
 
 /**
- * @param {String|undefined} value
- * @returns {String}
+ * @param {string|undefined} value
+ * @returns {string}
  */
 function getNormalizedDescription(value) {
     return value || '';
@@ -213,16 +213,16 @@ function getNormalizedDescription(value) {
 
 /**
  * @param {Page} page
- * @returns {String}
+ * @returns {string}
  */
 function getNormalizedMetaImageSrc(page) {
     return page.meta?.socialImage?.src || null;
 }
 
 /**
- * @param {String} slug
+ * @param {string} slug
  * @param {PageType} pageType
- * @returns {slug: String; path: String;}
+ * @returns {slug: string; path: string;}
  */
 function createSlugAndPath(slug, pageType) {
     return {slug, path: makePath(slug, pageType)};

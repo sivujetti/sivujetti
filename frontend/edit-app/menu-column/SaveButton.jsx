@@ -35,7 +35,7 @@ class SaveButton extends preact.Component {
         this.hotkeyUndoLockIsOn = false;
     }
     /**
-     * @param {String} name
+     * @param {string} name
      * @param {(state: state, userCtx: StateChangeUserContext, context: stateChangeContext) => any} fn
      * @access public
      */
@@ -47,9 +47,9 @@ class SaveButton extends preact.Component {
         return saveButtonEvents.on(createSignalName(name), fn);
     }
     /**
-     * @param {String} name
+     * @param {string} name
      * @param {state} state
-     * @param {Boolean} broadcastInitialStateToListeners = false
+     * @param {boolean} broadcastInitialStateToListeners = false
      * @access public
      */
     initChannel(name, state, broadcastInitialStateToListeners = false) {
@@ -73,7 +73,7 @@ class SaveButton extends preact.Component {
         return this.getHead(channelName);
     }
     /**
-     * @param {String} channelName
+     * @param {string} channelName
      * @param {state} state
      * @param {StateChangeUserContext|null} userCtx = null
      * @param {blockPropValueChangeFlags} flags = null
@@ -109,7 +109,7 @@ class SaveButton extends preact.Component {
     /**
      * Pushes multiple ops to the history that will be undone/redone as a group when undo/redo is called.
      *
-     * @param {[String, state, StateChangeUserContext|null, blockPropValueChangeFlags]} ...ops
+     * @param {[string, state, StateChangeUserContext|null, blockPropValueChangeFlags]} ...ops
      * @access public
      */
     pushOpGroup(...ops) {
@@ -146,7 +146,7 @@ class SaveButton extends preact.Component {
     /**
      * @template T
      * @param {(queue: Array<StateHistory<T>>, activeState: Array<T>) => Array<StateHistory<T>>|null} fn
-     * @param {Boolean} toEnd
+     * @param {boolean} toEnd
      * @returns {() => void} Unregister
      * @access public
      */
@@ -232,7 +232,7 @@ class SaveButton extends preact.Component {
         }
     }
     /**
-     * @param {String} channelName
+     * @param {string} channelName
      * @param {state} state
      * @param {StateChangeUserContext|null} userCtx
      * @param {stateChangeContext} context
@@ -308,7 +308,7 @@ class SaveButton extends preact.Component {
         return pool[this.stateCursors[channelName]] || null;
     }
     /**
-     * @param {String} channelName
+     * @param {string} channelName
      * @returns {Array<state>}
      * @access private
      */
@@ -356,7 +356,7 @@ class SaveButton extends preact.Component {
     }
     /**
      * @param {{[channelName]: state;}} syncedStates Latest / synced states that were just saved to the backend
-     * @param {Boolean} emitChange = false
+     * @param {boolean} emitChange = false
      * @access private
      */
     reset(syncedStates, emitChange = false) {
@@ -372,7 +372,7 @@ class SaveButton extends preact.Component {
         this.setState(createInitialState());
     }
     /**
-     * @param {String} channelName
+     * @param {string} channelName
      * @param {state} initialState
      * @access private
      */
@@ -381,15 +381,15 @@ class SaveButton extends preact.Component {
         this.stateCursors[channelName] = 0;
     }
     /**
-     * @param {Number} from
-     * @param {Number} to
+     * @param {number} from
+     * @param {number} to
      * @access private
      */
     removeOpHistoryItemsBetween(from, to) {
         // todo
     }
     /**
-     * @returns {Array<String>}
+     * @returns {Array<string>}
      * @access private
      */
     getHistoryChannelNames() {
@@ -460,7 +460,7 @@ class SaveButton extends preact.Component {
  * @typedef {any} state
  *
  * @typedef HistoryItem
- * @prop {String} channelName
+ * @prop {string} channelName
  * @prop {any} userCtx
  * @prop {blockPropValueChangeFlags} flags
  */

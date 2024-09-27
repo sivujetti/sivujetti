@@ -38,7 +38,7 @@ class HashHistory {
         return this.path;
     }
     /**
-     * @param {String} withMessage
+     * @param {string} withMessage
      * @returns {() => void}
      * @access public
      */
@@ -47,7 +47,7 @@ class HashHistory {
         return () => { this.confirmNextNavMessage = null; };
     }
     /**
-     * @param {String} url
+     * @param {string} url
      * @access public
      */
     push(url) {
@@ -69,7 +69,7 @@ class HashHistory {
     }
     /**
      * https://github.com/remix-run/history/blob/c9bc27dfcf81f540ee275978f651d3fed27e93a9/packages/history/index.ts#L1069
-     * @param {String} path
+     * @param {string} path
      * @returns {Path}
      */
     parsePath(url = env.window.location.hash.substr(1)) {

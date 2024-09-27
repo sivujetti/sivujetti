@@ -3,10 +3,10 @@
  * Calls $fn once every $tryEveryMillis until it returns true or $stopTryingAfterNTimes
  * is reached.
  *
- * @param {() => Boolean} fn
- * @param {Number} tryEveryMillis = 200
- * @param {Number} stopTryingAfterNTimes = 5
- * @param {String} messageTmpl = 'fn() did not return true after %sms'
+ * @param {() => boolean} fn
+ * @param {number} tryEveryMillis = 200
+ * @param {number} stopTryingAfterNTimes = 5
+ * @param {string} messageTmpl = 'fn() did not return true after %sms'
  * @returns {fn() => void}
  */
 function createTrier(fn,
@@ -32,9 +32,9 @@ function createTrier(fn,
 }
 
 /**
- * @param {String} path
- * @param {String} fallback = '/'
- * @returns {String} 'foo/' -> '/foo'
+ * @param {string} path
+ * @param {string} fallback = '/'
+ * @returns {string} 'foo/' -> '/foo'
  */
 function pathToFullSlug(path, fallback = '/') {
     return path !== '/'
@@ -45,10 +45,10 @@ function pathToFullSlug(path, fallback = '/') {
 /**
  * https://stackoverflow.com/a/11409978
  *
- * @param {Number} number
- * @param {Number} min
- * @param {Number} max
- * @returns {Number}
+ * @param {number} number
+ * @param {number} min
+ * @param {number} max
+ * @returns {number}
  */
 function clamp(number, min, max) {
     return Math.max(min, Math.min(number, max));

@@ -3,9 +3,9 @@ import StylesEditForm from './ImageBlockVisualStylesEditForm.jsx';
 
 /**
  * @typedef ImageBlockProps
- * @prop {String} src
- * @prop {String} altText
- * @prop {String} caption
+ * @prop {string} src
+ * @prop {string} altText
+ * @prop {string} caption
  */
 
 export default {

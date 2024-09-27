@@ -5,7 +5,7 @@ import {FormGroupInline} from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
 import ImagePicker from '../ImagePicker.jsx';
 
-/** @extends {preact.Component<ValueInputProps<null> & {valueAsString: String|null;}, any>} */
+/** @extends {preact.Component<ValueInputProps<null> & {valueAsString: string|null;}, any>} */
 class BackgroundImageValueInput extends preact.Component {
     /**
      * @access protected
@@ -34,15 +34,15 @@ class BackgroundImageValueInput extends preact.Component {
         </FormGroupInline>;
     }
     /**
-     * @param {String|null} src
-     * @param {String|null} _mime
-     * @param {Boolean} _srcWasTyped
+     * @param {string|null} src
+     * @param {string|null} _mime
+     * @param {boolean} _srcWasTyped
      */
     handleImageSrcCommitted(src, _mime, _srcWasTyped) {
         this.props.onValueChanged(src ? `url("${completeImageSrc(src, urlUtils)}")` : 'none');
     }
     /**
-     * @param {String} input Examples 'url("/public/uploads/cat.jpg")', 'url("/dir/public/uploads/dog.webp")', 'none'
+     * @param {string} input Examples 'url("/public/uploads/cat.jpg")', 'url("/dir/public/uploads/dog.webp")', 'none'
      * @returns {ImageValue}
      */
     static valueFromInput(input) {
@@ -56,7 +56,7 @@ class BackgroundImageValueInput extends preact.Component {
     }
     /**
      * @param {ImageValue} value
-     * @returns {String|null}
+     * @returns {string|null}
      */
     static valueToString(value) {
         return value.src;

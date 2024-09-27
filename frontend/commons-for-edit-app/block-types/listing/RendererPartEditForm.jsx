@@ -97,9 +97,9 @@ class RendererPartEditForm extends preact.Component {
                         src={ this.state.fallbackImageSrc }
                         onSrcCommitted={
                         /**
-                        * @param {String|null} src
-                        * @param {String|null} _mime
-                        * @param {Boolean} srcWasTyped
+                        * @param {string|null} src
+                        * @param {string|null} _mime
+                        * @param {boolean} srcWasTyped
                         */
                         (src, _mime, srcWasTyped) => {
                             if (!srcWasTyped)

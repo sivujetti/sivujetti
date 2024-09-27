@@ -13,7 +13,7 @@ class ImagePicker extends preact.Component {
     // dialogIsOpen;
     // unregistrables;
     /**
-     * @param {{onSrcCommitted: (newSrc: String|null, mime: String|null, srcWasTyped: Boolean) => void; src: String|null; inputId: String; omitClearButton?: Boolean; showClearItem?: Boolean;}} props
+     * @param {{onSrcCommitted: (newSrc: string|null, mime: string|null, srcWasTyped: boolean) => void; src: string|null; inputId: string; omitClearButton?: boolean; showClearItem?: boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -113,7 +113,7 @@ class ImagePicker extends preact.Component {
 
 class PickImageDialog extends preact.Component {
     /**
-     * @param {{selectedImagePath: String; onSelected: (img: UploadsEntry|null) => void; showClearItem: Boolean;}} props
+     * @param {{selectedImagePath: string; onSelected: (img: UploadsEntry|null) => void; showClearItem: boolean;}} props
      * @access protected
      */
     render({onSelected, showClearItem}) {

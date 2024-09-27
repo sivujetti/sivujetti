@@ -128,8 +128,8 @@ class BlockVisualStylesEditForm extends preact.Component {
                 { ...commonProps }/>;
     }
     /**
-     * @param {String|Event} input
-     * @param {String} varName
+     * @param {string|Event} input
+     * @param {string} varName
      * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
      * @access protected
      */
@@ -139,8 +139,8 @@ class BlockVisualStylesEditForm extends preact.Component {
         api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
     }
     /**
-     * @param {String|Event} input
-     * @param {String} varName
+     * @param {string|Event} input
+     * @param {string} varName
      * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
      * @access protected
      */
@@ -174,8 +174,8 @@ class BlockVisualStylesEditForm extends preact.Component {
         api.webPagePreview.updateCssFast(scopeSpecifier, css);
     }
     /**
-     * @param {String|null} val
-     * @param {String} varName
+     * @param {string|null} val
+     * @param {string} varName
      * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
      * @returns {StylesBundleWithId}
      * @access private

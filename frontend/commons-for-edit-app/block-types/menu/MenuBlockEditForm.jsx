@@ -123,7 +123,7 @@ class MenuBlockEditForm extends preact.Component {
     }
     /**
      * @param {Array<MenuLink>} newParsedTree
-     * @param {Boolean} doThrottle = false
+     * @param {boolean} doThrottle = false
      * @access private
      */
     emitNewTree(newParsedTree, doThrottle = false) {

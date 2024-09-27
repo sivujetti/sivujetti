@@ -19,7 +19,7 @@ class FileUploader extends preact.Component {
     // dropAreaEl;
     // uploadButton;
     /**
-     * @param {{onEntryClicked?: (entry: UploadsEntry|null) => void; mode?: 'pick'; showInitially?: 'images'|'files'; onlyImages?: Boolean; numColumns?: Number; hideUploadButton?: Boolean; showClearItem?: Boolean;}} props
+     * @param {{onEntryClicked?: (entry: UploadsEntry|null) => void; mode?: 'pick'; showInitially?: 'images'|'files'; onlyImages?: boolean; numColumns?: number; hideUploadButton?: boolean; showClearItem?: boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -104,8 +104,8 @@ class FileUploader extends preact.Component {
     }
     /**
      * @param {ListItemSettings} settings
-     * @param {Boolean} showClearItem
-     * @param {Boolean} showCrudButtons
+     * @param {boolean} showClearItem
+     * @param {boolean} showCrudButtons
      * @returns {preact.VNode}
      * @access private
      */
@@ -167,8 +167,8 @@ class FileUploader extends preact.Component {
     /**
      * @param {'pick'|null} mode
      * @param {ListItemSettings} settings
-     * @param {Boolean} showClearItem
-     * @param {Boolean} showCrudButtons
+     * @param {boolean} showClearItem
+     * @param {boolean} showCrudButtons
      * @returns {preact.VNode}
      * @access private
      */
@@ -248,7 +248,7 @@ class FileUploader extends preact.Component {
     }
     /**
      * @param {UploadsEntry} file
-     * @param {Boolean} ok
+     * @param {boolean} ok
      * @access private
      */
     markFileAsUploaded(file, ok) {
@@ -297,7 +297,7 @@ class FileUploader extends preact.Component {
     /**
      * @param {Event} e
      * @param {HTMLElement} target = e.target
-     * @returns {Boolean}
+     * @returns {boolean}
      * @access private
      */
     handleDragEvent(e, target = e.target) {
@@ -307,7 +307,7 @@ class FileUploader extends preact.Component {
         return true;
     }
     /**
-     * @param {Number} toIdx
+     * @param {number} toIdx
      * @access private
      */
     handleTabChanged(toIdx) {
@@ -327,7 +327,7 @@ class FileUploader extends preact.Component {
         this.props.onEntryClicked(f);
     }
     /**
-     * @param {Boolean} to
+     * @param {boolean} to
      * @access private
      */
     setGetDisplayAsGrid(to) {
@@ -384,7 +384,7 @@ class FileUploader extends preact.Component {
 /**
  * Note: mutates $entry.
  *
- * @param {{fileName: String; baseDir: String; mime: String; friendlyName: String; createdAt: Number; updatedAt: Number;}} entry
+ * @param {{fileName: string; baseDir: string; mime: string; friendlyName: string; createdAt: number; updatedAt: number;}} entry
  * @returns {UploadsEntry}
  */
 function completeBackendUploadsEntry(entry) {
@@ -395,15 +395,15 @@ function completeBackendUploadsEntry(entry) {
 }
 
 /**
- * @param {Array<{[key: String]: any;}>} arr
- * @returns {Array<{[key: String]: any;}>}
+ * @param {Array<{[key: string]: any;}>} arr
+ * @returns {Array<{[key: string]: any;}>}
  */
 function cloneArrShallow(arr) {
     return arr.map(itm => ({...itm}));
 }
 
 /**
- * @param {Number} idx
+ * @param {number} idx
  * @returns {'onlyImages'|'nonImages'}
  */
 function tabIdxToName(idx) {
@@ -411,7 +411,7 @@ function tabIdxToName(idx) {
 }
 
 /**
- * @param {Boolean} displayAsGrid
+ * @param {boolean} displayAsGrid
  * @param {'pick'=} mode
  * @returns {ListItemSettings} [ImgListItemElSettings, FileListItemElSettings]
  */
@@ -426,7 +426,7 @@ function getListItemSettings(displayAsGrid, mode) {
 }
 
 /**
- * @typedef {[{el: String; classes: String;}, {el: String; props?: Object; classes?: string;}]} ListItemSettings
+ * @typedef {[{el: string; classes: string;}, {el: string; props?: Object; classes?: string;}]} ListItemSettings
  */
 
 export default FileUploader;

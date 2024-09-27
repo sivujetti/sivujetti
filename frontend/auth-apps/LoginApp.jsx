@@ -16,7 +16,7 @@ import {
  */
 class LoginApp extends preact.Component {
     /**
-     * @param {{dashboardUrl?: String;}} props
+     * @param {{dashboardUrl?: string;}} props
      */
     constructor(props) {
         super(props);
@@ -90,8 +90,8 @@ class LoginApp extends preact.Component {
 }
 
 /**
- * @param {Number} errorCode
- * @returns {String|undefined}
+ * @param {number} errorCode
+ * @returns {string|undefined}
  */
 function errorCodeToMessage(errorCode) {
     return {

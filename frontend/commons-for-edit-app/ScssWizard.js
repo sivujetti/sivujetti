@@ -38,7 +38,7 @@ class ScssWizard {
         this.currentPageIdPair = `${page.id}:${page.type}`;
     }
     /**
-     * @param {Number} stateId
+     * @param {number} stateId
      * @returns {Array<StyleChunk>}
      * @access public
      */
@@ -49,8 +49,8 @@ class ScssWizard {
     }
     /**
      * @param {styleScopeKind} scopeKind
-     * @param {String} scopeSpecifier = undefined
-     * @param {(style: StyleChunk) => Boolean} predicate = true
+     * @param {string} scopeSpecifier = undefined
+     * @param {(style: StyleChunk) => boolean} predicate = true
      * @returns {Array<StyleChunk>}
      * @access public
      */
@@ -60,8 +60,8 @@ class ScssWizard {
             : this.findStylesWithoutSpecifier(scopeKind, fn);
     }
     /**
-     * @param {String} scopeKind
-     * @param {String} scopeSpecifier
+     * @param {string} scopeKind
+     * @param {string} scopeSpecifier
      * @param {mediaScope} mediaScopeId = 'all'
      * @param {stylesLayer} layer = 'user-styles'
      * @returns {StyleChunk|null}
@@ -74,9 +74,9 @@ class ScssWizard {
     }
     /**
      * @param {scssCodeInput} codeTemplate Examples 'color: red', 'ul li {\n  flex: 0 0 100%;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
-     * @param {String} val
-     * @param {String} blockId
-     * @param {'main'|String} blockTreeId
+     * @param {string} val
+     * @param {string} blockId
+     * @param {'main'|string} blockTreeId
      * @returns {StylesBundleWithId}
      * @access public
      */
@@ -105,7 +105,7 @@ class ScssWizard {
     }
     /**
      * @param {scssCodeInput} codeTemplate Examples 'color: red;', '> sub-selector {\n  color: red;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
-     * @param {String} val
+     * @param {string} val
      * @param {StyleChunk} currentStyle
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
@@ -148,7 +148,7 @@ class ScssWizard {
     }
     /**
      * @param {scssCodeInput} codeTemplate
-     * @param {String} val
+     * @param {string} val
      * @param {StyleChunk} currentStyle
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
@@ -159,7 +159,7 @@ class ScssWizard {
         return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {String} initialScssCode Example: '  // Your code here ...\n  color: red;'
+     * @param {string} initialScssCode Example: '  // Your code here ...\n  color: red;'
      * @param {styleScopeKind} scopeKind
      * @param {CustomClassStyleChunkData} data
      * @returns {StylesBundleWithId}
@@ -179,7 +179,7 @@ class ScssWizard {
         return this.commitAll(updated);
     }
     /**
-     * @param {{scss?: String; data?: CustomClassStyleChunkData;}} changes Example: {scss: 'color: blue;'}
+     * @param {{scss?: string; data?: CustomClassStyleChunkData;}} changes Example: {scss: 'color: blue;'}
      * @param {StyleChunk} currentStyle
      * @returns {StylesBundleWithId}
      * @access public
@@ -192,7 +192,7 @@ class ScssWizard {
     }
     /**
      * @param {Array<StyleChunk>} uniqueScopeChunks
-     * @param {(blockId: String, newClass: String) => any} onConverted
+     * @param {(blockId: string, newClass: string) => any} onConverted
      * @returns {StylesBundleWithId|null}
      * @access public
      */
@@ -210,7 +210,7 @@ class ScssWizard {
             affectedMediaScopeIds[media] = 1;
         }
 
-        // Build {[duplicateScssKey: String]: {newClass: String; newStyle: StyleChunk; converted: Array<{blockId: String; orig: StyleChunk;}>;}}
+        // Build {[duplicateScssKey: string]: {newClass: string; newStyle: StyleChunk; converted: Array<{blockId: string; orig: StyleChunk;}>;}}
         const mapped = this.styles.reduce((map, s) => {
             const idx = styles.indexOf(s);
             if (idx < 0) return map;
@@ -281,9 +281,9 @@ class ScssWizard {
     }
     /**
      * @param {scssCodeInput} codeTemplate
-     * @param {String} val
-     * @param {String} blockId
-     * @param {'main'|String} blockTreeId
+     * @param {string} val
+     * @param {string} blockId
+     * @param {'main'|string} blockTreeId
      * @returns {StylesBundleWithId}
      * @access private
      */
@@ -313,7 +313,7 @@ class ScssWizard {
     }
     /**
      * @param {styleScopeKind} scopeKind
-     * @param {(style: StyleChunk) => Boolean} predicate = true
+     * @param {(style: StyleChunk) => boolean} predicate = true
      * @returns {Array<StyleChunk>}
      * @access private
      */
@@ -324,8 +324,8 @@ class ScssWizard {
     }
     /**
      * @param {styleScopeKind} scopeKind
-     * @param {String} scopeSpecifier
-     * @param {(style: StyleChunk) => Boolean} predicate = true
+     * @param {string} scopeSpecifier
+     * @param {(style: StyleChunk) => boolean} predicate = true
      * @returns {Array<StyleChunk>}
      * @access private
      */
@@ -348,7 +348,7 @@ class ScssWizard {
     }
     /**
      * @param {styleScopeKind} scopeKind
-     * @param {String} scopeSpecifier
+     * @param {string} scopeSpecifier
      * @param {stylesLayer} layer
      * @returns {StyleChunk|null}
      * @access private
@@ -361,7 +361,7 @@ class ScssWizard {
     }
     /**
      * @param {scssCodeInput} codeTemplate
-     * @param {String} val
+     * @param {string} val
      * @param {StyleChunk} currentStyle
      * @returns {Array<StyleChunk>}
      * @access private
@@ -380,7 +380,7 @@ class ScssWizard {
     }
     /**
      * @param {scssCodeInput} codeTemplate
-     * @param {String} val
+     * @param {string} val
      * @param {StyleChunk} currentStyle
      * @returns {Array<StyleChunk>}
      * @access private
@@ -426,9 +426,9 @@ class ScssWizard {
         };
     }
     /**
-     * @param {String} scss
-     * @param {String} blockId
-     * @param {'main'|String} blockTreeId
+     * @param {string} scss
+     * @param {string} blockId
+     * @param {'main'|string} blockTreeId
      * @param {stylesLayer} layer = 'user-styles'
      * @returns {StyleChunk}
      * @access private

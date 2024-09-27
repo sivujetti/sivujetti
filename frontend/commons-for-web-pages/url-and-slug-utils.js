@@ -2,8 +2,8 @@ import {urlUtils} from './singletons.js';
 
 const urlAndSlugUtils = {
     /**
-     * @param {String} url '/pagename' or '/public/uploads/filename.png' or <external>
-     * @returns {String} '/base/pagename' or '/base/public/uploads/filename.png' or <external>
+     * @param {string} url '/pagename' or '/public/uploads/filename.png' or <external>
+     * @returns {string} '/base/pagename' or '/base/public/uploads/filename.png' or <external>
      */
     getCompletedUrl(url) {
         if (!url.length || url.startsWith('#')) return url;
@@ -20,8 +20,8 @@ const urlAndSlugUtils = {
         return this.normalizeExternalUrl(url);
     },
     /**
-     * @param {String} url
-     * @returns {String}
+     * @param {string} url
+     * @returns {string}
      */
     normalizeExternalUrl(url) {
         if (/^[a-zA-Z]+:.+$/.test(url)) // http://foo.com, mailto:foo, steam://store/1151640, not foo.com/path:1

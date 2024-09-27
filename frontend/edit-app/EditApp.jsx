@@ -84,7 +84,7 @@ class EditApp extends preact.Component {
         }
     }
     /**
-     * @param {{outerEl: HTMLElement; onSaveButtonRefd: (cmp: SaveButton) => void; showGoToDashboardMode?: Boolean; dashboardUrl?: String;}} props
+     * @param {{outerEl: HTMLElement; onSaveButtonRefd: (cmp: SaveButton) => void; showGoToDashboardMode?: boolean; dashboardUrl?: string;}} props
      * @access protected
      */
     render({outerEl}) {

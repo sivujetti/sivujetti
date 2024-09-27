@@ -5,7 +5,7 @@ import ScreenSizesTabShowHelpPopup from './popups/ScreenSizesTabShowHelpPopup.js
 
 class ScreenSizesVerticalTabs extends preact.Component {
     /**
-     * @param {{curTabIdx: Number; setCurTabIdx: (newIdx: Number): void; populatedTabs: [Boolean, Boolean, Boolean, Boolean, Boolean]; className?: String; allowOverflowX?: Boolean;}} props
+     * @param {{curTabIdx: number; setCurTabIdx: (newIdx: number): void; populatedTabs: [boolean, boolean, boolean, boolean, boolean]; className?: string; allowOverflowX?: boolean;}} props
      */
     render({children, curTabIdx, setCurTabIdx, populatedTabs, className, allowOverflowX}) {
         return <div class={ 'vert-tabs vert-tabs-tiny' + (!className ? '' : ` ${className}`) } style={ !allowOverflowX ? '' : 'width:100%;overflow-x:auto;' }>
@@ -58,7 +58,7 @@ class ScreenSizesVerticalTabs extends preact.Component {
 /**
  * @param {Array<any>} itemsToShow
  * @param {AbstractStylesList} cmp
- * @returns {Array<Number>}
+ * @returns {Array<number>}
  */
 ScreenSizesVerticalTabs.createTabIdxes = (itemsToShow, cmp) => {
     const curCurTabIdxes = cmp.state.curTabIdxs || [];
@@ -66,10 +66,10 @@ ScreenSizesVerticalTabs.createTabIdxes = (itemsToShow, cmp) => {
 };
 
 /**
- * @param {Array<Number>} curTabIdxs
- * @param {Number} nthItemToUpdate i.e. listItemIdx
- * @param {Boolean} to
- * @returns {{curTabIdxs: Array<Number>;}} New state portion
+ * @param {Array<number>} curTabIdxs
+ * @param {number} nthItemToUpdate i.e. listItemIdx
+ * @param {boolean} to
+ * @returns {{curTabIdxs: Array<number>;}} New state portion
  */
 ScreenSizesVerticalTabs.createTabIdxesWithNewCurrentIdx = (curTabIdxs, nthItemToUpdate, to) => {
     return {curTabIdxs: curTabIdxs.map((idx, i2) => i2 !== nthItemToUpdate ? idx : to)};

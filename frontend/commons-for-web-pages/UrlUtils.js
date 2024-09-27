@@ -5,7 +5,7 @@ class UrlUtils {
     // cacheBustStr; website.versionId by default
     // env;
     /**
-     * @param {EnvConfig|{baseUrl?: String; assetBaseUrl?: String; currentPageSlug?: String; cacheBustStr?: String;}} envSettings
+     * @param {EnvConfig|{baseUrl?: string; assetBaseUrl?: string; currentPageSlug?: string; cacheBustStr?: string;}} envSettings
      * @param {Env} env
      */
     constructor({baseUrl, assetBaseUrl, currentPageSlug, cacheBustStr}, env = {window}) {
@@ -16,8 +16,8 @@ class UrlUtils {
         this.env = env;
     }
     /**
-     * @param {String} url Example: `foo.png` or `/dir/bar?foo=1`
-     * @returns {String} Example: `foo.png?v=abcd` or `/dir/bar?foo=1&v=abcd`
+     * @param {string} url Example: `foo.png` or `/dir/bar?foo=1`
+     * @returns {string} Example: `foo.png?v=abcd` or `/dir/bar?foo=1&v=abcd`
      * @access public
      */
     withCacheBustStr(url) {
@@ -26,10 +26,10 @@ class UrlUtils {
             : '');
     }
     /**
-     * @param {String} url
-     * @param {Boolean} includeDomain = false
-     * @param {Boolean} normalizeQ = true
-     * @returns {String}
+     * @param {string} url
+     * @param {boolean} includeDomain = false
+     * @param {boolean} normalizeQ = true
+     * @returns {string}
      * @access public
      */
     makeUrl(url, includeDomain = false, normalizeQ = true) {
@@ -37,9 +37,9 @@ class UrlUtils {
         return pref + this.baseUrl + this.normalizeUrl(url, normalizeQ);
     }
     /**
-     * @param {String} url
-     * @param {Boolean} includeDomain = false
-     * @returns {String}
+     * @param {string} url
+     * @param {boolean} includeDomain = false
+     * @returns {string}
      * @access public
      */
     makeAssetUrl(url, includeDomain = false) {
@@ -47,18 +47,18 @@ class UrlUtils {
         return pref + this.assetBaseUrl + this.normalizeUrl(url);
     }
     /**
-     * @param {String} url
-     * @param {Boolean} includeDomain = false
-     * @param {Boolean} normalizeQ = false
+     * @param {string} url
+     * @param {boolean} includeDomain = false
+     * @param {boolean} normalizeQ = false
      * @access public
      */
     redirect(url, includeDomain = false, normalizeQ = false) {
         this.env.window.location.href = this.makeUrl(url, includeDomain, normalizeQ);
     }
     /**
-     * @param {String} url '/foo' -> 'foo', 'bar' -> 'bar'
-     * @param {Boolean} normalizeQ = false
-     * @returns {String}
+     * @param {string} url '/foo' -> 'foo', 'bar' -> 'bar'
+     * @param {boolean} normalizeQ = false
+     * @returns {string}
      * @access private
      */
     normalizeUrl(url, normalizeQ = false) {

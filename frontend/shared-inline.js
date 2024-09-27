@@ -5,7 +5,7 @@ by the bundler.
 */
 
 /**
- * @returns {String} 'Meta' if macOS, 'Control' if Windows or anything else todo share 
+ * @returns {string} 'Meta' if macOS, 'Control' if Windows or anything else todo share 
  */
 function getMetaKey() {
     return ((navigator.userAgentData && navigator.userAgentData.platform === 'macOS') ||
@@ -32,10 +32,10 @@ function getNormalizedInitialHoverCandidate(node, root) {
 const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';
 
 /**
- * @param {String} src
+ * @param {string} src
  * @param {urlUtils} urlUtils
- * @param {String} fallback = placeholderImageSrc
- * @returns {String}
+ * @param {string} fallback = placeholderImageSrc
+ * @returns {string}
  */
 function completeImageSrc(src, urlUtils, fallback = placeholderImageSrc) {
     if (!src)
@@ -54,7 +54,7 @@ function completeImageSrc(src, urlUtils, fallback = placeholderImageSrc) {
 
 /**
  * @param {Array<Object>} branch
- * @param {(item: Object, i: Number, parent: Object|null) => any} fn
+ * @param {(item: Object, i: number, parent: Object|null) => any} fn
  * @param {Object} parent = null
  */
 function traverseRecursively(branch, fn, parent = null) {
@@ -74,7 +74,7 @@ function cloneDeep(obj) {
 }
 
 /**
- * @param {String} blockId
+ * @param {string} blockId
  * @param {HTMLElement} from = document.body
  * @returns {HTMLElement|null}
  */

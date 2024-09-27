@@ -125,8 +125,8 @@ class ButtonBlockEditForm extends preact.Component {
 }
 
 /**
- * @param {String} str
- * @returns {String}
+ * @param {string} str
+ * @returns {string}
  */
 function noEmptyBr(str) {
     return str !== '<br>' ? str : '';
@@ -135,8 +135,8 @@ function noEmptyBr(str) {
 const minPossibleLen = '<p></p>'.length;
 
 /**
- * @param {String} quillOutput `<p>foo</p><p>bar</p>`
- * @returns {String} `foo<br>bar` or an empty string
+ * @param {string} quillOutput `<p>foo</p><p>bar</p>`
+ * @returns {string} `foo<br>bar` or an empty string
  */
 function unParagraphify(quillOutput) {
     if (!quillOutput.startsWith('<'))

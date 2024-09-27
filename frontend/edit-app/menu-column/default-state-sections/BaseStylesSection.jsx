@@ -124,7 +124,7 @@ class BaseAndCustomClassStylesSection extends preact.Component {
         this.setState({currentTabKind: toKind});
     }
     /**
-     * @param {Boolean} to
+     * @param {boolean} to
      * @access private
      */
     onIsCollapsedChanged(to) {

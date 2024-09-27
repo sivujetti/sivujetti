@@ -38,7 +38,7 @@ class QuillEditor extends preact.Component {
     // myChangeSource;
     // contentMaybeHasLinks;
     /**
-     * @param {{name: String; value: String; onChange: (html: String, source: 'default'|'undo'|null|undefined) => any; onBlur?: () => any; toolbarBundle?: 'simplest'|'simplestWithLink'|'full'; onInit?: (editor: QuillEditor) => any;}} props
+     * @param {{name: string; value: string; onChange: (html: string, source: 'default'|'undo'|null|undefined) => any; onBlur?: () => any; toolbarBundle?: 'simplest'|'simplestWithLink'|'full'; onInit?: (editor: QuillEditor) => any;}} props
      */
     constructor(props) {
         super(props);
@@ -46,7 +46,7 @@ class QuillEditor extends preact.Component {
         this.myChangeSource = 'default';
     }
     /**
-     * @param {String} newContents @allow raw html
+     * @param {string} newContents @allow raw html
      * @param {'default'|'undo'|'my-undo'} source = 'default'
      * @access public
      */
@@ -130,7 +130,7 @@ class QuillEditor extends preact.Component {
         </div>;
     }
     /**
-     * @returns {String}
+     * @returns {string}
      * @access private
      */
     getEditorHtml() {

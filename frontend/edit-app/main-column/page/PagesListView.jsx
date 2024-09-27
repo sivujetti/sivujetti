@@ -64,8 +64,8 @@ class PagesListView extends preact.Component {
         </OverlayView>;
     }
     /**
-     * @param {String} pageSlug
-     * @param {String} pageTitle
+     * @param {string} pageSlug
+     * @param {string} pageTitle
      * @param {Event} e
      * @access private
      */
@@ -74,7 +74,7 @@ class PagesListView extends preact.Component {
         api.contextMenu.open(e, this.createContextMenuController(pageSlug));
     }
     /**
-     * @param {String} pageSlug
+     * @param {string} pageSlug
      * @returns {ContextMenuController}
      * @access private
      */

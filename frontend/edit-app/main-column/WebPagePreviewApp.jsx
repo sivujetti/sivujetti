@@ -57,15 +57,15 @@ class WebPagePreviewApp extends preact.Component {
         events.emit('highlight-rect-revealed', block.id, origin);
     }
     /**
-     * @param {String} blockId
+     * @param {string} blockId
      * @access public
      */
     unHighlightBlock(/*blockId*/) {
         this.doHideHighlightRect(0);
     }
     /**
-     * @param {Number} elIdx
-     * @param {String} textBlockId
+     * @param {number} elIdx
+     * @param {string} textBlockId
      * @access public
      */
     highlightTextBlockChildEl(elIdx, textBlockBlockId) {
@@ -85,7 +85,7 @@ class WebPagePreviewApp extends preact.Component {
     }
     /**
      * @param {Block} block
-     * @returns {Boolean} didScroll
+     * @returns {boolean} didScroll
      * @access public
      */
     scrollToBlock(block, win = this.getEl().contentWindow, behavior = 'smooth') {
@@ -109,8 +109,8 @@ class WebPagePreviewApp extends preact.Component {
         }, 100, 30, '')();
     }
     /**
-     * @param {Number} childElemIdx
-     * @param {String} textBlockId
+     * @param {number} childElemIdx
+     * @param {string} textBlockId
      * @access public
      */
     scrollToTextBlockChildEl(childElemIdx, textBlockBlockId) {
@@ -125,15 +125,15 @@ class WebPagePreviewApp extends preact.Component {
         });
     }
     /**
-     * @param {String} compiledCss
+     * @param {string} compiledCss
      * @access public
      */
     updateCss(compiledCss) {
         this.sendMessageToReRenderer(['updateBlocksStyles', compiledCss]);
     }
     /**
-     * @param {String} blockId Examples 'uacHWbsK', '' (if `:root {...}` body style)
-     * @param {String} css Examples '[data-block="uacHWbsK"] {color: #ad5f5f;}'
+     * @param {string} blockId Examples 'uacHWbsK', '' (if `:root {...}` body style)
+     * @param {string} css Examples '[data-block="uacHWbsK"] {color: #ad5f5f;}'
      * @access public
      */
     updateCssFast(blockId, css) {
@@ -159,7 +159,7 @@ class WebPagePreviewApp extends preact.Component {
         this.sendMessageToReRenderer(['reRenderAllBlocks', theTree]);
     }
     /**
-     * @param {[String, ...any]} args
+     * @param {[string, ...any]} args
      * @access public
      */
     sendMessageToReRenderer(args) {
@@ -196,7 +196,7 @@ class WebPagePreviewApp extends preact.Component {
         });
     }
     /**
-     * @param {{urlToLoad: '@currentUrl'|String;}} _
+     * @param {{urlToLoad: '@currentUrl'|string;}} _
      * @access protected
      */
     render(_, {url}) {
@@ -218,22 +218,22 @@ class WebPagePreviewApp extends preact.Component {
                         if (e.data[0] === 'hereIsPageDataBundle') {
                             broadcastCurrentPageData(e);
                         } else if (e.data[0] === 'onBlockHoverStarted') {
-                            const [_, blockId, blockRect] = e.data; // [_, String, DOMRect]
+                            const [_, blockId, blockRect] = e.data; // [_, string, DOMRect]
                             const block = blockRect ? blockTreeUtils.findBlockMultiTree(blockId, api.saveButton.getInstance().getChannelState('theBlockTree'))[0] : null;
                             if (block) this.highlightBlock(block, 'web-page', blockRect);
                         } else if (e.data[0] === 'onBlockHoverEnded') {
-                            const [_, blockId] = e.data; // [_, String]
+                            const [_, blockId] = e.data; // [_, string]
                             this.doHideHighlightRect(0);
                             events.emit('highlight-rect-removed', blockId);
                         } else if (e.data[0] === 'onTextBlockChildElHoverStarted') {
-                            const [_, childIdx, textBlockBlockId] = e.data; // [_, Number, String]
+                            const [_, childIdx, textBlockBlockId] = e.data; // [_, number, string]
                             this.highlightTextBlockChildEl(childIdx, textBlockBlockId);
                             events.emit('web-page-text-block-child-el-hover-started', childIdx, textBlockBlockId);
                         } else if (e.data[0] === 'onTextBlockChildElHoverEnded') {
                             this.unHighlightTextBlockChildEl();
                             events.emit('web-page-text-block-child-el-hover-ended');
                         } else if (e.data[0] === 'onClicked') {
-                            const [_, blockId] = e.data; // [_, String|null]
+                            const [_, blockId] = e.data; // [_, string|null]
                             if (blockId)
                                 events.emit('web-page-click-received', blockId);
                         }
@@ -265,7 +265,7 @@ class WebPagePreviewApp extends preact.Component {
         }></div>;
     }
     /**
-     * @param {String} urlFromRouter Examples: '/services', '/services#ref-1'
+     * @param {string} urlFromRouter Examples: '/services', '/services#ref-1'
      * @access private
      */
     setOrReplacePreviewIframeUrl(urlFromRouter) {
@@ -280,8 +280,8 @@ class WebPagePreviewApp extends preact.Component {
     }
     /**
      * @param {DOMRect} rect
-     * @param {String} title
-     * @param {Number} rectIdx
+     * @param {string} title
+     * @param {number} rectIdx
      * @access private
      */
     doShowHighlightRect(rect, title, rectIdx) {
@@ -301,7 +301,7 @@ class WebPagePreviewApp extends preact.Component {
         el.setAttribute('data-title', title);
     }
     /**
-     * @param {Number} rectIdx
+     * @param {number} rectIdx
      * @access private
      */
     doHideHighlightRect(rectIdx) {
@@ -312,7 +312,7 @@ class WebPagePreviewApp extends preact.Component {
         el.style.cssText = '';
     }
     /**
-     * @param {String} blockId
+     * @param {string} blockId
      * @returns {HTMLElement|null}
      * @access private
      */
@@ -324,7 +324,7 @@ class WebPagePreviewApp extends preact.Component {
      * @param {HTMLElement} blockEl
      * @param {Window} win
      * @param {ScrollBehavior} behavior
-     * @returns {Boolean} didScroll
+     * @returns {boolean} didScroll
      * @access private
      */
     scrollToBlockEl(blockEl, win, behavior) {
@@ -346,8 +346,8 @@ class WebPagePreviewApp extends preact.Component {
 }
 
 /**
- * @param {String} url
- * @returns {String}
+ * @param {string} url
+ * @returns {string}
  */
 function createUrlForIframe(url) {
     const [pathname, hash] = url.split('#');
@@ -410,7 +410,7 @@ function broadcastCurrentPageData(e) {
 /**
  * @template {T}
  * @param {T} entity
- * @param {String} prop
+ * @param {string} prop
  * @returns {T}
  */
 function getAndInvalidate(entity, prop, keepDebugEntry = false) {
@@ -421,8 +421,8 @@ function getAndInvalidate(entity, prop, keepDebugEntry = false) {
 }
 
 /**
- * @param {String} nodeName Example 'P', 'UL', 'BLOCKQUOTE'
- * @returns {String} Example 'Paragraph', 'Unordered list', 'Blockquote'
+ * @param {string} nodeName Example 'P', 'UL', 'BLOCKQUOTE'
+ * @returns {string} Example 'Paragraph', 'Unordered list', 'Blockquote'
  */
 function nodeNameToFriendly(nodeName) {
     const pair = {
@@ -442,7 +442,7 @@ function nodeNameToFriendly(nodeName) {
 
 /**
  * @param {Path} location {pathname: '/foo', hash: '#anchor', search: null}
- * @returns {String} '/foo#anchor'
+ * @returns {string} '/foo#anchor'
  */
 function getFullUrl({pathname, hash}) {
     return `${pathname}${hash || ''}`;

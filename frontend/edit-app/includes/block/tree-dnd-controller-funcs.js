@@ -71,7 +71,7 @@ function createBlockTreeMoveToOpArgs(dragInf, dropInf, dropPos) {
  * @param {Array<Block>} dragBranch
  * @param {Block} dropBlock
  * @param {Array<Block>} dropBranch
- * @param {Boolean} isBefore
+ * @param {boolean} isBefore
  */
 function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore) {
     const dragBranchIdx = dragBranch.indexOf(dragBlock);

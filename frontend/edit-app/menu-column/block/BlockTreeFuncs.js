@@ -19,8 +19,8 @@ function createPartialState(newBlocks, previousState = {}) {
 
 /**
  * @param {Array<Block>} tree
- * @param {{[key: String]: BlockTreeItemState;}|undefined} previousTreeState
- * @returns {{[key: String]: BlockTreeItemState;}}
+ * @param {{[key: string]: BlockTreeItemState;}|undefined} previousTreeState
+ * @returns {{[key: string]: BlockTreeItemState;}}
  */
 function createTreeState(tree, previousTreeState) {
     const out = {};
@@ -87,10 +87,10 @@ function getMainContent(tree) {
 }
 
 /**
- * @param {Boolean} isHidden
+ * @param {boolean} isHidden
  * @param {Block} block
  * @param {Object} mutTreeState
- * @param {Boolean} recursive = true
+ * @param {boolean} recursive = true
  */
 function setAsHidden(isHidden, block, mutTreeState, recursive = true) {
     mutTreeState[block.id].isCollapsed = isHidden;
@@ -124,8 +124,8 @@ function findVisibleLi(li, ul, def) {
 
 /**
  * @param {Array<Block>} blocks
- * @param {(parentIdPath: String, block: Block) => any} fn
- * @param {String} parentIdPath
+ * @param {(parentIdPath: string, block: Block) => any} fn
+ * @param {string} parentIdPath
  * @returns {any}
  */
 function withParentIdPathDo(blocks, fn, parentIdPath = '') {
@@ -140,8 +140,8 @@ function withParentIdPathDo(blocks, fn, parentIdPath = '') {
 }
 
 /**
- * @param {String} path e.g. '/foo/bar'
- * @returns {Array<String>} e.g. ['foo', 'bar']
+ * @param {string} path e.g. '/foo/bar'
+ * @returns {Array<string>} e.g. ['foo', 'bar']
  */
 function splitPath(path) {
     const pieces = path.split('/'); // '/foo/bar' -> ['', 'foo', 'bar']
@@ -150,10 +150,10 @@ function splitPath(path) {
 }
 
 /**
- * @param {Boolean} setAsHidden
+ * @param {boolean} setAsHidden
  * @param {Block} block
  * @param {Object} mutTreeState
- * @param {Boolean} recursive = true
+ * @param {boolean} recursive = true
  */
 function hideOrShowChildren(setAsHidden, block, mutTreeState, recursive = true) {
     if (!block.children.length) return;
@@ -176,7 +176,7 @@ function hideOrShowChildren(setAsHidden, block, mutTreeState, recursive = true) 
 /**
  * @param {Block} block
  * @param {BlockTypeDefinition} type
- * @returns {String}
+ * @returns {string}
  */
 function getShortFriendlyName(block, type) {
     if (block.title)
@@ -200,8 +200,8 @@ function createTreeStateItem(parentStateItem, overrides = {}) {
 }
 
 /**
- * @param {String} from
- * @param {String} to
+ * @param {string} from
+ * @param {string} to
  * @returns {(style: StyleChunk) => StyleChunk}
  */
 function createStyleShunkcScssIdReplacer(from, to) {

@@ -2,7 +2,7 @@ import {__} from '../edit-app-singletons.js';
 import {FormGroupInline} from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
 
-/** @extends {preact.Component<ValueInputProps<OptionValue & {options: Array<{label: String; value: String;}>;}>, any>} */
+/** @extends {preact.Component<ValueInputProps<OptionValue & {options: Array<{label: string; value: string;}>;}>, any>} */
 class OptionValueInput extends preact.Component {
     /**
      * @access protected
@@ -35,7 +35,7 @@ class OptionValueInput extends preact.Component {
         </FormGroupInline>;
     }
     /**
-     * @param {String|null} input examples: 'inline-block', 'Fira Sans'
+     * @param {string|null} input examples: 'inline-block', 'Fira Sans'
      * @returns {OptionValue|null}
      */
     static valueFromInput(input) {
@@ -43,7 +43,7 @@ class OptionValueInput extends preact.Component {
     }
     /**
      * @param {OptionValue} value
-     * @returns {String}
+     * @returns {string}
      */
     static valueToString(value) {
         return `${value.selected}`;

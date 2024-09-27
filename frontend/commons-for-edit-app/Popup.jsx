@@ -21,7 +21,7 @@ class Popup extends preact.Component {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{Renderer: preact.Component; btn: HTMLElement; close: () => void; rendererProps?: {[key: String]: any;}; placement?: 'top-start'; className?: String; settings?: {maxWidth?: Number; offsetY?: Number;};}} props
+     * @param {{Renderer: preact.Component; btn: HTMLElement; close: () => void; rendererProps?: {[key: string]: any;}; placement?: 'top-start'; className?: string; settings?: {maxWidth?: number; offsetY?: number;};}} props
      * @access protected
      */
     render({Renderer, rendererProps, close, className, settings}) {

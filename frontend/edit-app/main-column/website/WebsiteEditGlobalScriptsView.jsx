@@ -118,7 +118,7 @@ class WebsiteEditGlobalScriptsView extends preact.Component {
             });
     }
     /**
-     * @param {String} type
+     * @param {string} type
      * @access private
      */
     appendExampleHtml(type) {

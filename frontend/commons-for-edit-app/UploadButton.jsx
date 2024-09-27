@@ -107,7 +107,7 @@ class UploadButton extends preact.Component {
     /**
      * @param {File} file
      * @param {UploadsEntry} entry
-     * @returns {Promise<UploadsEntry|String>}
+     * @returns {Promise<UploadsEntry|string>}
      */
     uploadFile(file, {fileName, friendlyName}) {
         //

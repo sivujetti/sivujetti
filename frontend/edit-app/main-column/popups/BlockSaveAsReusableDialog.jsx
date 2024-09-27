@@ -13,7 +13,7 @@ import {
 class BlockSaveAsReusableDialog extends preact.Component {
     // boundDoHandleSubmit;
     /**
-     * @param {{blockToConvertAndStore: Block; onConfirmed: (data: {name: String; saveAsUnique: Boolean;}) => any; userCanCreateGlobalBlockTrees: Boolean;}} props
+     * @param {{blockToConvertAndStore: Block; onConfirmed: (data: {name: string; saveAsUnique: boolean;}) => any; userCanCreateGlobalBlockTrees: boolean;}} props
      */
     constructor(props) {
         super(props);

@@ -38,7 +38,7 @@ function createStylesBundleChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<Boolean|any>}
+         * @returns {Promise<boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
             const toTransferable = bundle => {
@@ -75,7 +75,7 @@ function createBlockTreeChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<Boolean|any>}
+         * @returns {Promise<boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
             const page = api.saveButton.getInstance().getChannelState('currentPageData');
@@ -103,7 +103,7 @@ function createReusableBranchesChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<Boolean|any>}
+         * @returns {Promise<boolean|any>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory);
@@ -129,7 +129,7 @@ function createGlobalBlockTreesChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<Boolean|any>}
+         * @returns {Promise<boolean|any>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory);
@@ -144,7 +144,7 @@ function createGlobalBlockTreesChannelHandler() {
 
 /**
  * @param {Array<StateHistory>} out
- * @param {{theBlockTree: Array<Array<Block>>; [others: String]: any;}} activeStates
+ * @param {{theBlockTree: Array<Array<Block>>; [others: string]: any;}} activeStates
  * @returns {Promise<Array<StateHistory>|null>}
  */
 async function globalBlockTreeSaveOpFilter(out, activeStates) {
@@ -250,7 +250,7 @@ function createQuicklyAddedPagesChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<Boolean|any>}
+         * @returns {Promise<boolean|any>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory);
@@ -276,7 +276,7 @@ function createCurrentPageDataChannelHandler() {
         /**
          * @param {StateHistory<Page>} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<Boolean|any>}
+         * @returns {Promise<boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
             if (!stateHistory.latest.isPlaceholderPage) {
@@ -290,7 +290,7 @@ function createCurrentPageDataChannelHandler() {
         /**
          * @param {Page} page
          * @param {Page} syncedPage
-         * @returns {Promise<Boolean|any>}
+         * @returns {Promise<boolean|any>}
          * @access private
          */
         syncAlreadyExistingPageToBackend(page, syncedPage) {
@@ -312,7 +312,7 @@ function createCurrentPageDataChannelHandler() {
         },
         /**
          * @param {Page} newPage
-         * @returns {Promise<Boolean|any>}
+         * @returns {Promise<boolean|any>}
          * @access private
          */
         syncNewPageToBackend(newPage) {
@@ -345,7 +345,7 @@ function createPageTypesChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<Boolean|any>}
+         * @returns {Promise<boolean|any>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory, 'name');
@@ -376,9 +376,9 @@ function handleHttpError(err, adjustErrorToastArgs) {
 }
 
 /**
- * @param {Page & {[additionalProps: String]: any;}} page
- * @param {Array<keyof Page|String>} notTheseKeys = [] Example: ['id', 'blocks' ...]
- * @return {{[key: String]: any;}} Clean object
+ * @param {Page & {[additionalProps: string]: any;}} page
+ * @param {Array<keyof Page|string>} notTheseKeys = [] Example: ['id', 'blocks' ...]
+ * @return {{[key: string]: any;}} Clean object
  */
 function toTransferable(page, notTheseKeys = []) { // todo yhdistä jonnekin utilsiin 
     const allKeys = Object.keys(page);
@@ -389,9 +389,9 @@ function toTransferable(page, notTheseKeys = []) { // todo yhdistä jonnekin uti
 }
 
 /**
- * @param {Promise<Object|String>} httpCall
+ * @param {Promise<Object|string>} httpCall
  * @param {adjustErrorToastArgsFn} adjustErrorToastArgs = null
- * @returns {Promise<Boolean>}
+ * @returns {Promise<boolean>}
  */
 async function doPostOrPut(httpCall, adjustErrorToastArgs = null) {
     try {
@@ -406,7 +406,7 @@ async function doPostOrPut(httpCall, adjustErrorToastArgs = null) {
 /**
  * @template T
  * @param {StateHistory} stateHistory
- * @param {String} key = 'id'
+ * @param {string} key = 'id'
  * @returns {Array<{type: 'insert'|'update'; arg: T;}>}
  */
 function createSaveableItems({initial, latest}, key = 'id') {
@@ -432,7 +432,7 @@ function createSaveableItems({initial, latest}, key = 'id') {
 
 /**
  * @param {Array<StateHistory>} queue
- * @returns {{[channelName: String]: state;}}
+ * @returns {{[channelName: string]: state;}}
  */
 function getLatestItemsOfEachChannel(queue) {
     const out = {};
@@ -452,8 +452,8 @@ function normalizeItem(ir) {
 }
 
 /**
- * @param {String} channelName
- * @returns {String}
+ * @param {string} channelName
+ * @returns {string}
  */
 function createSignalName(channelName) {
     return `on-${channelName}-event`;
@@ -472,7 +472,7 @@ function createInitialState() {
 }
 
 /**
- * @typedef {(err: Error|Object, message: String, level: messageLevel) => [String, messageLevel]} adjustErrorToastArgsFn
+ * @typedef {(err: Error|Object, message: string, level: messageLevel) => [string, messageLevel]} adjustErrorToastArgsFn
  */
 
 export {

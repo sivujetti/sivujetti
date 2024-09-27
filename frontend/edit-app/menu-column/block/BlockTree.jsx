@@ -9,7 +9,6 @@ import {
     LoadingSpinner,
     objectUtils,
     scssWizard,
-    traverseRecursively,
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import createDndController, {
@@ -132,7 +131,7 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Array<Block>} branch
-     * @param {Number} depth = 1
+     * @param {number} depth = 1
      * @param {Block} paren = null
      * @param {Block} ref = null {type:'GlobalBlockReference'...}
      */
@@ -327,7 +326,7 @@ class BlockTree extends preact.Component {
         );
     }
     /**
-     * @param {{name: String;}} data
+     * @param {{name: string;}} data
      * @param {Block} originalBlock The block/branch we're just turning global
      * @access private
      */
@@ -380,7 +379,7 @@ class BlockTree extends preact.Component {
         });
     }
     /**
-     * @param {{name: String;}} data From BlockSaveAsReusableDialog
+     * @param {{name: string;}} data From BlockSaveAsReusableDialog
      * @param {Block} block
      * @access private
      */
@@ -453,7 +452,7 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} block
-     * @param {Boolean} blockIsGbtsOutermostBlock
+     * @param {boolean} blockIsGbtsOutermostBlock
      * @param {Event} e
      * @access private
      */
@@ -466,7 +465,7 @@ class BlockTree extends preact.Component {
         api.contextMenu.open(e, this.createContextMenuController(blockIsGbtsOutermostBlock));
     }
     /**
-     * @param {Boolean} blockIsGbtsOutermostBlock
+     * @param {boolean} blockIsGbtsOutermostBlock
      * @returns {ContextMenuController}
      * @access private
      */

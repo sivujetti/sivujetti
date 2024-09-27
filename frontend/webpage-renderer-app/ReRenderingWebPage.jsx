@@ -1,13 +1,13 @@
 import {urlUtils} from '@sivujetti-commons-for-web-pages';
-import {cloneDeep, getBlockEl, getMetaKey, traverseRecursively} from '../shared-inline.js';
+import {cloneDeep, getMetaKey, traverseRecursively} from '../shared-inline.js';
 import {stringHtmlPropToVNodeArray} from './ReRenderingWebPageFuncs.js';
 import builtInRenderers from './builtin-renderers-all.jsx';
 
-/** @type {Map<String, preact.AnyComponent>} */
+/** @type {Map<string, preact.AnyComponent>} */
 const customRenderers = new Map;
 const api = {
     /**
-     * @param {String} name
+     * @param {string} name
      * @param {preact.AnyComponent} Cls
      */
     registerRenderer(name, Cls) {
@@ -268,7 +268,7 @@ class RenderAll extends preact.Component {
         });
     }
     /**
-     * @param {Boolean} isDown
+     * @param {boolean} isDown
      * @access private
      */
     handleEditAppMetaKeyPressedOrReleased(isDown) {
@@ -299,7 +299,7 @@ class RenderAll extends preact.Component {
 
 /**
  * @param {HTMLElement} el
- * @returns {String|null}
+ * @returns {string|null}
  */
 function getBlockId(el) {
     return el.getAttribute('data-block');
@@ -309,7 +309,7 @@ function getBlockId(el) {
  * https://stackoverflow.com/a/2911045
  *
  * @param {Location} location = window.location
- * @returns {(link: HTMLAnchorElement) => Boolean}
+ * @returns {(link: HTMLAnchorElement) => boolean}
  */
 function createIsLocalLinkCheckFn(location = window.location) {
     const host = location.hostname;
@@ -319,7 +319,7 @@ function createIsLocalLinkCheckFn(location = window.location) {
 /**
  * @param {HTMLElement} el Child node of $currentlyHoveredBlockEl
  * @param {HTMLDivElement} currentlyHoveredBlockEl
- * @returns {Boolean}
+ * @returns {boolean}
  */
 function isSubHoverable(el, currentlyHoveredBlockEl) {
     return (
@@ -334,7 +334,7 @@ function isSubHoverable(el, currentlyHoveredBlockEl) {
 
 /**
  * @param {HTMLElement} el
- * @returns {Boolean}
+ * @returns {boolean}
  */
 function isBlockEl(el) {
     return !!el.getAttribute('data-block-type');

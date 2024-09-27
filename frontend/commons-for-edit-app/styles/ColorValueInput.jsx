@@ -6,7 +6,7 @@ import {Icon} from '../Icon.jsx';
 /** @type {CanvasRenderingContext2D} */
 let helperCanvasCtx;
 
-/** @extends {preact.Component<ValueInputProps<null> & {valueAsString: String|null; onValueChangedFast?: (newRapidlyPickedVal: String) => void;}, any>} */
+/** @extends {preact.Component<ValueInputProps<null> & {valueAsString: string|null; onValueChangedFast?: (newRapidlyPickedVal: string) => void;}, any>} */
 class ColorValueInput extends preact.Component {
     /**
      * @access protected
@@ -34,7 +34,7 @@ class ColorValueInput extends preact.Component {
         </FormGroupInline>;
     }
     /**
-     * @param {String} input examples: '#000', ' #ffffff '
+     * @param {string} input examples: '#000', ' #ffffff '
      * @returns {ColorValue|null}
      */
     static valueFromInput(input) {
@@ -61,7 +61,7 @@ class ColorValueInput extends preact.Component {
     }
     /**
      * @param {ColorValue} value
-     * @returns {String}
+     * @returns {string}
      */
     static valueToString(value) {
         return `${value.data}`;

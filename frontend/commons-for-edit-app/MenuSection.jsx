@@ -2,7 +2,7 @@ import {Icon} from './Icon.jsx';
 
 class MenuSection extends preact.Component {
     /**
-     * @param {{title: String; subtitle: String; iconId: String; colorClass: String; outerClass?: String; buttonClass?: String; onIsCollapsedChanged?: (to: Boolean) => void; initiallyIsCollapsed?: Boolean;}} props
+     * @param {{title: string; subtitle: string; iconId: string; colorClass: string; outerClass?: string; buttonClass?: string; onIsCollapsedChanged?: (to: boolean) => void; initiallyIsCollapsed?: boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -45,7 +45,7 @@ class MenuSection extends preact.Component {
 
 class MenuSectionAbstract extends preact.Component {
     /**
-     * @param {{initiallyIsCollapsed?: Boolean; sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;} && {loadedPageSlug?: String; loadingPageSlug*?: String;}} props
+     * @param {{initiallyIsCollapsed?: boolean; sections: Array<string>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;} && {loadedPageSlug?: string; loadingPageSlug*?: string;}} props
      */
     constructor(props) {
         super(props);

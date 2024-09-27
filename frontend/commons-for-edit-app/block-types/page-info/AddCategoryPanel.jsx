@@ -13,7 +13,7 @@ import {makePath, makeSlug} from '../../local-url-utils.js';
 
 class AddCategoryPanel extends preact.Component {
     /**
-     * @param {{pageType: PageType; cssClass: String; onAddingFinished: (newCompactPage: RelPage|null) => void; panelHeight: Number;}} props
+     * @param {{pageType: PageType; cssClass: string; onAddingFinished: (newCompactPage: RelPage|null) => void; panelHeight: number;}} props
      * @access protected
      */
     componentWillReceiveProps(props) {

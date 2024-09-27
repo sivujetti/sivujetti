@@ -102,7 +102,7 @@ class InspectorPanel extends preact.Component {
 }
 
 /**
- * @returns {Number}
+ * @returns {number}
  */
 function getCurrentPanelHeight() {
     return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--inspector-panel-height'));

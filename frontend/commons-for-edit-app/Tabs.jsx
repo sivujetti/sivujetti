@@ -1,7 +1,7 @@
 class Tabs extends preact.Component {
     // getTabName;
     /**
-     * @param {{links: Array<preact.ComponentChild>; onTabChanged: (idx: number) => any; initialTabIdx?: Number; className?: String; getTabName?: (linkText: String, tabIdx: Number) => String|null;}} props
+     * @param {{links: Array<preact.ComponentChild>; onTabChanged: (idx: number) => any; initialTabIdx?: number; className?: string; getTabName?: (linkText: string, tabIdx: number) => string|null;}} props
      */
     constructor(props) {
         super(props);

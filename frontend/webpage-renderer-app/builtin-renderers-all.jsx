@@ -55,7 +55,7 @@ class CodeBlock extends preact.Component {
 /**
  * @param {HTMLScriptElement} original
  * @param {HTMLElement} toEl
- * @param {Array<{name: String; value: String;}>} extraAttrs
+ * @param {Array<{name: string; value: string;}>} extraAttrs
  */
 function injectScript(original, toEl, extraAttrs = []) {
     const inject = document.createElement('script');
@@ -100,7 +100,7 @@ class ImageBlock extends preact.Component {
     }
 }
 
-/** @type {Map<String, {htmlArr: Array<preact.ComponentChild>; hash: String;}>} */
+/** @type {Map<string, {htmlArr: Array<preact.ComponentChild>; hash: string;}>} */
 const cachedRenders = new Map;
 class ListingBlock extends preact.Component {
     /**
@@ -169,7 +169,7 @@ class MenuBlock extends preact.Component {
 /**
  * @param {Array<Object>} branch
  * @param {Block} block
- * @param {Number} depth = 0
+ * @param {number} depth = 0
  * @returns {preact.VNode}
  */
 function menuPrintBranch(branch, block, depth = 0) {

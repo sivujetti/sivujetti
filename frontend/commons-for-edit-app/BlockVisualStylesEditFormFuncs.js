@@ -17,7 +17,7 @@ const WidgetClses = {
 };
 
 /**
- * @param {String} blockId
+ * @param {string} blockId
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
  * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
  */
@@ -32,7 +32,7 @@ function createCssVarsMaps(blockId, cssVarDefs) {
 /**
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
  * @param {styleScopeKind} scopeKind
- * @param {String} scopeSpecifier = undefined
+ * @param {string} scopeSpecifier = undefined
  * @param {stylesLayer|undefined} layer = undefined
  * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
  */
@@ -48,7 +48,7 @@ function doCreateCssVarsMaps(cssVarDefs, scopeKind, scopeSpecifier = undefined, 
 
 /**
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
- * @param {String|null} scss
+ * @param {string|null} scss
  * @returns {Array<CssVarsMap>}
  */
 function createVarsMapAuto(cssVarDefs, scss) {
@@ -82,8 +82,8 @@ function createVarsMapAuto(cssVarDefs, scss) {
  */
 function createVarInputToScssCodeAuto(cssVarDefs) {
     /**
-     * @param {String} varName
-     * @param {String} _val
+     * @param {string} varName
+     * @param {string} _val
      * @returns {scssCodeInput}
      */
     return (varName, _val) => {
@@ -154,8 +154,8 @@ function createNormalizedDefs(validDefs) {
 }
 
 /**
- * @param {String} input
- * @returns {String} input with normalized white space
+ * @param {string} input
+ * @returns {string} input with normalized white space
  */
 function createNormalizedSubSelector(input) {
     const scss = `[data-block="1"] { ${input} {} }`;
@@ -165,7 +165,7 @@ function createNormalizedSubSelector(input) {
 }
 
 /**
- * @param {String} prefix Examples: 'text', 'button'
+ * @param {string} prefix Examples: 'text', 'button'
  * @returns {Array<VisualStylesFormVarDefinition>}
  */
 function createJustifyContentVarDef(prefix) {
@@ -194,7 +194,7 @@ function createJustifyContentVarDef(prefix) {
 }
 
 /**
- * @param {String} prefix Examples: 'text', 'button'
+ * @param {string} prefix Examples: 'text', 'button'
  * @returns {Array<VisualStylesFormVarDefinition>}
  */
 function createPaddingVarDefs(prefix) {

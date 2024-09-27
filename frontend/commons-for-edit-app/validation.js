@@ -37,8 +37,8 @@ const mediaUrlValidatorImpl = {doValidate: (val, hints = {}) => {
 }, errorMessageTmpl: '{field} is not valid media url'};
 
 /**
- * @param {String} input
- * @returns {String}
+ * @param {string} input
+ * @returns {string}
  */
 function createCanonicalUrl(input) {
     if (!input.length)

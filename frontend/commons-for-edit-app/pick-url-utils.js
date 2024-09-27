@@ -5,8 +5,8 @@ let dialogTitleTranslations;
 let previewTitleTranslations;
 
 /**
- * @param {String} slug
- * @returns {String}
+ * @param {string} slug
+ * @returns {string}
  */
 function getVisibleSlug(slug) {
     if (slug === '')
@@ -17,17 +17,17 @@ function getVisibleSlug(slug) {
 }
 
 /**
- * @param {String} url
- * @returns {[urlMode, String]} [mode, title]
+ * @param {string} url
+ * @returns {[urlMode, string]} [mode, title]
  */
 function determineModeFromPreview(url) {
     return determineModeFrom(url, 'previewTooltipTitles');
 }
 
 /**
- * @param {String} url '/base/page' or '/base/public/uploads/image.png' or <external>
+ * @param {string} url '/base/page' or '/base/public/uploads/image.png' or <external>
  * @param {'dialogTitles'|'previewTooltipTitles'} translationsPool = 'dialogTitles'
- * @returns {[urlMode, String]} [mode, label]
+ * @returns {[urlMode, string]} [mode, label]
  */
 function determineModeFrom(url, translationsPool = 'dialogTitles') {
     const mode = (function () {
@@ -51,7 +51,7 @@ function determineModeFrom(url, translationsPool = 'dialogTitles') {
 /**
  * @param {urlMode} mode
  * @param {'dialogTitles'|'previewTooltipTitles'} translationsPool = 'dialogTitles'
- * @returns {String}
+ * @returns {string}
  */
 function getLabel(mode, translationsPool = 'dialogTitles') {
     let titles;
@@ -79,9 +79,9 @@ function getLabel(mode, translationsPool = 'dialogTitles') {
 
 
 /**
- * @param {String} url
+ * @param {string} url
  * @param {urlMode} mode
- * @returns {String}
+ * @returns {string}
  */
 function doubleNormalizeUrl(url, mode) {
     if (mode !== 'type-external-url') {

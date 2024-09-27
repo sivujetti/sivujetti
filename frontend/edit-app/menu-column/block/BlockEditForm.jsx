@@ -201,8 +201,8 @@ class BlockEditForm extends preact.Component {
         this.setState(createState(toKind, block));
     }
     /**
-     * @param {{[key: String]: any;}} changes
-     * @param {Boolean} hasErrors = false
+     * @param {{[key: string]: any;}} changes
+     * @param {boolean} hasErrors = false
      * @param {blockPropValueChangeFlags} flags = null
      * @access private
      */
@@ -212,8 +212,8 @@ class BlockEditForm extends preact.Component {
         this.pushBlockChanges(this.props.block.id, changes, flags);
     }
     /**
-     * @param {String} blockId
-     * @param {{[key: String]: any;}} changes
+     * @param {string} blockId
+     * @param {{[key: string]: any;}} changes
      * @param {blockPropValueChangeFlags} flags = null
      * @access private
      */
@@ -340,7 +340,7 @@ function createState(newTabKind, block) {
 
 /**
  * @param {tabKind} tabKind
- * @returns {Boolean}
+ * @returns {boolean}
  * @access private
  */
 function doesTabContainStylesStuff(tabKind) {

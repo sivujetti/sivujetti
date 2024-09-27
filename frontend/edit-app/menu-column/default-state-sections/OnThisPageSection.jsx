@@ -70,7 +70,7 @@ class OnThisPageSection extends MenuSectionAbstract {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{[key: String]: any;}} props
+     * @param {{[key: string]: any;}} props
      */
     render(_, {isCollapsed, containingView, loadedPageBlocks, title, subtitle}) {
         return <section class={ `on-this-page panel-section mt-0 pl-0 ${isCollapsed ? 'collapsed' : 'open'}` }>
@@ -118,7 +118,7 @@ class OnThisPageSection extends MenuSectionAbstract {
             this.setState({isCollapsed: !this.state.isCollapsed});
     }
     /**
-     * @param {String} pageSlug
+     * @param {string} pageSlug
      * @param {Event} e
      * @access private
      */
@@ -127,7 +127,7 @@ class OnThisPageSection extends MenuSectionAbstract {
         api.contextMenu.open(e, this.createContextMenuController(pageSlug));
     }
     /**
-     * @param {String} pageSlug
+     * @param {string} pageSlug
      * @returns {ContextMenuController}
      * @access private
      */
@@ -185,7 +185,7 @@ class OnThisPageSection extends MenuSectionAbstract {
 }
 
 /**
- * @param {String|null} currentPageSlug
+ * @param {string|null} currentPageSlug
  * @access private
  */
 function createTitlesState(currentPageSlug) {
@@ -204,9 +204,9 @@ function createTitlesState(currentPageSlug) {
 }
 
 /**
- * @param {String} slug
+ * @param {string} slug
  * @param {'Default'|'CreatePage'|'CreatePageType'} containingView
- * @returns {[String, preact.VNode|null]}
+ * @returns {[string, preact.VNode|null]}
  */
 function createSubtitle(slug, containingView) {
     if (containingView === 'Default') {

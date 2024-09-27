@@ -4,7 +4,7 @@ import toasters from '../../includes/toasters.jsx';
 class PageDeleteDialog extends preact.Component {
     // boundDoHandleSubmit;
     /**
-     * @param {{pageSlug: String; pageTitle: String; onConfirmed: () => Promise<void>;}} props
+     * @param {{pageSlug: string; pageTitle: string; onConfirmed: () => Promise<void>;}} props
      */
     constructor(props) {
         super(props);
@@ -40,10 +40,10 @@ class PageDeleteDialog extends preact.Component {
 }
 
 /**
- * @param {String} pageSlug
- * @param {String} pageTitle
+ * @param {string} pageSlug
+ * @param {string} pageTitle
  * @param {() => any} onSuccess
- * @param {String} pageTypeName = 'Pages'
+ * @param {string} pageTypeName = 'Pages'
  */
 function openPageDeleteDialog(pageSlug, pageTitle, onSuccess, pageTypeName = 'Pages') {
     floatingDialog.open(PageDeleteDialog, {

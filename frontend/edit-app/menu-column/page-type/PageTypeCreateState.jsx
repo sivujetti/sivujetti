@@ -181,7 +181,7 @@ function createAddPageTypeSaveOpFilter(data, layout) {
 
 /**
  * @param {Layout} layout
- * @returns {(block: Block) => Boolean}
+ * @returns {(block: Block) => boolean}
  */
 function createBelongsToLayout({structure}) {
     return b => b.type === 'PageInfo' ||

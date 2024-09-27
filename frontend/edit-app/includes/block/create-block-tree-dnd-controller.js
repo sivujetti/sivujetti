@@ -18,7 +18,7 @@ function createDndController(saveButton) {
     return {
         /**
          * @param {DragDropInfo} info
-         * @returns {Boolean}
+         * @returns {boolean}
          */
         begin(info) {
             if (extDragData && extDragData.block.type === 'GlobalBlockReference' && info.li.getAttribute('data-is-stored-to-tree-id') !== 'main') {
@@ -64,7 +64,7 @@ function createDndController(saveButton) {
         },
         /**
          * @param {DragDropInfo|null} info
-         * @returns {Boolean}
+         * @returns {boolean}
          */
         dragOut(_info) {
             // Do nothing
@@ -73,7 +73,7 @@ function createDndController(saveButton) {
          * @param {DragDropInfo} cand
          * @param {DragDropInfo} _prevCand
          * @param {HTMLLIElement|null} startLi
-         * @returns {Boolean|undefined}
+         * @returns {boolean|undefined}
          */
         swap(cand, _prevCand, startLi) {
             const extBlock = !extDragData ? null : extDragData.block;
@@ -94,7 +94,7 @@ function createDndController(saveButton) {
             // Do nothing
         },
         /**
-         * @param {Number|null} _lastAcceptedSwapIdx
+         * @param {number|null} _lastAcceptedSwapIdx
          */
         end(_lastAcceptedSwapIdx) {
             if (dropped)
@@ -140,7 +140,7 @@ function createBlockDescriptor(block, saveButton) {
 /**
  * @param {BlockDescriptor} target Drop or swap target
  * @param {dropPosition} pos Drop or swap position
- * @returns {[String, Boolean]} [targetIsStoredToTreeId, isTargetAsChildOfGbtRef]
+ * @returns {[string, boolean]} [targetIsStoredToTreeId, isTargetAsChildOfGbtRef]
  */
 function getRealTarget(target, pos) {
     return !(target.isGbtRef && pos === 'as-child')
@@ -152,10 +152,10 @@ function getRealTarget(target, pos) {
  * Calls $blockTypeName's on() method (if it had one), and returns its return value
  * (if it wasn't empty). Otherwise return null.
  *
- * @param {String} blockTypeName
+ * @param {string} blockTypeName
  * @param {'addBlock'|'cloneBlock'|'moveBlock'} event
  * @param {Array<any>} args
- * @returns {{[key: String]: any;}|null}
+ * @returns {{[key: string]: any;}|null}
  */
 function callGetBlockPropChangesEvent(blockTypeName, event, args) {
     const blockType = api.blockTypes.get(blockTypeName);

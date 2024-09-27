@@ -127,7 +127,7 @@ class TextBlockEditForm extends preact.Component {
         </FormGroup>;
     }
     /**
-     * @param {Number} idx
+     * @param {number} idx
      * @access private
      */
     getNthEditorNode(idx) {
@@ -186,7 +186,7 @@ class TextBlockEditForm extends preact.Component {
 /**
  * @param {HTMLElement} node Child node of .ql-editor
  * @param {HTMLDivElement} paren .ql-editor
- * @returns {Number}
+ * @returns {number}
  */
 function getChildNodeIdx(node, paren) {
     return Array.from(paren.children).indexOf(node);
@@ -194,7 +194,7 @@ function getChildNodeIdx(node, paren) {
 
 /**
  * @typedef TextBlockProps
- * @prop {String} html
+ * @prop {string} html
  */
 
 export default TextBlockEditForm;

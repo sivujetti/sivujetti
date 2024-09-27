@@ -1,9 +1,9 @@
-/** @type {Map<String, BlockTypeDefinition>} */
+/** @type {Map<string, BlockTypeDefinition>} */
 const storage = new Map;
 
 class BlockTypesRegister {
     /**
-     * @param {Array<[String, BlockTypeDefinition]>} defaultBlockTypes
+     * @param {Array<[string, BlockTypeDefinition]>} defaultBlockTypes
      * @see also ./populate-block-types-map.js
      * @access public
      */
@@ -14,7 +14,7 @@ class BlockTypesRegister {
         });
     }
     /**
-     * @param {String} name
+     * @param {string} name
      * @param {() => BlockTypeDefinition} blockTypeFactory
      * @access public
      */
@@ -25,7 +25,7 @@ class BlockTypesRegister {
         storage.set(name, baked);
     }
     /**
-     * @param {String} name
+     * @param {string} name
      * @returns {BlockTypeDefinition}
      * @access public
      */
@@ -36,8 +36,8 @@ class BlockTypesRegister {
         return out;
     }
     /**
-     * @param {BlockTypeDefinition|String} blockType
-     * @returns {String} Icon for $blockTypeName or $fallBack
+     * @param {BlockTypeDefinition|string} blockType
+     * @returns {string} Icon for $blockTypeName or $fallBack
      * @access public
      */
     getIconId(blockType, fallback = 'box') {
@@ -45,7 +45,7 @@ class BlockTypesRegister {
         return type.icon || fallback;
     }
     /**
-     * @returns {IterableIterator<String, BlockTypeDefinition>}
+     * @returns {IterableIterator<string, BlockTypeDefinition>}
      * @access public
      */
     entries() {

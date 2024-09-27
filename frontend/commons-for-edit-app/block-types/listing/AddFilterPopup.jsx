@@ -16,7 +16,7 @@ class IsInCategoryPart extends preact.Component {
     // relPageType;
     /**
      * @param {'all'|'single'|'atMost'} howManyType
-     * @returns {String}
+     * @returns {string}
      * @access public
      */
     static getLabel(howManyType) {
@@ -70,8 +70,8 @@ class IsInCategoryPart extends preact.Component {
         this.setState({theCat: value[0]});
     }
     /**
-     * @param {String} isInCategory
-     * @returns {String}
+     * @param {string} isInCategory
+     * @returns {string}
      * @access private
      */
     getSelectedCatTitle(isInCategory) {
@@ -82,7 +82,7 @@ class IsInCategoryPart extends preact.Component {
 }
 
 /**
- * @param {String} colPath
+ * @param {string} colPath
  * @param {Array<PageTypeField>} fieldsInfo
  * @returns {PageTypeField|undefined}
  */
@@ -96,7 +96,7 @@ class UrlStartsWithPart extends preact.Component {
     // throttledHandleValueChanged;
     /**
      * @param {'all'|'single'|'atMost'} howManyType
-     * @returns {String}
+     * @returns {string}
      * @access public
      */
     static getLabel(howManyType) {
@@ -140,7 +140,7 @@ class UrlStartsWithPart extends preact.Component {
         </div>;
     }
     /**
-     * @param {String} filterValue
+     * @param {string} filterValue
      * @access private
      */
     updateState(filterValue) {
@@ -169,7 +169,7 @@ class UrlStartsWithPart extends preact.Component {
 
 class AddFilterPopup extends preact.Component {
     /**
-     * @param {{filtersParsed: Array<Object>; howManyTypeAdjusted: 'all'|'single'|'atMost'; currentFiltersJson: String; showAddCategoryFilterButton: Boolean; parent: ListingBlockEditForm;}} props
+     * @param {{filtersParsed: Array<Object>; howManyTypeAdjusted: 'all'|'single'|'atMost'; currentFiltersJson: string; showAddCategoryFilterButton: boolean; parent: ListingBlockEditForm;}} props
      * @access protected
      */
     render({filtersParsed, howManyTypeAdjusted, currentFiltersJson, showAddCategoryFilterButton, parent}) {
@@ -212,8 +212,8 @@ function buildWorkableFilters(filters) {
 
 /**
  * @param {'isInCategory'|'urlStartsWith'} kind
- * @param {String|null} val
- * @param {String} current
+ * @param {string|null} val
+ * @param {string} current
  * @returns {Object} Updated $current
  */
 function mergeToFilterAdditional(kind, val, current) {
@@ -234,7 +234,7 @@ function mergeToFilterAdditional(kind, val, current) {
 }
 
 /**
- * @param {String} from
+ * @param {string} from
  * @returns {Object} $from without the isInCategory filter
  */
 function removeIsInCatFilter(from) {
@@ -244,7 +244,7 @@ function removeIsInCatFilter(from) {
 class PopupPrerendered extends preact.Component {
     // popperInstance;
     /**
-     * @param {{children: () => preact.ComponentChild; marginLeft?: String;}} props
+     * @param {{children: () => preact.ComponentChild; marginLeft?: string;}} props
      */
     constructor(props) {
         super(props);
@@ -337,13 +337,13 @@ class PopupPrerendered extends preact.Component {
 /**
  * @typedef ParsedFilter
  * @prop {'urlStartsWith'|'isInCategory'} kind
- * @prop {String|Array<String>} value
- * @prop {String} propPath
+ * @prop {string|Array<string>} value
+ * @prop {string} propPath
  *
  * @typedef FilterPartProps
  * @prop {ParsedFilter} workableFilter
  * @prop {() => Array<PageTypeField>} getListPageTypeOwnProps
- * @prop {String} currentFiltersJson
+ * @prop {string} currentFiltersJson
  */
 
 export default AddFilterPopup;

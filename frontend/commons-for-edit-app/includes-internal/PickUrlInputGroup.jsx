@@ -8,7 +8,7 @@ import PickUrlDialog, {getHeight} from './PickUrlDialog.jsx';
 
 class PickUrlInputGroup extends preact.Component {
     /**
-     * @param {{linkTo: String; onUrlPicked: (newNormalizedUrl: String) => void;}} props
+     * @param {{linkTo: string; onUrlPicked: (newNormalizedUrl: string) => void;}} props
      * @access protected
      */
     render({linkTo, onUrlPicked}) {
@@ -27,8 +27,8 @@ class PickUrlInputGroup extends preact.Component {
     }
     /**
      * @param {Event} e
-     * @param {String} linkTo
-     * @param {(newNormalizedUrl: String) => void} onPicked
+     * @param {string} linkTo
+     * @param {(newNormalizedUrl: string) => void} onPicked
      * @access private
      */
     openPickUrlDialog(e, linkTo, onPicked) {

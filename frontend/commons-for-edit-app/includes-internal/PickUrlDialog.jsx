@@ -20,7 +20,7 @@ const EMPTY_SLUG = '';
 
 class PickUrlDialog extends preact.Component {
     /**
-     * @param {{mode: urlMode; url: String|null; dialog: FloatingDialog; onConfirm: (url: String, mode: urlMode) => void;}} props
+     * @param {{mode: urlMode; url: string|null; dialog: FloatingDialog; onConfirm: (url: string, mode: urlMode) => void;}} props
      */
     constructor(props) {
         super(props);
@@ -28,8 +28,8 @@ class PickUrlDialog extends preact.Component {
         this.state = {mode: props.mode, url, hash: hash || '', openPopup: null};
     }
     /**
-     * @param {String} value
-     * @param {Boolean} hasErrors
+     * @param {string} value
+     * @param {boolean} hasErrors
      * @access public
      */
     onJumpToChanged(value, hasErrors) {
@@ -178,7 +178,7 @@ class PickUrlDialog extends preact.Component {
         </div>;
     }
     /**
-     * @param {String} url
+     * @param {string} url
      * @param {urlMode} newMode
      * @access private
      */
@@ -188,7 +188,7 @@ class PickUrlDialog extends preact.Component {
         this.props.dialog.setHeight(getHeight(newMode));
     }
     /**
-     * @param {String} url
+     * @param {string} url
      * @param {urlMode} newMode
      * @access private
      */
@@ -199,7 +199,7 @@ class PickUrlDialog extends preact.Component {
         this.closeDialog();
     }
     /**
-     * @returns {String}
+     * @returns {string}
      * @access private
      */
     getCurrentUrlWithHash() {
@@ -217,7 +217,7 @@ class CurrentUrlDisplay extends preact.Component {
             this.hookFormState();
     }
     /**
-     * @param {{url: String; mode: urlMode; parent: PickUrlDialog;}} props
+     * @param {{url: string; mode: urlMode; parent: PickUrlDialog;}} props
      * @access protected
      */
     componentWillReceiveProps(props) {
@@ -294,8 +294,8 @@ class CurrentUrlDisplay extends preact.Component {
     }
     /**
      * @param {urlMode} mode
-     * @param {String} url
-     * @returns {Boolean}
+     * @param {string} url
+     * @returns {boolean}
      * @access private
      */
     doShowJumpTo(mode, url) {
@@ -407,7 +407,7 @@ PickPageTab.clearCurrentFilterStr = () => {
 
 /**
  * @param {Array<RelPage>} allPages
- * @param {String} filterStr = ''
+ * @param {string} filterStr = ''
  * @returns {Array<RelPage>}
  */
 function getFilteredPages(allPages, filterStr = '') {
@@ -423,7 +423,7 @@ class DefineExternalUrlTab extends preact.Component {
     // nameInput;
     // enterPressedAt;
     /**
-     * @param {{url: String; onUrlChanged: (validUrl: String) => void; done: (doCommit: Boolean) => void;}} props
+     * @param {{url: string; onUrlChanged: (validUrl: string) => void; done: (doCommit: boolean) => void;}} props
      */
     constructor(props) {
         super(props);
@@ -479,7 +479,7 @@ class DefineExternalUrlTab extends preact.Component {
 
 /**
  * @param {urlMode} mode
- * @returns {Number}
+ * @returns {number}
  */
 function getHeight(mode) {
     if (mode === 'pick-url' || mode === 'type-external-url')
@@ -490,8 +490,8 @@ function getHeight(mode) {
 }
 
 /**
- * @param {String} url
- * @returns {String|null}
+ * @param {string} url
+ * @returns {string|null}
  */
 function unnormalizeExternalUrl(url) {
     if (url.startsWith('//')) return url.substring(2);

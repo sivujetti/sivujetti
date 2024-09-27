@@ -6,8 +6,8 @@ const stringUtils = {
      * https://gist.github.com/mathewbyrne/1280286#gistcomment-2353812
      * https://stackoverflow.com/a/37511463
      *
-     * @param {String} text
-     * @returns {String}
+     * @param {string} text
+     * @returns {string}
      */
     slugify(text) {
         return text.toString().toLowerCase()
@@ -19,8 +19,8 @@ const stringUtils = {
             .replace(/-+$/, '');     // Trim - from end of text
     },
     /**
-     * @param {String} str
-     * @returns {String}
+     * @param {string} str
+     * @returns {string}
      */
     capitalize(str) {
         return `${str.charAt(0).toUpperCase()}${str.substring(1, str.length)}`;
@@ -32,8 +32,8 @@ const timingUtils = {
      * https://davidwalsh.name/javascript-debounce-function
      *
      * @param {Function} func
-     * @param {Number} wait
-     * @param {Boolean=} immediate
+     * @param {number} wait
+     * @param {boolean=} immediate
      */
     debounce(func, wait, immediate) {
         var timeout;
@@ -53,7 +53,7 @@ const timingUtils = {
 
 const objectUtils = {
     /**
-     * @param {Array<String>} keys
+     * @param {Array<string>} keys
      * @param {Object} obj
      * @returns {Object}
      */

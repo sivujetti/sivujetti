@@ -27,7 +27,7 @@ const hookUpPickerLib = () => {
             '#ffffff00',
         ],
         /**
-         * @param {String} color
+         * @param {string} color
          * @param {HTMLInputElement} _input
          */
         onChange: handleOnChange
@@ -87,8 +87,8 @@ const handlePickerOpened = (cmp, initialValue) => {
 class ColorPickerInput extends preact.Component {
     // inputElRef;
     /**
-     * @param {String} colorString
-     * @param {Boolean} emitOnChange = false
+     * @param {string} colorString
+     * @param {boolean} emitOnChange = false
      * @access public
      */
     setColor(colorString, emitOnChange = false) {
@@ -138,7 +138,7 @@ class ColorPickerInput extends preact.Component {
         lastEmittedColor = undefined;
     }
     /**
-     * @param {{onColorPicked: (color: String) => void; initialColorStr?: String; inputId?: String;}} props
+     * @param {{onColorPicked: (color: string) => void; initialColorStr?: string; inputId?: string;}} props
      * @access protected
      */
     render({initialColorStr, inputId}) {
@@ -163,8 +163,8 @@ class ColorPickerInput extends preact.Component {
 }
 
 /**
- * @param {String|null} input
- * @returns {String}
+ * @param {string|null} input
+ * @returns {string}
  */
 function getNormalizedValue(input) {
     return input || (input === null ? '' : '#067bc2');

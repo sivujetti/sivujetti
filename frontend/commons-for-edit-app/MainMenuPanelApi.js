@@ -14,7 +14,7 @@ class MainMenuPanelApi {
         this.sectionComponentImpls = new Map;
     }
     /**
-     * @param {String} blockId
+     * @param {string} blockId
      * @param {'smooth'|'auto'} behavior = 'smooth'
      */
     scrollTo(blockId, behavior = 'smooth') {
@@ -90,7 +90,7 @@ class MainMenuPanelApi {
         return this.outerEl;
     }
     /**
-     * @param {String} name
+     * @param {string} name
      * @param {preact.AnyComponent} Cls
      * @access public
      */
@@ -100,8 +100,8 @@ class MainMenuPanelApi {
         sectionRenderers.set(name, Cls);
     }
     /**
-     * @param {String} name
-     * @param {Boolean} doThrowIfNotFound = false
+     * @param {string} name
+     * @param {boolean} doThrowIfNotFound = false
      * @returns {preact.AnyComponent}
      * @throws {Error}
      * @access public

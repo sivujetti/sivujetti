@@ -1,6 +1,6 @@
 /**
  * @param {Block} block
- * @param {{[key: String]: any;}} props
+ * @param {{[key: string]: any;}} props
  */
 function writeBlockProps(block, props) {
     for (const key in props) {

@@ -72,7 +72,7 @@ function createMessageChannelController(reRenderingWebPage) {
 }
 
 /**
- * @param {String} attrPrefix = ''
+ * @param {string} attrPrefix = ''
  * @returns {HTMLStyleElement|null}
  */
 function getCssEl(attrPrefix = '') {

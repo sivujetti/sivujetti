@@ -13,7 +13,7 @@ function stringHtmlPropToVNodeArray(block) {
 }
 
 /**
- * @param {String} htmlString
+ * @param {string} htmlString
  * @returns {Array<preact.ComponentChild>}
  */
 function htmlStringToVNodeArray(htmlString) {

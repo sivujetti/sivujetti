@@ -1,24 +1,24 @@
 import {env} from '@sivujetti-commons-for-web-pages';
 
 /**
- * @param {String} value
- * @param {String} key
+ * @param {string} value
+ * @param {string} key
  */
 function putToLocalStorage(value, key) {
     env.window.localStorage[key] = value;
 }
 
 /**
- * @returns {String|undefined}
+ * @returns {string|undefined}
  */
 function getFromLocalStorage(key) {
     return env.window.localStorage[key];
 }
 
 /**
- * @param {String} value
- * @param {String} key
- * @returns {String}
+ * @param {string} value
+ * @param {string} key
+ * @returns {string}
  */
 function getAndPutAndGetToLocalStorage(value, key) {
     const cur = getFromLocalStorage(key);

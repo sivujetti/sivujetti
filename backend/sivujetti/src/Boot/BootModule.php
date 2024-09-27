@@ -163,7 +163,7 @@ class BootModule {
         $apiCtx->blockRenderers = array_merge($apiCtx->blockRenderers, [
             ["fileId" => "sivujetti:block-auto", "friendlyName" => null, "associatedWith" => null], // Text, Button etc.
             ["fileId" => "sivujetti:block-generic-wrapper", "friendlyName" => null, "associatedWith" => null], // Columns, Section
-            ["fileId" => "sivujetti:block-listing-pages-default", "friendlyName" => "Default", "associatedWith" => "*"],
+            ["fileId" => "sivujetti:block-listing-pages-default", "friendlyName" => "Customizable", "associatedWith" => "*"],
             ["fileId" => "sivujetti:block-menu", "friendlyName" => null, "associatedWith" => null],
         ]);
 

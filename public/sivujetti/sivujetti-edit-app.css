@@ -194,6 +194,9 @@ Structure:
 .fieldset .legend + * {
     margin-top: -.4rem;
 }
+.tooltip.tooltip-auto-width::after {
+    max-width: fit-content;
+}
 .prop-widget-many-to-many, .select-list-scroller {
     display: grid;
     max-height: 8.7rem;

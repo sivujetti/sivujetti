@@ -26,7 +26,7 @@ export default {
             filterLimitType: 'all',
             filterOrder: 'desc',
             filterAdditional: {},
-            rendererSettings: {},
+            rendererSettings: null,
         };
     },
     defaultRenderer: 'sivujetti:block-listing-pages-default',

@@ -136,7 +136,8 @@ class ListingBlock extends preact.Component {
      */
     async renderInBackend(block) {
         try {
-            const resp = await http.post('/api/blocks/render', {block});
+            const {__pages, __pageType, ...rest} = block;
+            const resp = await http.post('/api/blocks/render', {block: rest});
             const withWrapperDiv = htmlStringToVNodeArray(resp.result);
             const divChildren = withWrapperDiv[0].props.children;
             return divChildren;

@@ -28,7 +28,7 @@
                             ? $this->escAttr($_pic->altText)
                             : "" ?>">
                 <?php elseif ($part->data->fallbackImageSrc): ?>
-                    <img src="<?= $this->assetUrl("public/uploads/{$part->fallbackImageSrc}") ?>" alt="<?= $this->__("Article media") ?>">
+                    <img src="<?= $this->maybeExternalMediaUrl($part->data->fallbackImageSrc) ?>" alt="<?= $this->__("Article media") ?>">
                 <?php else: ?>
                     <!-- no image found -->
                 <?php endif; ?>

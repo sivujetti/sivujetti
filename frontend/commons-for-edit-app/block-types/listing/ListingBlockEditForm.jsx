@@ -3,7 +3,7 @@ import CrudList from '../../CrudList.jsx';
 import {__, api} from '../../edit-app-singletons.js';
 import {InputError} from '../../Form.jsx';
 import {Icon} from '../../Icon.jsx';
-import {objectUtils} from '../../utils.js';
+import {objectUtils, timingUtils} from '../../utils.js';
 import AddFilterPopup, {
     buildWorkableFilters,
     FilterKind,
@@ -13,7 +13,11 @@ import AddFilterPopup, {
     UrlStartsWithPart,
 } from './AddFilterPopup.jsx';
 import RendererPartEditForm from './RendererPartEditForm.jsx';
+/** @typedef {import('./RendererPartEditForm.jsx').RendererPart} RendererPart */
 /** @typedef {import('./RendererPartEditForm.jsx').RendererPartData} RendererPartData */
+/** @typedef {import('./RendererPartEditForm.jsx').HeadingPartData} HeadingPartData */
+/** @typedef {import('./RendererPartEditForm.jsx').ImagePartData} ImagePartData */
+/** @typedef {import('./RendererPartEditForm.jsx').LinkPartData} LinkPartData */
 
 const orderToText = {
     desc: 'newest to oldest',
@@ -192,7 +196,7 @@ class ListingBlockEditForm extends preact.Component {
                         class="form-select poppable pl-1"
                         type="button">{ __(this.selectedPageTypeBundle.renderers.find(({fileId}) =>
                             fileId === renderWith
-                        ).friendlyName || renderWith) }
+                        ).friendlyName || renderWith).toLowerCase() }
                     </button>
                 </div>,
                 ...(rendererIsConfigurable ? [
@@ -455,6 +459,7 @@ class ChooseRendererPopup extends preact.Component {
 class ConfigureRendererPopup extends preact.Component {
     // crudListRef;
     // partKindsTranslated;
+    // emitPropChangeThrottled;
     /**
      * @access protected
      */
@@ -465,24 +470,39 @@ class ConfigureRendererPopup extends preact.Component {
             link: __('Link'),
             image: __('Image'),
         };
+        this.emitPropChangeThrottled = timingUtils.debounce(
+            this.emitPropChange.bind(this),
+            env.normalTypingDebounceMillis
+        );
     }
     /**
      * @param {{rendererSettings: RendererSettings|null;}} props
      * @access protected
      */
-    render({rendererSettings}) {
-        return <div class="pt-2 mt-2" style="min-width: 10rem;">
+    render({rendererSettings}, {hideInstructionsText}) {
+        return <div class="pt-2 mt-2" style="min-width: 10rem;max-width: 16rem;">
+            { !hideInstructionsText ? <p class="info-box my-1 with-icon" style="padding: .8rem .6rem; border-left: 2px solid rgb(139 146 169); background-color: rgba(139, 146, 169, 0.07);"><span><Icon iconId="info-circle" className="size-xs color-dimmed"/></span>{ __('Here you can define the elements displayed in the page listing and their order.') }</p> : null }
             <CrudList
                 items={ rendererSettings.parts }
                 itemTitleKey="kind"
                 getTitle={ item => this.partKindsTranslated[item.kind] || item.kind }
-                onListMutated={ (newParsedItems, _prop) => {
-                    this.props.parent.handleFilterPropMaybeChanged('rendererSettings', {target: {value: {parts: newParsedItems}}});
+                onCreateCtxMenuCtrl={ this.createCtxMenuCtrl.bind(this) }
+                onListMutated={
+                /**
+                 * @param {Array<RendererPart>} newParsedItems
+                 * @param {keyof RendererPart} _prop
+                 * @param {keyof HeadingPartData | keyof ImagePartData | keyof LinkPartData} prop2
+                 */
+                (newParsedItems, _prop, prop2) => {
+                    if (prop2 === 'text' || prop2 === 'fallbackImageSrc')
+                        this.emitPropChangeThrottled(newParsedItems);
+                    else
+                        this.emitPropChange(newParsedItems);
                 } }
                 renderAddItemButton={ () => <span class="btn btn-dropdown p-relative d-inline-flex btn-primary btn-sm mt-1">
-                    <label htmlFor="addPartDropdown">{ __('Add part') }</label>
+                    <label htmlFor="addPartDropdown">{ __('Add %s', __('part')) }</label>
                     <select onChange={ e => this.crudListRef.current.addNewItem(e.target.value) } value="" id="addPartDropdown">
-                        <option disabled selected value>{ __('Select part') }</option>
+                        <option disabled selected value>{ __('Select %s', __('part')) }</option>
                         { Object.keys(this.partKindsTranslated).map(kind =>
                             <option value={ kind }>{ this.partKindsTranslated[kind] }</option>
                         ) }
@@ -491,10 +511,32 @@ class ConfigureRendererPopup extends preact.Component {
                 createNewItem={ kind => ({kind, data: RendererPartEditForm.createPartData(kind)}) }
                 editForm={ RendererPartEditForm }
                 editFormProps={ {partKindsTranslated: this.partKindsTranslated} }
-                itemTypeFriendlyName={ __('part') }
                 contextMenuPos="left"
                 ref={ this.crudListRef }/>
         </div>;
+    }
+    /**
+     * @param {ContextMenuController} ctrl
+     * @returns {ContextMenuController}
+     * @access private
+     */
+    createCtxMenuCtrl(ctrl) {
+        const origOnClicked = ctrl.onItemClicked;
+        return {
+            ...ctrl,
+            onItemClicked: link => {
+                if (link.id === 'edit-option')
+                    this.setState({hideInstructionsText: true});
+                origOnClicked.call(ctrl, link);
+            },
+        };
+    }
+    /**
+     * @param {Array<RendererPart>} newParsedItems
+     * @access private
+     */
+    emitPropChange(newParsedItems) {
+        this.props.parent.handleFilterPropMaybeChanged('rendererSettings', {target: {value: {parts: newParsedItems}}});
     }
 }
 
@@ -510,7 +552,7 @@ function createAdjustedHowManyType(howManyType, howManyAmount) {
 /**
  * @typedef {'all'|'single'|'atMost'} howManyType
  *
- * @typedef {{parts: Array<{kind: string; data: RendererPartData|null}>;}} RendererSettings
+ * @typedef {{parts: Array<RendererPart>;}} RendererSettings
  */
 
 export default ListingBlockEditForm;

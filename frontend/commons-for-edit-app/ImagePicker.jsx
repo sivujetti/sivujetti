@@ -94,7 +94,7 @@ class ImagePicker extends preact.Component {
             selectedImagePath: this.props.src,
             onSelected: file => {
                 this.props.onSrcCommitted(...(file
-                    ? [file.fileName, file.mime, true]
+                    ? [file.fileName, file.mime, false]
                     : [null,          null,      false]
                 ));
                 this.closePickerDialog();

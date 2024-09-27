@@ -9,12 +9,14 @@ import {
     reHookValues,
     unhookForm,
 } from '../../Form.jsx';
+import {Icon} from '../../Icon.jsx';
+import ImagePicker from '../../ImagePicker.jsx';
 /** @typedef {import('../../Form.jsx').InputDef} InputDef */
 
 class RendererPartEditForm extends preact.Component {
     // crudListRef;
     /**
-     * @param {{item: RendererPart; onValueChanged: (value: string, key: keyof RendererPart) => void; done: () => void;}} props
+     * @param {{item: RendererPart; onValueChanged: (value: string, key: keyof RendererPart, key2: keyof HeadingPartData | keyof ImagePartData | keyof LinkPartData) => void; done: () => void;}} props
      */
     componentWillMount() {
         this.crudListRef = preact.createRef();
@@ -24,6 +26,7 @@ class RendererPartEditForm extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
+        const maybeNext = this.createHookFormArgs(props.item.kind, props.item.data);
         if (JSON.stringify(this.state.data) !== JSON.stringify(maybeNext[1].data))
             this.setState(reHookValues(this, ...maybeNext));
     }
@@ -69,22 +72,43 @@ class RendererPartEditForm extends preact.Component {
         if (kind === 'image')
             return [
                 <FormGroupInline className="my-1">
-                    <label class="form-label">{ __('Primary source') }</label>
+                    <label class="form-label">
+                        { __('Primary source') }
+                        <span
+                            class="tooltip tooltip-right tooltip-auto-width p-absolute mt-1 ml-1"
+                            data-tooltip={ __('Choose where to retrieve the image from:\n\n%s: Use the first image found in the page content.\n%s: Use the %s defined in the page\'s metadata.', __('Page content'), __('PageInfo'), __('Social image').toLowerCase()) }>
+                            <Icon iconId="info-circle" className="color-dimmed3 size-xs"/>
+                        </span>
+                    </label>
+                    <div class="pl-2">
                     <select
                         onChange={ e => this.emitPartDataChange(e.target.value, 'primarySource') }
                         value={ this.state.primarySource }
                         class="form-select"
                         name="varType">
-                        { [{kind: 'content'}, {kind: 'meta'}].map(src =>
-                            <option value={ src.kind }>{ src.kind }</option>
-                        ) }
+                        <option value="content">{ __('Page content') }</option>
+                        <option value="meta">{ `${__('PageInfo')} (${__('Social image').toLowerCase()})` }</option>
                     </select>
+                    </div>
                 </FormGroupInline>,
-                <FormGroupInline className="my-1">
+                <div>
                     <label htmlFor="fallbackImageSrc" class="form-label">{ __('Fallback') }</label>
-                    <Input vm={ this } prop="fallbackImageSrc" id="fallbackImageSrc"/>
-                    <InputErrors vm={ this } prop="fallbackImageSrc"/>
-                </FormGroupInline>
+                    <ImagePicker
+                        src={ this.state.fallbackImageSrc }
+                        onSrcCommitted={
+                        /**
+                        * @param {String|null} src
+                        * @param {String|null} _mime
+                        * @param {Boolean} srcWasTyped
+                        */
+                        (src, _mime, srcWasTyped) => {
+                            if (!srcWasTyped)
+                                this.props.onValueChanged({...this.state.data, fallbackImageSrc: src}, 'data', 'ignore-this');
+                            else
+                                this.emitPartDataChange(src || '', 'fallbackImageSrc');
+                        } }
+                        inputId="fallbackImageSrc"/>
+                </div>
             ];
         if (kind === 'link')
             return <FormGroupInline className="my-1">
@@ -100,7 +124,7 @@ class RendererPartEditForm extends preact.Component {
      * @access private
      */
     emitPartDataChange(val, prop) {
-        this.props.onValueChanged({...this.state.data, [prop]: val}, 'data');
+        this.props.onValueChanged({...this.state.data, [prop]: val}, 'data', prop);
     }
     /**
      * @param {string} kind
@@ -125,19 +149,15 @@ class RendererPartEditForm extends preact.Component {
         if (kind === 'heading') {
             return [null, {headingLevel: `h${data.level}`}];
         } else if (kind === 'image') {
-            return [[{name: 'fallbackImageSrc', value: data.fallbackImageSrc, validations: [],
-                label: __('Fallback'),
-                onAfterValueChanged: (value, hasErrors, _source) => {
-                    if (!hasErrors) this.props.onValueChanged({...this.state.data, fallbackImageSrc: value}, 'data'); // throttle ?
-                }
-            }], {
+            return [null, {
                 primarySource: data.primarySource,
+                fallbackImageSrc: data.fallbackImageSrc,
             }];
         } else if (kind === 'link') {
             return [[{name: 'text', value: data.text, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
                 label: __('Text'),
                 onAfterValueChanged: (value, hasErrors, _source) => {
-                    if (!hasErrors) this.props.onValueChanged({...this.state.data, text: value}, 'data'); // throttle ?
+                    if (!hasErrors) this.emitPartDataChange(value, 'text');
                 }
             }], {
                 primarySource: data.primarySource,

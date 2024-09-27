@@ -12,7 +12,7 @@ class CrudList extends preact.Component {
     // sortable; // public
     // itemWithNavOpened; // public
     /**
-     * @param {{items: Array<T>; onListMutated: (newList: Array<T>, prop: string = null) => void; createNewItem: (...varArgs: any) => T; editForm: preact.AnyComponent; editFormProps?: {[key: string]: any;}; itemTypeFriendlyName: string; itemTitleKey?: string; getTitle?: (item: T) => preact.ComponentChild; contextMenuPos?: string; contextMenuZIndex?: number; onCreateCtxMenuCtrl?: (ctrl: ContextMenuController) => ContextMenuController; renderAddItemButton?: () => preact.ComponentChild;}} props
+     * @param {{items: Array<T>; onListMutated: (newList: Array<T>, prop: string = null, subProp: string = null) => void; createNewItem: (...varArgs: any) => T; editForm: preact.AnyComponent; editFormProps?: {[key: string]: any;}; itemTypeFriendlyName?: string; itemTitleKey?: string; getTitle?: (item: T) => preact.ComponentChild; contextMenuPos?: string; contextMenuZIndex?: number; onCreateCtxMenuCtrl?: (ctrl: ContextMenuController) => ContextMenuController; renderAddItemButton?: () => preact.ComponentChild;}} props
      */
     constructor(props) {
         super(props);
@@ -81,12 +81,12 @@ class CrudList extends preact.Component {
             return <Impl
                 { ...(editFormProps || {}) }
                 item={ this.state.editItem }
-                onValueChanged={ (value, key) => {
+                onValueChanged={ (value, key, subKey = null) => {
                     // eslint-disable-next-line react/no-direct-mutation-state
                     this.state.editItem[key] = value;
                     this.setState({items: this.state.items,
                                     editItem: this.state.editItem});
-                    this.emitListMutated(this.state.items, key);
+                    this.emitListMutated(this.state.items, key, subKey);
                 } }
                 done={ () => this.setState({tab: 'default', editItem: null}) }
                 ref={ this.editFormRef }/>;
@@ -129,10 +129,11 @@ class CrudList extends preact.Component {
     /**
      * @param {Array<T && {key: string;}>} items
      * @param {string} prop = null
+     * @param {string} subProp = null
      * @access private
      */
-    emitListMutated(items, prop = null) {
-        this.props.onListMutated(removeKeys(items), prop);
+    emitListMutated(items, prop = null, subProp = null) {
+        this.props.onListMutated(removeKeys(items), prop, subProp);
     }
     /**
      * @access private

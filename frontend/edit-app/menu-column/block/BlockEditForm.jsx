@@ -73,7 +73,8 @@ class BlockEditForm extends preact.Component {
                     : null;
                 if (!block || this.state.blockCopyForEditForm.id !== block.id) return;
                 if (JSON.stringify(this.state.blockCopyForEditForm.propsData) !== JSON.stringify(block.propsData) ||
-                    this.state.blockCopyForEditForm.styleClasses !== block.styleClasses) {
+                    this.state.blockCopyForEditForm.styleClasses !== block.styleClasses ||
+                    this.state.blockCopyForEditForm.renderer !== block.renderer) {
                     this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, theTree);
                     this.setState({
                         blockCopyForEditForm: objectUtils.cloneDeep(block),

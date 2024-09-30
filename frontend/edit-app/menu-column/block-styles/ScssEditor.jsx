@@ -16,7 +16,7 @@ class ScssEditor extends preact.Component {
         this.isEditorReady = false;
     }
     /**
-     * @param {{scss: String; onCommitInput: (scss: String) => void; editorId: String; collapseOuterCode?: Boolean;}} props
+     * @param {{scss: string; onCommitInput: (scss: string) => void; editorId: string; collapseOuterCode?: boolean;}} props
      * @access protected
      */
     componentWillReceiveProps(props) {
@@ -82,7 +82,7 @@ class ScssEditor extends preact.Component {
         this.editor.api.foldAllExcept(this.editor.view, (_line, _range) => true);
     }
     /**
-     * @param {String} code
+     * @param {string} code
      * @access private
      */
     overwriteEditorCode(code) {

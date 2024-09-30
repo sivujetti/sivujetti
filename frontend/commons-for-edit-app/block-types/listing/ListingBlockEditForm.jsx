@@ -71,14 +71,12 @@ class ListingBlockEditForm extends preact.Component {
         if (current === incoming)
             return;
 
-        let [state, PopupClsToRefresh] = this.createState(props);
+        const [state, PopupClsToRefresh] = this.createState(props);
 
         if (state)
             this.setState(state);
 
-        if (state && !PopupClsToRefresh)
-            PopupClsToRefresh = api.mainPopper.getCurrentRendererCls();
-        if (PopupClsToRefresh)
+        if (PopupClsToRefresh === api.mainPopper.getCurrentRendererCls())
             api.mainPopper.refresh(this.createCurrentPopupProps(PopupClsToRefresh, props, state));
     }
     /**
@@ -211,6 +209,7 @@ class ListingBlockEditForm extends preact.Component {
         if (this.state.filterPageType !== block.filterPageType) {
             this.setSelectedPageTypeBundle(block.filterPageType);
             state = {filterPageType: block.filterPageType};
+            PopupClsToRefresh = DefinePageTypePopup;
         } else if (this.state.howManyType !== block.filterLimitType ||
                 this.state.howManyAmount !== block.filterLimit) {
             state = {
@@ -219,8 +218,10 @@ class ListingBlockEditForm extends preact.Component {
                 howManyAmountNotCommitted: block.filterLimitType !== 'atMost' ? null : block.filterLimit,
                 howManyAmountError: ''
             };
+            PopupClsToRefresh = DefineLimitPopup;
         } else if (this.state.order !== block.filterOrder) {
             state = {order: block.filterOrder};
+            PopupClsToRefresh = DefineOrderPopup;
         } else if (JSON.stringify(this.state.rendererSettings) !== JSON.stringify(block.rendererSettings) &&
                     api.mainPopper.getCurrentRendererCls() === ConfigureRendererPopup) {
             PopupClsToRefresh = ConfigureRendererPopup;
@@ -230,9 +231,11 @@ class ListingBlockEditForm extends preact.Component {
         if (this.state.additionalFiltersJson !== filtersJson) {
             state = {...(state || {}), additionalFiltersJson: filtersJson,
                 filtersParsed: buildWorkableFilters(block.filterAdditional)};
+            PopupClsToRefresh = AddFilterPopup;
         }
         if (this.state.renderWith !== block.renderer) {
             state = {...(state || {}), renderWith: block.renderer};
+            PopupClsToRefresh = ChooseRendererPopup;
         }
 
         return [state, PopupClsToRefresh];

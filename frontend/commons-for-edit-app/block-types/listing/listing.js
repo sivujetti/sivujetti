@@ -26,7 +26,10 @@ export default {
             filterLimitType: 'all',
             filterOrder: 'desc',
             filterAdditional: {},
-            rendererSettings: null,
+            rendererSettings: {parts: [
+                {kind: 'heading', data: {level: 2}},
+                {kind: 'link', data: {text: 'Read more'}},
+            ]},
         };
     },
     defaultRenderer: 'sivujetti:block-listing-pages-default',

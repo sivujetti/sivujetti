@@ -50,7 +50,7 @@ function createCssDeclExtractor(scss) {
  * @param {Array<StyleChunk>} styles
  * @param {string} cachedCompiledCss
  * @param {string} pageIdPair
- * @returns {string} '@import "maybeExternalImport";@font-face {<maybeLocalImport>}@layer base-styles {\n<compiled>\n}\n@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
+ * @returns {string}
  */
 function stylesToBaked(styles, cachedCompiledCss, pageIdPair) {
     if (!styles.length) return '';

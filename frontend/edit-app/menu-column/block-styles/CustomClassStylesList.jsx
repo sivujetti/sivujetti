@@ -115,10 +115,6 @@ class CustomClassStylesList extends preact.Component {
                 onClick={ this.addStyle.bind(this) }
                 class="btn btn-primary btn-sm mr-1"
                 type="button">{ __('Add style') }</button>,
-            <button
-                onClick={ () => 'TODO' }
-                class="btn btn-sm"
-                type="button">{ __('Show parent styles') }</button>,
         ];
     }
     /**

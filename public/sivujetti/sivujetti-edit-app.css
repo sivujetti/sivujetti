@@ -2016,13 +2016,6 @@ ul.table-list > li:last-child {
     position: absolute;
     max-width: 100%;
 }
-.mini-toggle {
-    margin: -.1rem 0 0 -.4rem;
-}
-.mini-toggle .form-switch {
-    transform: scale(.85);
-}
-.mini-toggle > .tooltip .icon-tabler {
-    width: .8rem;
-    height: .8rem;
+.form-switch-tiny .form-icon {
+    transform: scale(.7);
 }

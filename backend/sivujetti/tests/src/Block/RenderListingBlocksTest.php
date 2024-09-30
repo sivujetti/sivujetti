@@ -247,12 +247,4 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithBothFilters);
         $this->renderAndVerify($state, 0, $expectedHtml);
     }
-
-
-    ////////////////////////////////////////////////////////////////////////////
-
-
-    public function testListingBlockDoesNotIncludePageDraftsIfUserIsNotLoggedIn(): void {
-        $this->assertEquals("", "todo");
-    }
 }

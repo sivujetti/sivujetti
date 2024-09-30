@@ -64,7 +64,8 @@ class BlockEditForm extends preact.Component {
             //
             const isIt = isUndoOrRedo(ctx);
             const doCheckDiffForEditForm = (
-                (event === 'update-single-block-prop' && userCtx?.blockId === this.state.blockCopyForEditForm?.id) ||
+                ((event === 'update-single-block-prop' || event === 'update-many-blocks-prop') &&
+                    userCtx?.blockId === this.state.blockCopyForEditForm?.id) ||
                 isIt
             );
             if (doCheckDiffForEditForm) {

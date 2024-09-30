@@ -78,7 +78,7 @@ class EditItemPanel extends preact.Component {
                         { __('Add submenu') }
                     </button></div>
                     : <div class="form-horizontal text-tinyish styles-list pt-0">
-                        <label class="form-switch d-inline-flex mt-0" style="opacity: .8;">
+                        <label class="form-switch form-switch-tiny d-inline-flex mt-0" style="padding-left: 1.7rem; opacity: .8;">
                             <input type="checkbox" checked={ !!item.includeToggleButton } onClick={ () => {
                                 menuForm.updateSubLinkAndEmitChanges(
                                     this.props.item.id,

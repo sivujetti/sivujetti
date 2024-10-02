@@ -66,7 +66,6 @@ class BootModule {
      */
     public function beforeExecCtrl(Injector $di): void {
         $this->loadEssentialsIfNotLoaded($di);
-        $this->di = $di;
     }
     /**
      * @param \Pike\Request $req
@@ -128,6 +127,7 @@ class BootModule {
     private function loadEssentialsIfNotLoaded(Injector $di) {
         if ($this->essentialsLoaded) return;
         $this->doLoadEssentials($di);
+        $this->di = $di;
         //
         $di->alias(FileSystemInterface::class, FileSystem::class);
         $di->alias(SessionInterface::class, NativeSession::class);
@@ -229,7 +229,7 @@ class BootModule {
                                               : ("Site.php (\"{$Ctor}\") must implement " . UserSiteInterface::class),
                                     PikeException::BAD_INPUT);
         if ($isPlugin)
-            return new $Ctor(new UserPluginAPI($plugin->name, $apiCtx, $router));
+            return new $Ctor(new UserPluginAPI($plugin->name, $apiCtx, $router, $this->di));
         return new $Ctor(new UserSiteAPI("site", $apiCtx));
     }
 }

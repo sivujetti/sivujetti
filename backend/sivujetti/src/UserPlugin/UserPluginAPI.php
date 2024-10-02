@@ -2,9 +2,10 @@
 
 namespace Sivujetti\UserPlugin;
 
-use Pike\{PikeException, Router};
+use Pike\{Injector, PikeException, Router};
 use Sivujetti\BlockType\{BlockTypeInterface, JsxLikeRenderingBlockTypeInterface};
 use Sivujetti\SharedAPIContext;
+use Sivujetti\StoredObjects\StoredObjectsRepository;
 use Sivujetti\UserSite\UserSiteAPI;
 
 /**
@@ -13,6 +14,8 @@ use Sivujetti\UserSite\UserSiteAPI;
 final class UserPluginAPI extends UserSiteAPI {
     /** @var \Pike\Router */
     private Router $router;
+    /** @var \Pike\Injector */
+    private Injector $di;
     /** @var string e.g. "SitePlugins\TomsCoolPlugin\" */
     private string $classNamespace;
     /** @var ?string e.g. "toms-cool-plugin" */
@@ -21,12 +24,15 @@ final class UserPluginAPI extends UserSiteAPI {
      * @param string $namespace
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Pike\Router $router
+     * @param \Pike\Injector $di
      */
     public function __construct(string $namespace,
                                 SharedAPIContext $apiCtx,
-                                Router $router) {
+                                Router $router,
+                                Injector $di) {
         parent::__construct($namespace, $apiCtx);
         $this->router = $router;
+        $this->di = $di;
         $this->classNamespace = "SitePlugins\\{$namespace}\\";
         $this->dashifiedNamespace = null;
     }
@@ -122,6 +128,20 @@ final class UserPluginAPI extends UserSiteAPI {
      */
     public function getCurrentLang(): string {
         return SIVUJETTI_UI_LANG;
+    }
+    /**
+     * @param string $name
+     * @param array $args = []
+     * @throws PikeException
+     * @psalm-template Cls
+     * @return object
+     * @psalm-return Cls
+     */
+    public function createService(string $name, array $args = []) {
+        if ($name === StoredObjectsRepository::class)
+            return $this->di->make($name, $args);
+        throw new PikeException("Unkown service `{$name}`",
+                                PikeException::BAD_INPUT);
     }
     /**
      * @inheritdoc

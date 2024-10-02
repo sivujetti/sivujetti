@@ -42,16 +42,16 @@
                     echo $page->meta->description; /* allow unescaped */
                 elseif ($part->data->primarySource === "content" &&
                         ($_text = \Sivujetti\Block\BlockTree::findBlock($page->blocks, fn($b) => $b->type === "Text" && str_contains($b->html, "</p>"))) &&
-                        ($_paras = (function (string $html): array {
+                        ($_firstPara = (function ($html) {
                             $dom = new DOMDocument(encoding: "UTF-8");
                             $dom->loadHTML($html);
-                            return array_map(fn($p) => array_reduce([...$p->childNodes->getIterator()],
+                            $p = $dom->getElementsByTagName("p")->item(0) ?? null;
+                            return $p ? array_reduce(iterator_to_array($p->childNodes),
                                 fn($html, $c) => "{$html}<p>{$p->ownerDocument->saveHTML($c)}</p>",
                                 ""
-                            ), [...$dom->getElementsByTagName("p")->getIterator()]);
+                            ) : "";
                         })($_text->html))):
-                    foreach ($_paras as $_p)
-                        echo $_p; /* allow unescaped */
+                    echo $_firstPara; /* allow unescaped */
                 else:
                     echo "<!-- no description found -->";
                 endif; ?>

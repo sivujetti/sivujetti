@@ -1108,10 +1108,10 @@ a.popup-close-area {
 }
 
 .instructions-list .group-p {
-    background-color: hsla(var(--components-color-purple), .14);
+    background-color: hsla(var(--components-color-purple), .09);
 }
 .instructions-list .group-p.group-p-odd {
-    filter: hue-rotate(32deg);
+    background-color: hsla(var(--components-color-purple), .16);
 }
 .instructions-list .perhaps {
     background-color: hsla(var(--components-color-purple), .1);

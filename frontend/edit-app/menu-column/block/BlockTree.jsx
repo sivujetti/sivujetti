@@ -56,7 +56,9 @@ class BlockTree extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.unregistrables = [];
+        this.unregistrables = [events.on('route-changed', (_, isRightColumView) => {
+            this.rightColumnViewIsCurrenlyOpen = isRightColumView;
+        })];
         this.dragDrop = new TreeDragDrop(createDndController(api.saveButton.getInstance()));
         this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
         this.onDrag = this.dragDrop.handleDrag.bind(this.dragDrop);

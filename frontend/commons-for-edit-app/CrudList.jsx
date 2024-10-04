@@ -67,7 +67,7 @@ class CrudList extends preact.Component {
                 </li>) : <li>-</li> }
             </ul>,
             renderAddItemButton ? renderAddItemButton() : <button
-                onClick={ this.addNewItem.bind(this) }
+                onClick={ () => this.addNewItem() }
                 title={ __('Add %s', itemTypeFriendlyName) }
                 class="btn btn-sm text-tiny with-icon-inline color-dimmed mt-1"
                 type="button">

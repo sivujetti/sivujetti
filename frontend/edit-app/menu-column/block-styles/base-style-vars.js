@@ -82,17 +82,6 @@ export default [
             inputId: 'baseStyleLinkColor',
         },
     },
-//   --jet-headings-color: #222;
-    {
-        varName: 'baseStyleHeadingsColor',
-        cssProp: '--jet-headings-color',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'color',
-            label: 'Headings',
-            inputId: 'baseStyleHeadingsColor',
-        },
-    },
 //   --spectre-link-color-dark: #226892; /* darken(--spectre-link-color, 10%) */
     {
         varName: 'baseStyleLinkColorDark',
@@ -113,6 +102,17 @@ export default [
             valueType: 'color',
             label: 'Links visited',
             inputId: 'baseStyleLinkColorLight',
+        },
+    },
+//   --jet-headings-color: #222;
+    {
+        varName: 'baseStyleHeadingsColor',
+        cssProp: '--jet-headings-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Headings',
+            inputId: 'baseStyleHeadingsColor',
         },
     },
 //   --spectre-base-font-family: "Domine", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto; 
@@ -317,6 +317,72 @@ export default [
             inputId: 'baseStyleButtonsBorderColorHover',
         },
     },
+//   --jet-buttons-bg-color-primary-normal
+    {
+        varName: 'baseStyleButtonsBgColorPrimaryNormal',
+        cssProp: '--jet-buttons-bg-color-primary-normal',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons dark background',
+            inputId: 'baseStyleButtonsBgColorPrimaryNormal',
+        },
+    },
+//   --jet-buttons-bg-color-primary-hover
+    {
+        varName: 'baseStyleButtonsBgColorPrimaryHover',
+        cssProp: '--jet-buttons-bg-color-primary-hover',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons dark background hover',
+            inputId: 'baseStyleButtonsBgColorPrimaryHover',
+        },
+    },
+//   --jet-buttons-color-primary-normal
+    {
+        varName: 'baseStyleButtonsColorPrimaryNormal',
+        cssProp: '--jet-buttons-color-primary-normal',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons dark text',
+            inputId: 'baseStyleButtonsColorPrimaryNormal',
+        },
+    },
+//   --jet-buttons-color-primary-hover
+    {
+        varName: 'baseStyleButtonsColorPrimaryHover',
+        cssProp: '--jet-buttons-color-primary-hover',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons dark text hover',
+            inputId: 'baseStyleButtonsColorPrimaryHover',
+        },
+    },
+//   --jet-buttons-border-color-primary-normal
+    {
+        varName: 'baseStyleButtonsBorderColorPrimaryNormal',
+        cssProp: '--jet-buttons-border-color-primary-normal',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons dark border',
+            inputId: 'baseStyleButtonsBorderColorPrimaryNormal',
+        },
+    },
+//   --jet-buttons-border-color-primary-hover
+    {
+        varName: 'baseStyleButtonsBorderColorPrimaryHover',
+        cssProp: '--jet-buttons-border-color-primary-hover',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons dark border hover',
+            inputId: 'baseStyleButtonsBorderColorPrimaryHover',
+        },
+    },
 //   --jet-buttons-font-size: .85rem;
     {
         varName: 'baseStyleButtonsFontSize',
@@ -350,6 +416,30 @@ export default [
             label: 'Buttons border width',
             inputId: 'baseStyleButtonsBorderWidth',
             defaultThemeValue: '1px',
+        },
+    },
+//   --jet-buttons-padding-y: 0.25rem;
+    {
+        varName: 'baseStyleButtonsPaddingY',
+        cssProp: '--jet-buttons-padding-y',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Buttons padding ↕',
+            inputId: 'baseStyleButtonsPaddingY',
+            defaultThemeValue: '0.25rem',
+        },
+    },
+//   --jet-buttons-padding-x: 0.4rem;
+    {
+        varName: 'baseStyleButtonsPaddingX',
+        cssProp: '--jet-buttons-padding-x',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Buttons padding ↔',
+            inputId: 'baseStyleButtonsPaddingX',
+            defaultThemeValue: '0.4rem',
         },
     },
 //   /* Defaults #2 */
@@ -627,8 +717,13 @@ const essentialVarNames = [
     'baseStyleButtonsBgColorNormal',
     'baseStyleButtonsColorNormal',
     'baseStyleButtonsBorderColorNormal',
+    'baseStyleButtonsBgColorPrimaryNormal',
+    'baseStyleButtonsColorPrimaryNormal',
+    'baseStyleButtonsBorderColorPrimaryNormal',
     'baseStyleButtonsFontSize',
     'baseStyleButtonsBorderRadius',
+    'baseStyleButtonsPaddingY',
+    'baseStyleButtonsPaddingX',
 
     'baseStyleInputsTextColor',
     'baseStyleInputsBorderNormalColor',

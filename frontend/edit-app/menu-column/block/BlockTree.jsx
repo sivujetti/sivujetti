@@ -147,7 +147,7 @@ class BlockTree extends preact.Component {
         const type = api.blockTypes.get(block.type);
         const title = getShortFriendlyName(block, type);
         const c = !block.children.length ? [] : this.doRenderBranch(block.children, depth + 1, block, ref);
-        const rootRefBlockId = !(ref && i + depth === 1) ? null : ref.id;
+        const rootRefBlockId = ref && block === ref.__globalBlockTree.blocks[0] ? ref.id : null;
         const isStoredTo = !ref ? 'main' : 'globalBlockTree';
         return [<li
             onDragStart={ this.onDragStart }

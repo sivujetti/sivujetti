@@ -1,3 +1,5 @@
+import {env} from '@sivujetti-commons-for-web-pages';
+
 /** @type {Map<string, BlockTypeDefinition>} */
 const storage = new Map;
 
@@ -20,8 +22,23 @@ class BlockTypesRegister {
      */
     register(name, blockTypeFactory) {
         const baked = blockTypeFactory();
-        if (baked.ownPropNames)
-            baked.ownPropNames = baked.ownPropNames.filter(key => key !== 'children');
+        const errors = validateBlockType(baked);
+        if (errors.length) {
+            env.window.console.error('Block type ', baked, ' was invalid', errors);
+            storage.set(name, {
+                name: 'BrokenBlockType',
+                friendlyName: 'Broken block type',
+                icon: 'question-mark',
+                editForm: class extends preact.Component {
+                    render () { return <div>Broken block type</div>; }
+                },
+                stylesEditForm: 'default',
+                createOwnProps(/*defProps*/) {
+                    return {};
+                }
+            });
+            return;
+        }
         storage.set(name, baked);
     }
     /**
@@ -51,6 +68,22 @@ class BlockTypesRegister {
     entries() {
         return storage.entries();
     }
+}
+
+/**
+ * @returns {Array<string>}
+ */
+function validateBlockType(candidate) {
+    if (!candidate || typeof candidate !== 'object')
+        return ['blockType must be an object'];
+    const out = [];
+    if (typeof candidate.editForm !== 'function')
+        out.push('blockType.editForm must be (MyEditForm extends preact.Component { ... } || function MyEditForm() { ... })');
+    if (candidate.stylesEditForm && (candidate.stylesEditForm !== 'default' && !(candidate.stylesEditForm instanceof preact.Component)))
+        out.push('blockType.stylesEditForm must be (instanceof preact.Component || \'default\')');
+    if (candidate.icon && typeof candidate.icon !== 'string')
+        out.push('blockType.icon must be string');
+    return out;
 }
 
 export default BlockTypesRegister;

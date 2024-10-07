@@ -1,3 +1,4 @@
+import {api} from '../edit-app-singletons.js';
 import {objectUtils} from '../utils.js';
 
 const blockTreeUtils = {
@@ -25,7 +26,7 @@ const blockTreeUtils = {
      * @access public
      */
     getIsStoredToTreeId(blockId, theBlockTree) {
-        const [b, _, __, root] = this.findBlockMultiTree(blockId, theBlockTree);
+        const [b, _branch, _parent, root] = this.findBlockMultiTree(blockId, theBlockTree);
         if (!b) return null;
         return this.getIdFor(root);
     },
@@ -47,9 +48,10 @@ const blockTreeUtils = {
                     if (sub[0]) return sub;
                 }
             } else {
-                const c = b.__globalBlockTree.blocks;
+                const gbt = this.getTree(b.globalBlockTreeId);
+                const c = gbt.blocks;
                 if (c.length) {
-                    const sub = this.findBlockMultiTree(id, c, b, b.__globalBlockTree);
+                    const sub = this.findBlockMultiTree(id, c, b, gbt);
                     if (sub[0]) return sub;
                 }
             }
@@ -131,6 +133,15 @@ const blockTreeUtils = {
         });
     },
     /**
+     * @param {string} trid
+     * @returns {Array<Block>|GlobalBlockTree}
+     */
+    getTree(trid) {
+        return trid === 'main'
+            ? api.saveButton.getInstance().getChannelState('theBlockTree')
+            : api.saveButton.getInstance().getChannelState('globalBlockTrees').find((({id}) => id === trid));
+    },
+    /**
      * @param {string} trid 'main' or 'id-of-some-global-block-tree'
      * @param {Array<Block>} from
      * @returns {Array<Block>|null}
@@ -139,9 +150,9 @@ const blockTreeUtils = {
         if (trid === 'main')
             return from;
         const refBlock = this.findRecursively(from, block =>
-            block.type === 'GlobalBlockReference' && block.__globalBlockTree.id === trid
+            block.type === 'GlobalBlockReference' && block.globalBlockTreeId === trid
         );
-        return refBlock ? refBlock.__globalBlockTree.blocks : null;
+        return refBlock ? this.getTree(refBlock.globalBlockTreeId).blocks : null;
     },
     /**
      * @param {Array<Block>} theTree

@@ -35,14 +35,15 @@ function createTreeState(tree, previousTreeState) {
                 setAsHidden(false, parenBlock, out, false);
         }
     };
-    traverseRecursively(tree, (block, _i, paren) => {
-        if (block.type !== 'GlobalBlockReference')
-            addItem(block, paren);
-        else
-            traverseRecursively(block.__globalBlockTree.blocks, (block2, _i2, paren2) => {
-                addItem(block2, paren2);
-            });
-    });
+    const traverse = branch => {
+        traverseRecursively(branch, (block, _i, paren) => {
+            if (block.type !== 'GlobalBlockReference')
+                addItem(block, paren);
+            else
+                traverse(blockTreeUtils.getTree(block.globalBlockTreeId)?.blocks || []);
+        });
+    };
+    traverse(tree);
     if (autoCollapse === 'nonUniqueRootLevelItems')
         tree.forEach(block => {
             if (block.type === 'GlobalBlockReference') return;

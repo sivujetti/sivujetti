@@ -111,8 +111,7 @@ interface BlockBlueprint {
 }
 
 interface BlockStub {
-    id: string; // Example 'uowHqsCJ1Ji' (main tree blocks) or
-                //         'uowHFoKTteV__uowHMRffw9e' (global block tree blocks, blockId  + '__' + gbRefBlockId)
+    id: string; // Example 'uowHqsCJ1Ji'
     type: string; // 'Section', 'Button' etc.
     styleClasses: string; // Example 'j-Type-unit-3 j-Type-unit-12'
 }

@@ -7,8 +7,7 @@ import {
     objectUtils,
     traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
-import {treeToTransferable, unAppenfidyGbtRefBlockId} from '../includes/block/utils.js';
-import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../includes/global-block-trees/repository.js';
+import {treeToTransferable} from '../includes/block/utils.js';
 import toasters from '../includes/toasters.jsx';
 import {pathToFullSlug} from '../includes/utils.js';
 import globalData from '../includes/globalData.js';
@@ -68,9 +67,9 @@ function createBlockTreeChannelHandler() {
         handleStateChange(state, userCtx, _context) {
             if (userCtx?.event === 'update-single-block-prop') {
                 if (!userCtx?.isDefPropOnly)
-                    api.webPagePreview.reRenderBlock(blockTreeUtils.findBlockMultiTree(userCtx.blockId, state)[0], state);
+                    api.webPagePreview.reRenderBlock(state, api.saveButton.getInstance().getChannelState('globalBlockTrees'), null);
             } else
-                api.webPagePreview.reRenderAllBlocks(state);
+                api.webPagePreview.reRenderAllBlocks(state, api.saveButton.getInstance().getChannelState('globalBlockTrees'));
         },
         /**
          * @param {StateHistory} stateHistory
@@ -123,8 +122,12 @@ function createGlobalBlockTreesChannelHandler() {
          * @param {StateChangeUserContext|null} _userCtx
          * @param {stateChangeContext} _context
          */
-        handleStateChange(_state, _userCtx, _context) {
-            // Do nothing
+        handleStateChange(state, userCtx, _context) {
+            if (userCtx?.event === 'update-single-block-prop') {
+                if (!userCtx?.isDefPropOnly)
+                    api.webPagePreview.reRenderBlock(api.saveButton.getInstance().getChannelState('theBlockTree'), state, null);
+            } else
+                api.webPagePreview.reRenderAllBlocks(api.saveButton.getInstance().getChannelState('theBlockTree'), state);
         },
         /**
          * @param {StateHistory} stateHistory
@@ -206,18 +209,6 @@ function createGbtState(stateArr, refBlocksThatMayHaveChanges) {
     return stateArr.map((gbt, i) => {
         const pInfo = patchInfo[i];
         return pInfo.status === 'no-changes' ? gbt : {...gbt, ...{blocks: pInfo.newBlocks}};
-    });
-}
-
-/**
- * @param {Array<Block>} blocks
- * @returns {Array<Block>}
- */
-function normalizeGbtRefBlockBlocks(blocks) {
-    return blockTreeUtils.createMutation(blocks, copyOfBlocks => {
-        traverseRecursively(copyOfBlocks, b => {
-            b.id = unAppenfidyGbtRefBlockId(b.id);
-        });
     });
 }
 

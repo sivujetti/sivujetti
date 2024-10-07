@@ -32,14 +32,13 @@ class RenderAll extends preact.Component {
         this.hookUpEventHandlers();
     }
     /**
-     * @param {Array<Block>} newBlocks
+     * @param {Array<Block>} newBlocks With nested __globalBlockTree's
      * @access public
      */
     exchangeBlocks(newBlocks) {
         const noMetas = newBlocks.filter(b => b.type !== 'PageInfo');
-        const cloned = cloneDeep(noMetas);
-        traverseRecursively(cloned, stringHtmlPropToVNodeArray);
-        this.setState({blocks: cloned});
+        traverseRecursively(noMetas, stringHtmlPropToVNodeArray);
+        this.setState({blocks: noMetas});
     }
     /**
      * @param {Block} block

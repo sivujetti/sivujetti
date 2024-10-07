@@ -67,8 +67,8 @@ final class PagesController {
                 : "We're down for maintenance. Be right back.");
             return;
         }
-        self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, $appEnv, $db2, null);
+        self::sendPageResponse($req, $res, $apiCtx, $theWebsite, $page, $pageType,
+                               $appEnv, $db2, null);
     }
     /**
      * GET /jet-login: Renders the login page.
@@ -210,8 +210,8 @@ final class PagesController {
             ];
         if (!$page) throw new \RuntimeException("No such page exist", PikeException::BAD_INPUT);
         //
-        self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, $appEnv, $db2, $styles);
+        self::sendPageResponse($req, $res, $apiCtx, $theWebsite, $page, $pageType,
+                               $appEnv, $db2, $styles);
     }
     /**
      * POST /api/pages/[w:pageType]: Inserts a new page to the database.
@@ -253,7 +253,6 @@ final class PagesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
      * @param \Pike\Db\FluentDb2 $fluentDb
      * @param \Sivujetti\Page\PagesRepository $pagesRepoOld
      * @param \Sivujetti\Block\BlocksInputValidatorScanner $scanner
@@ -261,7 +260,6 @@ final class PagesController {
      */
     public function upsertPageQuick(Request $req,
                                     Response $res,
-                                    PagesRepository2 $pagesRepo,
                                     FluentDb2 $fluentDb,
                                     PagesRepository $pagesRepoOld,
                                     BlocksInputValidatorScanner $scanner,
@@ -272,7 +270,7 @@ final class PagesController {
         }
         //
         $pageType = $pagesRepoOld->getPageTypeOrThrow($req->params->pageType);
-        [$page, $styles] = self::createEmptyPageWithBlocksAndStyles($pageType, $layoutsRepo);
+        [$page, $_styles] = self::createEmptyPageWithBlocksAndStyles($pageType, $layoutsRepo);
         if ($errors) throw new \RuntimeException("Shouldn't never happen.");
         $data = (object) [
             "id" => $req->body->id,
@@ -422,7 +420,6 @@ final class PagesController {
     /**
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Page\Entities\Page $page
@@ -433,7 +430,6 @@ final class PagesController {
      */
     private static function sendPageResponse(Request $req,
                                              Response $res,
-                                             PagesRepository $pagesRepo,
                                              SharedAPIContext $apiCtx,
                                              TheWebsite $theWebsite,
                                              Page $page,
@@ -444,7 +440,7 @@ final class PagesController {
         $themeAPI = new UserThemeAPI("theme", $apiCtx, new Translator);
         $_ = new UserTheme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
         //
-        self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo, $appEnv->di);
+        self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $appEnv->di);
         $isPlaceholderPage = $placeholderPageStyles !== null;
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page, $editModeIsOn);
@@ -488,12 +484,10 @@ final class PagesController {
     /**
      * @param \Sivujetti\Block\Entities\Block[] $branch
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
-     * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Pike\Injector $di
      */
     public static function runBlockBeforeRenderEvent(array $branch,
                                                      BlockTypes $blockTypes,
-                                                     PagesRepository $pagesRepo,
                                                      Injector $di): void {
         foreach ($branch as $block) {
             $blockType = $blockTypes->{$block->type};
@@ -501,7 +495,7 @@ final class PagesController {
                 $blockType->onBeforeRender($block, $blockType, $di);
             $children = $block->type !== "GlobalBlockReference" ? $block->children : $block->__globalBlockTree?->blocks ?? [];
             if ($children)
-                self::runBlockBeforeRenderEvent($children, $blockTypes, $pagesRepo, $di);
+                self::runBlockBeforeRenderEvent($children, $blockTypes, $di);
         }
     }
     /**

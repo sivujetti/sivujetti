@@ -8,7 +8,7 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository2;
-use Sivujetti\Page\{PagesController, PagesRepository, WebPageAwareTemplate};
+use Sivujetti\Page\{PagesController, WebPageAwareTemplate};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class BlocksController {
@@ -21,7 +21,6 @@ final class BlocksController {
      * @param \Pike\Response $res
      * @param \Sivujetti\Block\BlockValidator $blockValidator
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-     * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\AppEnv $appEnv
      */
@@ -29,7 +28,6 @@ final class BlocksController {
                            Response $res,
                            BlockValidator $blockValidator,
                            TheWebsite $theWebsite,
-                           PagesRepository $pagesRepo,
                            SharedAPIContext $apiCtx,
                            AppEnv $appEnv): void {
         if (($errors = self::validateRenderBlockInput($req->body)) ||
@@ -41,8 +39,7 @@ final class BlocksController {
         //
         $block = Block::fromObject($req->body->block);
         //
-        PagesController::runBlockBeforeRenderEvent([$block], $apiCtx->blockTypes, $pagesRepo,
-                                                    $appEnv->di);
+        PagesController::runBlockBeforeRenderEvent([$block], $apiCtx->blockTypes, $appEnv->di);
         $html = (new WebPageAwareTemplate(
             $block->renderer,
             env: $appEnv->constants,

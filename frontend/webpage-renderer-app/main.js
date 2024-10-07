@@ -2,7 +2,7 @@
 An entry point for global file "public/sivujetti/sivujetti-webpage-renderer-app.js".
 Included by backend/sivujetti/src/Page/WebPageAwareTemplate.php jsFiles().
 */
-import {traverseRecursively} from '../shared-inline.js';
+import {cloneDeep} from '../shared-inline.js';
 import ReRenderingWebPage, {api} from './ReRenderingWebPage.jsx';
 
 /**
@@ -11,15 +11,16 @@ import ReRenderingWebPage, {api} from './ReRenderingWebPage.jsx';
  * @param {CurrentPageData} dataBundle
  */
 function mountWebPageRendererApp(dataBundle) {
-    appenfidyBlockBlockRefBlockIds(dataBundle.page.blocks);
-    printBlockWarnings(dataBundle.page.blocks);
+    // Make a copy here, because WebPagePreviewApp's broadcastCurrentPageData() mutates dataBundle.page.blocks
+    const withNested__globalBlockTrees = cloneDeep(dataBundle.page.blocks);
+    printBlockWarnings(withNested__globalBlockTrees);
 
     /** @type {preact.Ref<RenderAllOuter>} */
     const reRenderingWebPage = preact.createRef();
     const outerEl = document.body;
     preact.render(
         <ReRenderingWebPage
-            blocks={ dataBundle.page.blocks }
+            blocks={ withNested__globalBlockTrees }
             outerEl={ outerEl }
             ref={ reRenderingWebPage }/>,
         outerEl
@@ -61,8 +62,8 @@ function createMessageChannelController(reRenderingWebPage) {
             const newBlocks = e.data[1];
             reRenderingWebPage.current.exchangeBlocks(newBlocks);
         } else if (e.data[0] === 'reRenderBlock') {
-            const updatedBlock = e.data[1];
-            const newBlocks = e.data[2];
+            const newBlocks = e.data[1];
+            const updatedBlock = e.data[2];
             reRenderingWebPage.current.exchangeSingleBlock(updatedBlock, newBlocks);
         } else if (e.data[0] === 'handleMetaKeyPressedOrReleased') {
             const isDown = e.data[1];
@@ -78,19 +79,6 @@ function createMessageChannelController(reRenderingWebPage) {
 function getCssEl(attrPrefix = '') {
     const iframeDocument = document;
     return iframeDocument.head.querySelector(`style[data-scope="${attrPrefix}all"]`);
-}
-
-/**
- * @param {Array<Block>} blocksMut
- */
-function appenfidyBlockBlockRefBlockIds(blocksMut) {
-    traverseRecursively(blocksMut, b1Mut => {
-        if (b1Mut.type === 'GlobalBlockReference') {
-            traverseRecursively(b1Mut.__globalBlockTree.blocks, b2Mut => {
-                b2Mut.id += `__${b1Mut.id}`;
-            });
-        }
-    });
 }
 
 /**

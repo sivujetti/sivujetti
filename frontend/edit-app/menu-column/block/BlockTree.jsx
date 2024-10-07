@@ -34,7 +34,6 @@ import {
     withParentIdPathDo,
 } from './BlockTreeFuncs.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
-import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {createBlock, treeToTransferable} from '../../includes/block/utils.js';
 import AddContentPopup from './AddContentPopup.jsx';
 
@@ -139,7 +138,7 @@ class BlockTree extends preact.Component {
      */
     doRenderBranch(branch, depth = 1, paren = null, ref = null) { return branch.map((block, i) => {
         if (block.type === 'GlobalBlockReference')
-            return this.doRenderBranch(block.__globalBlockTree.blocks, depth, paren, block);
+            return this.doRenderBranch(blockTreeUtils.getTree(block.globalBlockTreeId)?.blocks || [], depth, paren, block);
         //
         const lastIxd = branch.length - 1;
         const {treeState} = this.state;
@@ -147,7 +146,7 @@ class BlockTree extends preact.Component {
         const type = api.blockTypes.get(block.type);
         const title = getShortFriendlyName(block, type);
         const c = !block.children.length ? [] : this.doRenderBranch(block.children, depth + 1, block, ref);
-        const rootRefBlockId = ref && block === ref.__globalBlockTree.blocks[0] ? ref.id : null;
+        const rootRefBlockId = ref && block.id === blockTreeUtils.getTree(ref.globalBlockTreeId)?.blocks[0].id ? ref.id : null;
         const isStoredTo = !ref ? 'main' : 'globalBlockTree';
         return [<li
             onDragStart={ this.onDragStart }
@@ -171,7 +170,7 @@ class BlockTree extends preact.Component {
                     !treeState[block.id].isHidden ? '' : ' d-none',
                     !treeState[block.id].isCollapsed ? '' : ' collapsed'].join('') }
             data-block-id={ block.id }
-            data-is-stored-to-tree-id={ isStoredTo === 'main' ? 'main' : ref.__globalBlockTree.id }
+            data-is-stored-to-tree-id={ isStoredTo === 'main' ? 'main' : ref.globalBlockTreeId }
             data-is-root-block-of={ rootRefBlockId }
             data-depth={ depth }
             data-has-children={ c.length > 0 }
@@ -344,7 +343,6 @@ class BlockTree extends preact.Component {
                 type: 'GlobalBlockReference',
                 title: data.name,
                 renderer: 'jsx',
-                __globalBlockTree: newGbt,
             },
             { // block.propData.*
                 globalBlockTreeId: newGbt.id,

@@ -3,12 +3,13 @@ import {
     api,
     blockTreeUtils,
     events,
+    objectUtils,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {isMetaBlock} from '../includes/block/utils.js';
 import globalData from '../includes/globalData.js';
 import {createTrier} from '../includes/utils.js';
-import {getBlockEl, getMetaKey} from '../../shared-inline.js';
+import {cloneDeep, getBlockEl, getMetaKey, traverseRecursively} from '../../shared-inline.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 
 const broadcastInitialStateToListeners = true;
@@ -144,19 +145,21 @@ class WebPagePreviewApp extends preact.Component {
         ]);
     }
     /**
-     * @param {Block} block
      * @param {Array<Block>} theTree
+     * @param {Array<GlobalBlockTree>} detachedTrees
      * @access public
      */
-    reRenderBlock(block, theTree) {
-        this.sendMessageToReRenderer(['reRenderBlock', block, theTree]);
+    reRenderAllBlocks(theTree, detachedTrees = null) {
+        this.sendMessageToReRenderer(['reRenderAllBlocks', attachGlobalBlockTreesAndClone(theTree, detachedTrees)]);
     }
     /**
      * @param {Array<Block>} theTree
+     * @param {Array<GlobalBlockTree>} detachedTrees
+     * @param {Block} block = null
      * @access public
      */
-    reRenderAllBlocks(theTree) {
-        this.sendMessageToReRenderer(['reRenderAllBlocks', theTree]);
+    reRenderBlock(theTree, detachedTrees = null, block = null) {
+        this.sendMessageToReRenderer(['reRenderBlock', block, attachGlobalBlockTreesAndClone(theTree, detachedTrees)]);
     }
     /**
      * @param {[string, ...any]} args
@@ -382,17 +385,21 @@ let counter = -1;
  * @param {Event & {data: [any, CurrentPageData]}} e
  */
 function broadcastCurrentPageData(e) {
-    const [_, dataBundle] = e.data;
-    /** @type {Array<Block>} */
-    const blocks = getAndInvalidate(dataBundle.page, 'blocks');
-    /** @type {StylesBundle} */
-    const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');
-
     events.emit('webpage-preview-iframe-before-loaded');
 
     const saveButton = api.saveButton.getInstance();
+    const [_, dataBundle] = e.data;
+
+    /** @type {Array<Block>} */
+    const blocks = getAndInvalidate(dataBundle.page, 'blocks');
+    const detachedGbts = detachGlobalBlockTrees(blocks); // Note: mutates blocks
+    saveButton.initChannel('globalBlockTrees', detachedGbts);
+
+    /** @type {StylesBundle} */
+    const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');
     const withId = {...stylesBundle, id: counter + 1};
     saveButton.initChannel('stylesBundle', withId, broadcastInitialStateToListeners);
+
     saveButton.initChannel('theBlockTree', blocks, broadcastInitialStateToListeners);
 
     globalData.initialPageBlocksStyles = dataBundle.initialPageBlocksStyles;
@@ -401,7 +408,6 @@ function broadcastCurrentPageData(e) {
 
     saveButton.initChannel('currentPageData', dataBundle.page);
     // saveButton.initChannel('reusableBranches', ...); deferred, see ../includes/reusable-branches/repository.js
-    // saveButton.initChannel('globalBlockTrees', ...); deferred, see ../includes/global-block-trees/repository.js
     // saveButton.initChannel('pageTypes', ...); deferred, see ../menu-column/page-type/PageTypeCreateState.jsx @componentWillMount
 
     events.emit('webpage-preview-iframe-loaded');
@@ -446,6 +452,46 @@ function nodeNameToFriendly(nodeName) {
  */
 function getFullUrl({pathname, hash}) {
     return `${pathname}${hash || ''}`;
+}
+
+/**
+ * @param {Array<Block>} blocksMut
+ * @returns {Array<GlobalBlockTree>}
+ */
+function detachGlobalBlockTrees(blocksMut) {
+    const detachTrees = (branch, gbts) => {
+        traverseRecursively(branch, b => {
+            if (b.type === 'GlobalBlockReference') {
+                traverse(b.__globalBlockTree.blocks, gbts);
+
+                if (!gbts[b.globalBlockTreeId]) {
+                    gbts.set(b.globalBlockTreeId, cloneDeep(b.__globalBlockTree));
+                    delete b.__globalBlockTree;
+                }
+            }
+        });
+    };
+    const to = new Map;
+    detachTrees(blocksMut, to);
+    return [...to.values()];
+}
+
+/**
+ * @param {Array<Block>} blocks
+ * @param {Array<GlobalBlockTree>} gbts
+ * @returns {Array<Block>}
+ */
+function attachGlobalBlockTreesAndClone(blocks, gbts) {
+    const attachTrees = branch => traverseRecursively(branch, b => {
+        if (b.type === 'GlobalBlockReference') {
+            const gbt = gbts.find(({id}) => id === b.globalBlockTreeId);
+            b.__globalBlockTree = gbt ? objectUtils.cloneDeep(gbt) : {id: 'failsafe', blocks: []};
+            attachTrees(b.__globalBlockTree.blocks);
+        }
+    });
+    return objectUtils.cloneDeepWithChanges(blocks, copy => {
+        attachTrees(copy);
+    });
 }
 
 export default WebPagePreviewApp;

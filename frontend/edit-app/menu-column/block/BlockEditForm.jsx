@@ -13,7 +13,7 @@ import {
     timingUtils,
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
-import {getIsStoredToTreeIdFrom, isMetaBlock, unAppenfidyGbtRefBlockId} from '../../includes/block/utils.js';
+import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
 import CustomClassStylesList, {extractClassName} from '../block-styles/CustomClassStylesList.jsx';
 import StyleClassesPicker from '../block-styles/StyleClassesPicker.jsx';
 import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
@@ -240,34 +240,7 @@ class BlockEditForm extends preact.Component {
                 flags
             );
         else
-            saveButton.pushOp(
-                'theBlockTree',
-                blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                    const allReferences = [];
-                    const blockIdNorm = unAppenfidyGbtRefBlockId(blockId);
-                    blockTreeUtils.traverseWithIdRecursively(newTreeCopy, b => {
-                        if (b.type === 'GlobalBlockReference' && b.globalBlockTreeId === trid)
-                            allReferences.push(blockTreeUtils.findRecursively(b.__globalBlockTree.blocks, b =>
-                                unAppenfidyGbtRefBlockId(b.id) === blockIdNorm
-                            ));
-                    });
-                    for (const ref of allReferences)
-                        /*
-                        mutates block from embedded global block tree
-                        [
-                            <mainTreeBlock1>,
-                            <mainTreeBlock2>,
-                            <mainTreeBlockThatIsGbtReference __globalBlockTree: [
-                                <gbtBlock1>,
-                                <gbtBlock2>, <------------------- here
-                            ]>
-                        ]*/
-                        writeBlockProps(ref, changes);
-                    return newTreeCopy;
-                }),
-                {event: 'update-many-blocks-prop', blockId},
-                flags
-            );
+            ; // todo
     }
     /**
      * @returns {[Array<TabInfo>, boolean]}

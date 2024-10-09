@@ -55,28 +55,22 @@ class BlockEditForm extends preact.Component {
             ...createState(tabKind, objectUtils.cloneDeep(this.props.block)),
         });
 
-        this.unregistrables = [saveButton.subscribeToChannel('theBlockTree', (theTree, userCtx, ctx, flags) => {
-            const event = userCtx?.event || '';
-            if (event === 'convert-branch-to-global-block-reference-block') {
-                api.inspectorPanel.close();
-                return;
-            }
-            //
+        const refreshBlockCopyForEditFormIfNeeded = (userCtx, ctx, flags, event, theTreeIn = null) => {
             const isIt = isUndoOrRedo(ctx);
             const doCheckDiffForEditForm = (
-                ((event === 'update-single-block-prop' || event === 'update-many-blocks-prop') &&
-                    userCtx?.blockId === this.state.blockCopyForEditForm?.id) ||
+                (userCtx?.blockId === this.state.blockCopyForEditForm?.id) ||
                 isIt
             );
             if (doCheckDiffForEditForm) {
-                const block = doCheckDiffForEditForm && this.state.blockCopyForEditForm
-                    ? blockTreeUtils.findBlockMultiTree(this.state.blockCopyForEditForm.id, theTree)[0]
-                    : null;
+                const theTree = theTreeIn || saveButton.getChannelState('theBlockTree');
+                const [block, _branch, _parent, root] = doCheckDiffForEditForm && this.state.blockCopyForEditForm
+                    ? blockTreeUtils.findBlockMultiTree(this.state.blockCopyForEditForm.id, theTree)
+                    : [null, null, null, null];
                 if (!block || this.state.blockCopyForEditForm.id !== block.id) return;
                 if (JSON.stringify(this.state.blockCopyForEditForm.propsData) !== JSON.stringify(block.propsData) ||
                     this.state.blockCopyForEditForm.styleClasses !== block.styleClasses ||
                     this.state.blockCopyForEditForm.renderer !== block.renderer) {
-                    this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, theTree);
+                    this.blockIsStoredToTreeId = blockTreeUtils.getIdFor(root);
                     this.setState({
                         blockCopyForEditForm: objectUtils.cloneDeep(block),
                         lastBlockTreeChangeEventInfo: {ctx, flags, isUndoOrRedo: isIt},
@@ -86,11 +80,24 @@ class BlockEditForm extends preact.Component {
                     });
                 }
             }
+        };
+        this.unregistrables = [saveButton.subscribeToChannel('theBlockTree', (theTree, userCtx, ctx, flags) => {
+            const event = userCtx?.event || '';
+            if (event === 'convert-branch-to-global-block-reference-block') {
+                api.inspectorPanel.close();
+                return;
+            }
+            //
+            refreshBlockCopyForEditFormIfNeeded(userCtx, ctx, flags, event, theTree);
             //
             if (event === 'delete') {
                 const {wasCurrentlySelectedBlock} = userCtx || {};
                 if (wasCurrentlySelectedBlock) this.props.inspectorPanel.close();
             }
+        }),
+
+        saveButton.subscribeToChannel('globalBlockTrees', (_gbts, userCtx, ctx, flags) => {
+            refreshBlockCopyForEditFormIfNeeded(userCtx, ctx, flags, userCtx?.event || '', null);
         }),
 
         saveButton.subscribeToChannel('stylesBundle', (bundle, userCtx, ctx) => {
@@ -240,7 +247,19 @@ class BlockEditForm extends preact.Component {
                 flags
             );
         else
-            ; // todo
+            saveButton.pushOp(
+                'globalBlockTrees',
+                saveButton.getChannelState('globalBlockTrees').map(gbt =>
+                    gbt.id !== trid
+                        ? gbt
+                        : {...gbt, blocks: blockTreeUtils.createMutation(gbt.blocks, copy => {
+                            const [blockMut] = blockTreeUtils.findBlock(blockId, copy);
+                            writeBlockProps(blockMut, changes);
+                        })}
+                ),
+                {event: 'update-block-in', blockId},
+                flags,
+            );
     }
     /**
      * @returns {[Array<TabInfo>, boolean]}

@@ -7,7 +7,6 @@ import {
     createSignalName,
     normalizeItem,
     createInitialState,
-    globalBlockTreeSaveOpFilter,
 } from './SaveButtonFuncs.js';
 
 const saveButtonEvents = new Events;
@@ -41,7 +40,7 @@ class SaveButton extends preact.Component {
      */
     subscribeToChannel(name, fn) {
         if (!handlerFactoriesMap[name]) {
-            env.console.warn(`Unknown channel "${name}". Known: ${Object.keys(handlerFactoriesMap).join(', ')}`);
+            env.window.console.warn(`Unknown channel "${name}". Known: ${Object.keys(handlerFactoriesMap).join(', ')}`);
             return;
         }
         return saveButtonEvents.on(createSignalName(name), fn);
@@ -134,7 +133,7 @@ class SaveButton extends preact.Component {
         this.unregisterAndClearUnsavedChagesAlertIfSet();
         this.doInvalidateAll();
         this.setState(createInitialState());
-        this.syncQueueFilters = [globalBlockTreeSaveOpFilter.bind(this)];
+        this.syncQueueFilters = [];
     }
     /**
      * @param {isOn: boolean} isOn
@@ -168,7 +167,7 @@ class SaveButton extends preact.Component {
                 else if (e.target.scrollTop < 21 && this.state.isStickied)
                     this.setState({isStickied: false});
             });
-        this.syncQueueFilters = [globalBlockTreeSaveOpFilter.bind(this)];
+        this.syncQueueFilters = [];
     }
     /**
      * @param {SaveButtonProps} props

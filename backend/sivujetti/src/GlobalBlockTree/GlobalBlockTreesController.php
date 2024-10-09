@@ -2,8 +2,8 @@
 
 namespace Sivujetti\GlobalBlockTree;
 
-use Pike\{PikeException, Request, Response, Validation};
-use Sivujetti\Block\{BlocksInputValidatorScanner, BlockValidator};
+use Pike\{Request, Response, Validation};
+use Sivujetti\Block\{BlocksInputValidatorScanner};
 use Sivujetti\ValidationUtils;
 
 final class GlobalBlockTreesController {

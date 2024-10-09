@@ -149,7 +149,7 @@ class WebPagePreviewApp extends preact.Component {
      * @param {Array<GlobalBlockTree>} detachedTrees
      * @access public
      */
-    reRenderAllBlocks(theTree, detachedTrees = null) {
+    reRenderAllBlocks(theTree, detachedTrees) {
         this.sendMessageToReRenderer(['reRenderAllBlocks', attachGlobalBlockTreesAndClone(theTree, detachedTrees)]);
     }
     /**
@@ -158,7 +158,7 @@ class WebPagePreviewApp extends preact.Component {
      * @param {Block} block = null
      * @access public
      */
-    reRenderBlock(theTree, detachedTrees = null, block = null) {
+    reRenderBlock(theTree, detachedTrees, block = null) {
         this.sendMessageToReRenderer(['reRenderBlock', block, attachGlobalBlockTreesAndClone(theTree, detachedTrees)]);
     }
     /**
@@ -462,7 +462,7 @@ function detachGlobalBlockTrees(blocksMut) {
     const detachTrees = (branch, gbts) => {
         traverseRecursively(branch, b => {
             if (b.type === 'GlobalBlockReference') {
-                traverse(b.__globalBlockTree.blocks, gbts);
+                detachTrees(b.__globalBlockTree.blocks, gbts);
 
                 if (!gbts[b.globalBlockTreeId]) {
                     gbts.set(b.globalBlockTreeId, cloneDeep(b.__globalBlockTree));

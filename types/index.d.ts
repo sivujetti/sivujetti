@@ -427,8 +427,8 @@ type leftPanelName = 'Default'|'CreatePage'|'CreatePageType';
 interface BlockDescriptor {
     blockId: string;
     isStoredToTreeId: string;
-    isGbtRef: boolean;
-    data: {refTreesRootBlockId: string; refTreeId: string;}|null; // If isGbtRef === true
+    isGbtRefRoot: boolean;
+    data: {refBlockId: string; refBlockIsStoredToTreeId: string;}|null; // If isGbtRefRoot === true
 }
 
 interface SpawnDescriptor {

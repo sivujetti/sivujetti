@@ -120,11 +120,13 @@ function createBlockDescriptorFromLi(li) {
     const blockId = li.getAttribute('data-block-id');
     // root tree's block, or global block tree's inner block
     if (!maybeRefBlockId) {
-        return {blockId, isStoredToTreeId, isGbtRef: false, data: null};
+        return {blockId, isStoredToTreeId, isGbtRefRoot: false, data: null};
     // Global block tree's root block
-    } else {
-        return {blockId: maybeRefBlockId, isStoredToTreeId: 'main', isGbtRef: true, data: {refTreesRootBlockId: blockId, refTreeId: isStoredToTreeId}};
-    }
+    } else
+        return {blockId, isStoredToTreeId, isGbtRefRoot: true, data: {
+            refBlockId: maybeRefBlockId,
+            refBlockIsStoredToTreeId: li.previousElementSibling?.getAttribute('data-is-stored-to-tree-id') || 'main'
+        }};
 }
 
 /**

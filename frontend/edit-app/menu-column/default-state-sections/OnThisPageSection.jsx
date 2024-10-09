@@ -31,18 +31,24 @@ class OnThisPageSection extends MenuSectionAbstract {
      * @access protected
      */
     componentWillMount() {
+        const refreshTheBlockTree = (theTree) => {
+            const latest = this.props.currentPageSlug;
+            const loaded = this.state.loadedBlocksPageUrl;
+            this.setState({
+                loadedPageBlocks: theTree,
+                loadedBlocksPageUrl: latest,
+                ...(loaded === null || (!isMainColumnViewUrl(latest) && loaded !== latest))
+                    ? createTitlesState(latest)
+                    : {}
+            });
+        };
         this.unregistrables = [
-            api.saveButton.getInstance().subscribeToChannel('theBlockTree',
-            (theTree, _userCtx, _ctx) => {
-                const latest = this.props.currentPageSlug;
-                const loaded = this.state.loadedBlocksPageUrl;
-                this.setState({
-                    loadedPageBlocks: theTree,
-                    loadedBlocksPageUrl: latest,
-                    ...(loaded === null || (!isMainColumnViewUrl(latest) && loaded !== latest))
-                        ? createTitlesState(latest)
-                        : {}
-                });
+            api.saveButton.getInstance().subscribeToChannel('theBlockTree', (theTree, _userCtx, _ctx) => {
+                refreshTheBlockTree(theTree);
+            }),
+            api.saveButton.getInstance().subscribeToChannel('globalBlockTrees', (_gbts, userCtx, _ctx) => {
+                if (['move-block', 'insert-block-at'].indexOf(userCtx?.event) > -1)
+                    refreshTheBlockTree([...this.state.loadedPageBlocks]);
             }),
             events.on('web-page-click-received',
                 (blockId) => {

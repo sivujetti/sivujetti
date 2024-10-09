@@ -1,6 +1,7 @@
 import {
     __,
     api,
+    blockTreeUtils,
     env,
     http,
     Icon,
@@ -9,7 +10,6 @@ import {
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {createBlockFromBlueprint, createBlockFromType} from '../../includes/block/utils.js';
-import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import VerticalTabs from '../../includes/VerticalTabs.jsx';
 import {
@@ -27,11 +27,12 @@ class AddReusableContentTab extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        if (!this.props.omitGbts)
-            fetchOrGetGlobalBlockTrees()
-                .then(gbts => {
-                    this.setState({globalBlockTrees: [...gbts]});
-                });
+        http.get('/api/global-block-trees')
+            .then(globalBlockTrees => {
+                blockTreeUtils.setAllGlobalBlockTrees(globalBlockTrees);
+                this.setState({globalBlockTrees});
+            })
+            .catch(env.window.console.error);
         fetchOrGetReusableBranches()
             .then((reusables) => {
                 this.setState({reusables});
@@ -74,7 +75,7 @@ class AddReusableContentTab extends preact.Component {
  */
 function createGbtBlockSpawnDescriptor(gbt) {
     return {
-        block: createBlockFromType('GlobalBlockReference', {__globalBlockTree: objectUtils.cloneDeep(gbt)}),
+        block: createBlockFromType('GlobalBlockReference', undefined, {globalBlockTreeId: gbt.id}),
         isReusable: false,
         styles: null,
     };
@@ -301,7 +302,6 @@ function createContentTemplateSpawnDescriptor(template) {
 /**
  * @typedef {{
  *   onContentPicked: (descr: SpawnDescriptor) => void;
- *   omitGbts?: boolean;
  * }} AddContentTabProps
  *
  * @typedef {{

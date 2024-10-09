@@ -83,13 +83,14 @@ function createBlock(defProps, ownProps) {
 
 /**
  * @param {string|BlockTypeDefinition} blockType
- * @param {{[key: keyof]: any;}} ownProps
+ * @param {{[key: keyof]: any;}} defPropAdditions = {} title, id etc.
+ * @param {{[key: keyof]: any;}} ownPropAdditions = {} block specific
  * @returns {Block}
  */
-function createBlockFromType(blockType, defPropAdditions = {}) {
+function createBlockFromType(blockType, defPropAdditions = {}, ownPropAdditions = {}) {
     const type = typeof blockType === 'string' ? api.blockTypes.get(blockType) : blockType;
     const defs = createDefProps(type, defPropAdditions);
-    const own = type.createOwnProps(defs);
+    const own = {...type.createOwnProps(defs), ...ownPropAdditions};
     return createBlock(
         defs, // block.*
         own   // block.propsData[*] & block.*

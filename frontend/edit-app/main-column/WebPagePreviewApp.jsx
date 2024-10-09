@@ -484,7 +484,7 @@ function detachGlobalBlockTrees(blocksMut) {
 function attachGlobalBlockTreesAndClone(blocks, gbts) {
     const attachTrees = branch => traverseRecursively(branch, b => {
         if (b.type === 'GlobalBlockReference') {
-            const gbt = gbts.find(({id}) => id === b.globalBlockTreeId);
+            const gbt = blockTreeUtils.getTree(b.globalBlockTreeId, gbts);
             b.__globalBlockTree = gbt ? objectUtils.cloneDeep(gbt) : {id: 'failsafe', blocks: []};
             attachTrees(b.__globalBlockTree.blocks);
         }

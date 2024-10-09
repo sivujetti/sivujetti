@@ -2,6 +2,8 @@ import {api} from '../edit-app-singletons.js';
 import {objectUtils} from '../utils.js';
 
 const blockTreeUtils = {
+    /** @type {Array<GlobalBlockTree>} */
+    _allGlobalBlockTrees: [],
     /**
      * @param {string} id
      * @param {Array<Block>} branch
@@ -61,6 +63,7 @@ const blockTreeUtils = {
     /**
      * @param {GlobalBlockTree|Array<Block>} input
      * @returns {string} 'main' or <pushId>
+     * @access public
      */
     getIdFor(root) {
         return this.isMainTree(root) ? 'main' : root.id;
@@ -68,6 +71,7 @@ const blockTreeUtils = {
     /**
      * @param {GlobalBlockTree|Array<Block>} input
      * @returns {boolean}
+     * @access public
      */
     isMainTree(root) {
         return Array.isArray(root);
@@ -134,17 +138,22 @@ const blockTreeUtils = {
     },
     /**
      * @param {string} trid
-     * @returns {Array<Block>|GlobalBlockTree}
+     * @param {Array<GlobalBlockTree>} storeState = null
+     * @returns {Array<Block>|GlobalBlockTree|undefined}
      */
-    getTree(trid) {
-        return trid === 'main'
-            ? api.saveButton.getInstance().getChannelState('theBlockTree')
-            : api.saveButton.getInstance().getChannelState('globalBlockTrees').find((({id}) => id === trid));
+    getTree(trid, storeState = null) {
+        if (trid === 'main')
+            return api.saveButton.getInstance().getChannelState('theBlockTree');
+        const fromSaveButtonState = (storeState|| api.saveButton.getInstance().getChannelState('globalBlockTrees')).find((({id}) => id === trid));
+        if (fromSaveButtonState) return fromSaveButtonState;
+        const fromBackend = this._allGlobalBlockTrees.find((({id}) => id === trid));
+        return fromBackend;
     },
     /**
      * @param {string} trid 'main' or 'id-of-some-global-block-tree'
      * @param {Array<Block>} from
      * @returns {Array<Block>|null}
+     * @access public
      */
     findTree(trid, from) {
         if (trid === 'main')
@@ -155,9 +164,17 @@ const blockTreeUtils = {
         return refBlock ? this.getTree(refBlock.globalBlockTreeId).blocks : null;
     },
     /**
+     * @param {Array<GlobalBlockTree>} allTrees
+     * @access public
+     */
+    setAllGlobalBlockTrees(allTrees) {
+        this._allGlobalBlockTrees = allTrees;
+    },
+    /**
      * @param {Array<Block>} theTree
      * @param {(newTreeCopyFreeToMutate: Array<Block>) => Array<Block>} mutator
      * @returns {Array<Block>} Mutated $newTreeCopyFreeToMutate
+     * @access public
      */
     createMutation(theTree, mutator) {
         return objectUtils.cloneDeepWithChanges(theTree, mutator);

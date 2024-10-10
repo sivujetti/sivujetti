@@ -11,6 +11,7 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 
 class BlockSaveAsReusableDialog extends preact.Component {
+    // nameInput;
     // boundDoHandleSubmit;
     /**
      * @param {{blockToConvertAndStore: Block; onConfirmed: (data: {name: string; saveAsUnique: boolean;}) => any; userCanCreateGlobalBlockTrees: boolean;}} props
@@ -18,13 +19,13 @@ class BlockSaveAsReusableDialog extends preact.Component {
     constructor(props) {
         super(props);
         this.nameInput = preact.createRef();
+        this.boundDoHandleSubmit = this.doHandleSubmit.bind(this);
         this.setState(hookForm(this, [
             {name: 'name', value: undefined, validations: [['minLength', 1],
                 ['maxLength', 92]], label: __('Name')},
         ], {
             saveAsUnique: false,
         }));
-        this.boundDoHandleSubmit = this.doHandleSubmit.bind(this);
     }
     /**
      * @access protected

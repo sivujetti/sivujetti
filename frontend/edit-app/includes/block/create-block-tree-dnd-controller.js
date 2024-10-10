@@ -5,7 +5,7 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import {
     createBlockTreeInsertAtOpArgs,
-    createBlockTreeMoveToOpArgs,
+    createBlockTreeMoveToOpsArgs,
 } from './tree-dnd-controller-funcs.js';
 
 /**
@@ -17,14 +17,10 @@ function createDndController(saveButton) {
     let dropped;
     return {
         /**
-         * @param {DragDropInfo} info
+         * @param {DragDropInfo} _info
          * @returns {boolean}
          */
-        begin(info) {
-            if (extDragData && extDragData.block.type === 'GlobalBlockReference' && info.li.getAttribute('data-is-stored-to-tree-id') !== 'main') {
-                const isBeforeOrAfterGbtRef = (info.pos === 'before' || info.pos === 'after') && info.li.getAttribute('data-is-root-block-of');
-                if (!isBeforeOrAfterGbtRef) return false;
-            }
+        begin(_info) {
             api.webPagePreview.getEl().style.pointerEvents = 'none';
             dropped = false;
             return true;
@@ -37,14 +33,11 @@ function createDndController(saveButton) {
             if (!extDragData) {
                 const drag = createBlockDescriptorFromLi(startLi);
                 const targ = createBlockDescriptorFromLi(cand.li);
-                const [targIsStoredTo, targetIsSpeci] = getRealTarget(targ, cand.pos);
-                // target is inner block of _some other_ gbtref
-                if ((drag.isGbtRef || drag.isStoredToTreeId !== 'main') &&
-                    ((targ.isStoredToTreeId !== 'main' || targetIsSpeci) &&
-                    targIsStoredTo !== drag.isStoredToTreeId)) {
-                    return false;
-                }
-                saveButton.pushOp(...createBlockTreeMoveToOpArgs(drag, targ, cand.pos));
+                const ops = createBlockTreeMoveToOpsArgs(drag, targ, cand.pos);
+                if (ops.length === 1)
+                    saveButton.pushOp(...ops[0]);
+                else
+                    saveButton.pushOpGroup(...ops);
             } else {
                 const targetInf = createBlockDescriptorFromLi(cand.li);
                 const insertBlockAtOpArgs = createBlockTreeInsertAtOpArgs(extDragData.block, targetInf, cand.pos);
@@ -70,27 +63,12 @@ function createDndController(saveButton) {
             // Do nothing
         },
         /**
-         * @param {DragDropInfo} cand
+         * @param {DragDropInfo} _cand
          * @param {DragDropInfo} _prevCand
-         * @param {HTMLLIElement|null} startLi
+         * @param {HTMLLIElement|null} _startLi
          * @returns {boolean|undefined}
          */
-        swap(cand, _prevCand, startLi) {
-            const extBlock = !extDragData ? null : extDragData.block;
-            const drag = !extBlock ? createBlockDescriptorFromLi(startLi) : createBlockDescriptor(extBlock, saveButton);
-            const targ = createBlockDescriptorFromLi(cand.li);
-            const [targIsStoredTo, targetIsSpeci] = getRealTarget(targ, cand.pos);
-            // drag is external gbtref and target is inner block of gbtref
-            if (extBlock && extBlock.type === 'GlobalBlockReference' && (targ.isStoredToTreeId !== 'main' || targetIsSpeci)) {
-                return false;
-            }
-            // drag is not external gbtref and target is inner block of _some other_ gbtref
-            if (!extBlock &&
-                (drag.isGbtRef || drag.isStoredToTreeId !== 'main') &&
-                ((targ.isStoredToTreeId !== 'main' || targetIsSpeci) &&
-                targIsStoredTo !== drag.isStoredToTreeId)) {
-                return false;
-            }
+        swap(_cand, _prevCand, _startLi) {
             // Do nothing
         },
         /**
@@ -118,7 +96,7 @@ function createBlockDescriptorFromLi(li) {
     const isStoredToTreeId = li.getAttribute('data-is-stored-to-tree-id');
     const maybeRefBlockId = li.getAttribute('data-is-root-block-of');
     const blockId = li.getAttribute('data-block-id');
-    // root tree's block, or global block tree's inner block
+    // Main tree's block, or global block tree's inner block
     if (!maybeRefBlockId) {
         return {blockId, isStoredToTreeId, isGbtRefRoot: false, data: null};
     // Global block tree's root block
@@ -136,18 +114,7 @@ function createBlockDescriptorFromLi(li) {
  */
 function createBlockDescriptor(block, saveButton) {
     const isStoredToTreeId = blockTreeUtils.getIsStoredToTreeId(block.id, saveButton.getChannelState('theBlockTree'));
-    return {blockId: block.id, isStoredToTreeId, isGbtRef: false, data: null};
-}
-
-/**
- * @param {BlockDescriptor} target Drop or swap target
- * @param {dropPosition} pos Drop or swap position
- * @returns {[string, boolean]} [targetIsStoredToTreeId, isTargetAsChildOfGbtRef]
- */
-function getRealTarget(target, pos) {
-    return !(target.isGbtRef && pos === 'as-child')
-        ? [target.isStoredToTreeId, false]
-        : [target.data.refTreeId, true];
+    return {blockId: block.id, isStoredToTreeId, isGbtRefRoot: false, data: null};
 }
 
 /**

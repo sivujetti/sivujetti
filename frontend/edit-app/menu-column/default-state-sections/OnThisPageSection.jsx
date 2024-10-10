@@ -47,7 +47,7 @@ class OnThisPageSection extends MenuSectionAbstract {
                 refreshTheBlockTree(theTree);
             }),
             api.saveButton.getInstance().subscribeToChannel('globalBlockTrees', (_gbts, userCtx, _ctx) => {
-                if (['move-block', 'insert-block-at'].indexOf(userCtx?.event) > -1)
+                if (['insert-block-at', 'move-block-between', 'move-block-within'].indexOf(userCtx?.event) > -1)
                     refreshTheBlockTree([...this.state.loadedPageBlocks]);
             }),
             events.on('web-page-click-received',

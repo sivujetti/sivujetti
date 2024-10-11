@@ -23,6 +23,8 @@ import {
     blockToBlueprint,
     clearHighlight,
     createAddContentPlacementCfg,
+    createConvertBlockToGlobalOps,
+    createDeleteBlockOp,
     createPartialState,
     createStyleShunkcScssIdReplacer,
     duplicateDeepAndReAssignIds,
@@ -51,6 +53,7 @@ class BlockTree extends preact.Component {
     // disablePageInfo;
     // mouseDownHoverClearerHookedUp;
     // curUrl;
+    // openMoreMenuData;
     /**
      * @access protected
      */
@@ -189,7 +192,7 @@ class BlockTree extends preact.Component {
                     <Icon iconId={ api.blockTypes.getIconId(type) } className="size-xs p-absolute"/>
                     <span class="text-ellipsis">{ title }</span>
                 </button>
-                <button onClick={ e => this.openMoreMenu(block, rootRefBlockId !== null, e) } class="more-toggle pl-1" type="button">
+                <button onClick={ e => this.openMoreMenu(block, rootRefBlockId, e) } class="more-toggle pl-1" type="button">
                     <Icon iconId="dots" className="size-xs"/>
                 </button>
             </div>
@@ -232,7 +235,7 @@ class BlockTree extends preact.Component {
             'add-content-as-child': 'as-child',
         }[link.id]) || null;
         if (addContentKind) {
-            const li = this.openedBlockDetails;
+            const {li} = this.openMoreMenuData;
             const [arrowRefEl, placeAtBefore] = createAddContentPlacementCfg(li, addContentKind);
             api.mainPopper.open(
                 AddContentPopup,
@@ -241,18 +244,19 @@ class BlockTree extends preact.Component {
                 {maxWidth: 580, offsetY: !placeAtBefore ? 4 : -25},
             );
         } else if (link.id === 'duplicate-block') {
-            this.cloneBlock(this.blockWithMoreMenuOpened);
+            this.cloneBlock(this.openMoreMenuData.block);
         } else if (link.id === 'delete-block') {
-            this.deleteBlock(this.blockWithMoreMenuOpened);
+            this.deleteBlock(this.openMoreMenuData.block);
         } else if (link.id === 'save-block-as-reusable') {
-            const blockToStore = this.blockWithMoreMenuOpened;
+            const blockToStore = this.openMoreMenuData.block;
+            const blockIsStoredTo = this.openMoreMenuData.li.getAttribute('data-is-stored-to-tree-id');
             const userCanCreateGlobalBlockTrees = api.user.can('createGlobalBlockTrees');
             floatingDialog.open(BlockSaveAsReusableDialog, {
                 title: __('Save as reusable'),
                 height: userCanCreateGlobalBlockTrees ? 468 : 254,
             }, {
                 blockToConvertAndStore: blockToStore,
-                onConfirmed: data => data.saveAsUnique ? this.doConvertBlockToGlobal(data, blockToStore) :
+                onConfirmed: data => data.saveAsUnique ? this.doConvertBlockToGlobal(data, blockToStore, blockIsStoredTo) :
                     this.doSaveBlockAsReusable(data, blockToStore),
                 userCanCreateGlobalBlockTrees,
             });
@@ -262,8 +266,7 @@ class BlockTree extends preact.Component {
      * @access private
      */
     onContextMenuClosed() {
-        this.blockWithMoreMenuOpened = null;
-        this.blockWithMoreMenuOpenedIsGbtsOutermostBlock = null;
+        this.openMoreMenuData = null;
         this.refElOfOpenMoreMenu.style.opacity = '';
     }
     /**
@@ -313,9 +316,7 @@ class BlockTree extends preact.Component {
                                         isSelectedRootChildOfCurrentlyClickedBlock();
         if (wasCurrentlySelectedBlock) this.selectedRoot = null;
         //
-        const blockToDeleteId = !this.blockWithMoreMenuOpenedIsGbtsOutermostBlock
-            ? blockVisible.id
-            : this.openedBlockDetails.getAttribute('data-is-root-block-of');
+        const blockToDeleteId = this.openMoreMenuData.isRootBlockOf || blockVisible.id;
         const saveButton = api.saveButton.getInstance();
         saveButton.pushOp(
             'theBlockTree',
@@ -329,15 +330,15 @@ class BlockTree extends preact.Component {
     /**
      * @param {{name: string;}} data
      * @param {Block} originalBlock The block/branch we're just turning global
+     * @param {string} originalBlockIsStoredTo
      * @access private
      */
-    doConvertBlockToGlobal(data, originalBlock) {
+    doConvertBlockToGlobal(data, originalBlock, originalBlockIsStoredTo) {
         const newGbt = {
             id: generatePushID(),
             name: data.name,
             blocks: treeToTransferable([{...originalBlock, ...{title: data.name}}]),
         };
-
         const newGbRefBlock = createBlock(
             { // block.*
                 type: 'GlobalBlockReference',
@@ -350,33 +351,12 @@ class BlockTree extends preact.Component {
                 useOverrides: 0,
             }
         );
-
         const saveButton = api.saveButton.getInstance();
-        // Swap original block/branch with the new 'GlobalBlockReference' block
-        const updateBlockTreeOpArgs = [
-            'theBlockTree',
-            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                const [curBlockRef, refBranch] = blockTreeUtils.findBlock(originalBlock.id, newTreeCopy);
-                refBranch[refBranch.indexOf(curBlockRef)] = newGbRefBlock;
-                return newTreeCopy;
-            }),
-            {
-                event: 'convert-branch-to-global-block-reference-block',
-                originalBlockId: originalBlock.id,
-                newBlockId: newGbRefBlock.id,
-            }
-        ];
-
-        // Create new 'globalBlockTrees' state array and push it to the history
-        fetchOrGetGlobalBlockTrees().then(gbtsPrev => {
-            const newGbtsState = [...objectUtils.cloneDeep(gbtsPrev), newGbt];
-            const pushNewGbtsStateOpArgs = ['globalBlockTrees', newGbtsState, {event: 'create'}];
-
-            saveButton.pushOpGroup(
-                updateBlockTreeOpArgs,
-                pushNewGbtsStateOpArgs
-            );
-        });
+        const ops = createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlock.id, originalBlockIsStoredTo, saveButton);
+        if (ops.length === 1)
+            saveButton.pushOp(...ops[0]);
+        else
+            saveButton.pushOpGroup(...ops);
     }
     /**
      * @param {{name: string;}} data From BlockSaveAsReusableDialog
@@ -452,17 +432,15 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} block
-     * @param {boolean} blockIsGbtsOutermostBlock
+     * @param {string|null} isRootBlockOf
      * @param {Event} e
      * @access private
      */
-    openMoreMenu(block, blockIsGbtsOutermostBlock, e) {
-        this.blockWithMoreMenuOpened = block;
-        this.blockWithMoreMenuOpenedIsGbtsOutermostBlock = blockIsGbtsOutermostBlock;
-        this.openedBlockDetails = e.target.closest('li');
+    openMoreMenu(block, isRootBlockOf, e) {
+        this.openMoreMenuData = {block, isRootBlockOf, li: e.target.closest('li')};
         this.refElOfOpenMoreMenu = e.target;
         this.refElOfOpenMoreMenu.style.opacity = '1';
-        api.contextMenu.open(e, this.createContextMenuController(blockIsGbtsOutermostBlock));
+        api.contextMenu.open(e, this.createContextMenuController(!!isRootBlockOf));
     }
     /**
      * @param {boolean} blockIsGbtsOutermostBlock
@@ -470,7 +448,7 @@ class BlockTree extends preact.Component {
      * @access private
      */
     createContextMenuController(blockIsGbtsOutermostBlock) {
-        const isPageInfo = this.blockWithMoreMenuOpened.type === 'PageInfo';
+        const isPageInfo = this.openMoreMenuData.block.type === 'PageInfo';
         const spawnLinks = [
             {text: __('↑ Add content above'), title: __('↑ Add content above'), id: 'add-content-above'},
             {text: __('↓ Add content below'), title: __('↓ Add content below'), id: 'add-content-below'},
@@ -490,7 +468,7 @@ class BlockTree extends preact.Component {
                     : [
                         spawnLinks[1],
                     ];
-                const notThese = blockIsGbtsOutermostBlock ? ['duplicate-block'] : [];
+                const notThese = blockIsGbtsOutermostBlock ? ['duplicate-block', 'save-block-as-reusable'] : [];
                 return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
             },
             onItemClicked: this.handleContextMenuLinkClicked.bind(this),

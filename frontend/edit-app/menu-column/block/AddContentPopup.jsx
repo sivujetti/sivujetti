@@ -4,7 +4,7 @@ import {
     scssWizard,
     Tabs,
 } from '@sivujetti-commons-for-edit-app';
-import {createBlockTreeInsertAtOpArgs} from '../../includes/block/tree-dnd-controller-funcs.js';
+import {createBlockTreeInsertAtOp} from '../../includes/block/tree-dnd-controller-funcs.js';
 import {
     AddReusableContentTab,
     AddSimpleContentBlocksTab,
@@ -50,13 +50,13 @@ class AddContentPopup extends preact.Component {
      */
     handleContentPicked(descr) {
         const {targetInfo, insertPos} = this.props;
-        const insertBlockAtOpArgs = createBlockTreeInsertAtOpArgs(descr.block, targetInfo, insertPos);
+        const insertBlockAtOp = createBlockTreeInsertAtOp(descr.block, targetInfo, insertPos);
         if (!descr.styles?.length) {
-            api.saveButton.getInstance().pushOp(...insertBlockAtOpArgs);
+            api.saveButton.getInstance().pushOp(...insertBlockAtOp);
         } else {
             const updatedAll = scssWizard.addManyNewChunksAndReturnAllRecompiled(descr.styles);
             api.saveButton.getInstance().pushOpGroup(
-                insertBlockAtOpArgs,
+                insertBlockAtOp,
                 ['stylesBundle', updatedAll]
             );
         }

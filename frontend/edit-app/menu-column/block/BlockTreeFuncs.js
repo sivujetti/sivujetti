@@ -1,10 +1,12 @@
 import {
     __,
+    api,
     blockTreeUtils,
     generatePushID,
     objectUtils,
     traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
+import {findGbt, removeFrom} from '../../includes/block/tree-dnd-controller-funcs.js';
 
 const autoCollapse = 'nonUniqueRootLevelItems'; // 'mainContentItem'|'nonUniqueRootLevelItems';
 
@@ -265,10 +267,90 @@ function createAddContentPlacementCfg(li, pos) {
     return [li.querySelector('.block-handle'), pos === 'before'];
 }
 
+/**
+ * @param {string} blockToDeleteId
+ * @param {string} blockToDeleteTrid
+ * @param {boolean} wasCurrentlySelectedBlock
+ * @returns {['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree>, StateChangeUserContext]}
+ */
+function createDeleteBlockOp(blockToDeleteId, blockToDeleteTrid, wasCurrentlySelectedBlock) {
+    if (blockToDeleteTrid === 'main')
+        return [
+            'theBlockTree',
+            blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
+                const [ref, refBranch] = blockTreeUtils.findBlock(blockToDeleteId, newTreeCopy);
+                removeFrom(ref, refBranch); // mutates newTreeCopy
+                return newTreeCopy;
+            }), {event: 'delete', wasCurrentlySelectedBlock}
+        ];
+    else
+        return [
+            'globalBlockTrees',
+            objectUtils.cloneDeepWithChanges(api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
+                const [ref, refBranch] = blockTreeUtils.findBlock(blockToDeleteId, findGbt(blockToDeleteTrid, newGbtsCopy).blocks);
+                removeFrom(ref, refBranch); // mutates newGbtsCopy
+                return newGbtsCopy;
+            }), {event: 'delete', wasCurrentlySelectedBlock}
+        ];
+}
+
+/**
+ * @param {Block} newGbRefBlock
+ * @param {GlobalBlockTree} newGbt
+ * @param {string} originalBlockId
+ * @param {string} originalBlockIsStoredTo
+ * @param {SaveButton} saveButton
+ * @returns {Array<['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree>, StateChangeUserContext]>}
+ */
+function createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlockId, originalBlockIsStoredTo, saveButton) {
+    const currentGbts = saveButton.getChannelState('globalBlockTrees');
+
+    if (originalBlockIsStoredTo === 'main') {
+        // Push a new 'globalBlockTrees' state (which includes the new gbt)
+        const pushNewGbtsStateOp = ['globalBlockTrees', objectUtils.cloneDeepWithChanges(currentGbts, copy => {
+            copy.push(newGbt);
+            return copy;
+        }), {event: 'create'}];
+
+        // Swap original block/branch with the new 'GlobalBlockReference' block
+        const updateBlockTreeOp = [
+            'theBlockTree',
+            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+                const [curBlockRef, refBranch] = blockTreeUtils.findBlock(originalBlockId, newTreeCopy);
+                refBranch[refBranch.indexOf(curBlockRef)] = newGbRefBlock;
+                return newTreeCopy;
+            }),
+            {
+                event: 'convert-branch-to-global-block-reference-block',
+                originalBlockId: originalBlockId,
+                newBlockId: newGbRefBlock.id,
+            }
+        ];
+
+        return [
+            pushNewGbtsStateOp,
+            updateBlockTreeOp
+        ];
+    } else {
+        // Push a new 'globalBlockTrees' state (which includes both the new and updated gbt)
+        return [['globalBlockTrees', objectUtils.cloneDeepWithChanges(currentGbts, copy => {
+            // 1
+            copy.push(newGbt);
+            // 2
+            const [block, branch] = blockTreeUtils.findBlock(originalBlockId, findGbt(originalBlockIsStoredTo, copy).blocks);
+            branch[branch.indexOf(block)] = newGbRefBlock;
+
+            return copy;
+        }), {event: 'create-and-convert'}]];
+    }
+}
+
 export {
     blockToBlueprint,
     clearHighlight,
     createAddContentPlacementCfg,
+    createConvertBlockToGlobalOps,
+    createDeleteBlockOp,
     createPartialState,
     createStyleShunkcScssIdReplacer,
     duplicateDeepAndReAssignIds,

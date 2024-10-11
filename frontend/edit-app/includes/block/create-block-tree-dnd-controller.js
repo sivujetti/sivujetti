@@ -4,8 +4,8 @@ import {
     scssWizard,
 } from '@sivujetti-commons-for-edit-app';
 import {
-    createBlockTreeInsertAtOpArgs,
-    createBlockTreeMoveToOpsArgs,
+    createBlockTreeInsertAtOp,
+    createBlockTreeMoveToOps,
 } from './tree-dnd-controller-funcs.js';
 
 /**
@@ -33,21 +33,21 @@ function createDndController(saveButton) {
             if (!extDragData) {
                 const drag = createBlockDescriptorFromLi(startLi);
                 const targ = createBlockDescriptorFromLi(cand.li);
-                const ops = createBlockTreeMoveToOpsArgs(drag, targ, cand.pos);
+                const ops = createBlockTreeMoveToOps(drag, targ, cand.pos);
                 if (ops.length === 1)
                     saveButton.pushOp(...ops[0]);
                 else
                     saveButton.pushOpGroup(...ops);
             } else {
                 const targetInf = createBlockDescriptorFromLi(cand.li);
-                const insertBlockAtOpArgs = createBlockTreeInsertAtOpArgs(extDragData.block, targetInf, cand.pos);
+                const insertBlockAtOp = createBlockTreeInsertAtOp(extDragData.block, targetInf, cand.pos);
                 if (!extDragData.isReusable) // Plain block -> add block but no styles
-                    saveButton.pushOp(...insertBlockAtOpArgs);
+                    saveButton.pushOp(...insertBlockAtOp);
                 else { // Reusable -> add block and copies of all of its styles recursively
                     const userAndDevStyles = extDragData.styles;
                     const updatedAll = scssWizard.addManyNewChunksAndReturnAllRecompiled(userAndDevStyles);
                     saveButton.pushOpGroup(
-                        insertBlockAtOpArgs,
+                        insertBlockAtOp,
                         ['stylesBundle', updatedAll]
                     );
                 }

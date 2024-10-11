@@ -12,6 +12,14 @@ import {openPageDeleteDialog} from '../../main-column/popups/PageDeleteDialog.js
 import {isMainColumnViewUrl} from '../../main-column/MainColumnViews.jsx';
 import BlockTree from '../block/BlockTree.jsx';
 
+const globalBlockTreeEventsThatNeedRefresh = [
+    'create-and-convert',
+    'delete',
+    'insert-block-at',
+    'move-block-between',
+    'move-block-within',
+];
+
 class OnThisPageSection extends MenuSectionAbstract {
     // blockTreeRef; // public
     // unregistrables;
@@ -47,7 +55,7 @@ class OnThisPageSection extends MenuSectionAbstract {
                 refreshTheBlockTree(theTree);
             }),
             api.saveButton.getInstance().subscribeToChannel('globalBlockTrees', (_gbts, userCtx, _ctx) => {
-                if (['insert-block-at', 'move-block-between', 'move-block-within'].indexOf(userCtx?.event) > -1)
+                if (globalBlockTreeEventsThatNeedRefresh.indexOf(userCtx?.event) > -1)
                     refreshTheBlockTree([...this.state.loadedPageBlocks]);
             }),
             events.on('web-page-click-received',

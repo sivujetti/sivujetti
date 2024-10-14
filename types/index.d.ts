@@ -378,13 +378,6 @@ interface FloatingDialogSettingsInput {
     height?: number;
 }
 
-interface BlockTreeItemState {
-    isSelected: boolean;
-    isCollapsed: boolean;
-    isHidden: boolean;
-    isNew: boolean;
-}
-
 interface DragDropEventController {
     begin(info: DragDropInfo): boolean;
     swap(info: DragDropInfo, infoPrev: DragDropInfo, startLi: HTMLLIElement|null): boolean|undefined;

@@ -9,12 +9,15 @@ import {
     LoadingSpinner,
     objectUtils,
     scssWizard,
+    traverseRecursively,
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import createDndController, {
     callGetBlockPropChangesEvent,
     createBlockDescriptorFromLi,
 } from '../../includes/block/create-block-tree-dnd-controller.js';
+import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
+import {createBlock, treeToTransferable} from '../../includes/block/utils.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
 import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';
 import BlockTreeShowHelpPopup from '../../main-column/popups/BlockTreeShowHelpPopup.jsx';
@@ -25,19 +28,17 @@ import {
     createAddContentPlacementCfg,
     createConvertBlockToGlobalOps,
     createDeleteBlockOp,
+    createGetTreeBlocksFn,
     createPartialState,
     createStyleShunkcScssIdReplacer,
     duplicateDeepAndReAssignIds,
     findVisibleLi,
     getShortFriendlyName,
     hideOrShowChildren,
-    setAsHidden,
-    splitPath,
-    withParentIdPathDo,
 } from './BlockTreeFuncs.js';
-import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
-import {createBlock, treeToTransferable} from '../../includes/block/utils.js';
 import AddContentPopup from './AddContentPopup.jsx';
+/** @typedef {import('./BlockTreeFuncs.js').UiStateEntry} UiStateEntry */
+/** @typedef {import('./BlockTreeFuncs.js').LiUiState} LiUiState */
 
 class BlockTree extends preact.Component {
     // unregistrables;
@@ -98,16 +99,16 @@ class BlockTree extends preact.Component {
     /**
      * @access protected
      */
-    render({blocks}, {treeState}) {
+    render({blocks}, {uiStateTree}) {
         return <div>
             <div class="p-relative" style="z-index: 1"><button
                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
-                class={ `btn btn-link p-absolute btn-sm pt-1${treeState ? '' : ' d-invisible'}` }
+                class={ `btn btn-link p-absolute btn-sm pt-1${uiStateTree ? '' : ' d-invisible'}` }
                 type="button"
                 style="right: .1rem">
                 <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
-            { treeState
+            { uiStateTree
                 ? <ul class="block-tree mx-1" ref={ el => {
                     if (!el) return;
                     this.dragDrop.attachOrUpdate(el);
@@ -120,7 +121,7 @@ class BlockTree extends preact.Component {
                     }
                 } }>{
                     blocks.length
-                        ? this.doRenderBranch(blocks).concat(<li
+                        ? this.doRenderBranch(blocks, uiStateTree, createGetTreeBlocksFn(), ' ').concat(<li
                             onDragOver={ this.onDragOver }
                             onDrop={ this.onDrop }
                             onDragLeave={ this.onDragLeave }
@@ -135,21 +136,27 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Array<Block>} branch
+     * @param {UiStateEntry} uiStateArr
+     * @param {(gbtRefBlock: Block) => Array<GlobalBlockTree>} getTreeBlocks
+     * @param {string} nth2DepthCls
      * @param {number} depth = 1
      * @param {Block} paren = null
      * @param {Block} ref = null {type:'GlobalBlockReference'...}
+     * @param {number} refDepth = 0
      */
-    doRenderBranch(branch, depth = 1, paren = null, ref = null) { return branch.map((block, i) => {
-        if (block.type === 'GlobalBlockReference')
-            return this.doRenderBranch(blockTreeUtils.getTree(block.globalBlockTreeId)?.blocks || [], depth, paren, block);
+    doRenderBranch(branch, uiStateArr, getTreeBlocks, nth2DepthCls, depth = 1, paren = null, ref = null, refDepth = 0) { return branch.map((block, i) => {
+        if (block.type === 'GlobalBlockReference') {
+            return this.doRenderBranch(getTreeBlocks(block), [uiStateEntry], getTreeBlocks,
+                nth2DepthCls === '' ? ' is-nth2-depth' : '', depth, paren, block, refDepth + 1);
+        }
         //
         const lastIxd = branch.length - 1;
-        const {treeState} = this.state;
+        const liUiState = uiStateEntry.item;
         if (block.type !== 'PageInfo') {
         const type = api.blockTypes.get(block.type);
         const title = getShortFriendlyName(block, type);
-        const c = !block.children.length ? [] : this.doRenderBranch(block.children, depth + 1, block, ref);
-        const rootRefBlockId = ref && block.id === blockTreeUtils.getTree(ref.globalBlockTreeId)?.blocks[0].id ? ref.id : null;
+        const c = !block.children.length ? [] : this.doRenderBranch(block.children, uiStateEntry.children, getTreeBlocks, nth2DepthCls, depth + 1, block, ref, refDepth);
+        const rootRefBlockId = ref && block.id === getTreeBlocks(ref)[0].id ? ref.id : null;
         const isStoredTo = !ref ? 'main' : 'globalBlockTree';
         return [<li
             onDragStart={ this.onDragStart }
@@ -159,19 +166,20 @@ class BlockTree extends preact.Component {
             onDrop={ this.onDrop }
             onDragEnd={ this.onDragEnd }
             onMouseOver={ e => {
-                if (!this.rightColumnViewIsCurrenlyOpen && !this.currentlyHoveredLi && e.target.getAttribute('data-block-id') === block.id) {
-                    this.currentlyHoveredLi = e.target;
-                    api.webPagePreview.highlightBlock(block);
+                const li = e.target.nodeName === 'LI' ? e.target : e.target.closest('li');
+                if (!this.rightColumnViewIsCurrenlyOpen && !this.currentlyHoveredLi && li.getAttribute('data-block-id') === block.id) {
+                    this.currentlyHoveredLi = li;
+                    api.webPagePreview.highlightBlock(block, refDepth);
                 }
             } }
             onMouseLeave={ e => {
                 if (this.currentlyHoveredLi === e.target)
                     this.unHighlighCurrentlyHoveredLi();
             } }
-            class={ [`${isStoredTo}-block`,
-                    !treeState[block.id].isSelected ? '' : ' selected',
-                    !treeState[block.id].isHidden ? '' : ' d-none',
-                    !treeState[block.id].isCollapsed ? '' : ' collapsed'].join('') }
+            class={ [`${isStoredTo}-block${nth2DepthCls}`,
+                    !liUiState.isSelected ? '' : ' selected',
+                    !liUiState.isHidden ? '' : ' d-none',
+                    !liUiState.isCollapsed ? '' : ' collapsed'].join('') }
             data-block-id={ block.id }
             data-is-stored-to-tree-id={ isStoredTo === 'main' ? 'main' : ref.globalBlockTreeId }
             data-is-root-block-of={ rootRefBlockId }
@@ -184,11 +192,11 @@ class BlockTree extends preact.Component {
             title={ title }
             key={ `${this.props.loadedPageSlug}-${block.id}` }
             draggable>
-            { !c.length ? null : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button">
+            { !c.length ? null : <button onClick={ () => this.toggleBranchIsCollapsed(uiStateEntry) } class="toggle p-absolute" type="button">
                 <Icon iconId="chevron-down" className="size-xs"/>
             </button> }
             <div class="d-flex">
-                <button onClick={ () => this.handleItemClickedOrFocused(block) } class="block-handle text-ellipsis" type="button">
+                <button onClick={ () => this.handleItemClickedOrFocused(block, undefined, uiStateEntry) } class="block-handle text-ellipsis" type="button">
                     <Icon iconId={ api.blockTypes.getIconId(type) } className="size-xs p-absolute"/>
                     <span class="text-ellipsis">{ title }</span>
                 </button>
@@ -201,7 +209,7 @@ class BlockTree extends preact.Component {
         //
         const title = block.title || __('PageInfo');
         return <li
-            class={ !treeState[block.id].isSelected ? '' : 'selected' }
+            class={ !liUiState.isSelected ? '' : 'selected' }
             data-block-id={ block.id }
             data-is-stored-to-tree-id="main"
             data-is-root-block-of={ null }
@@ -211,7 +219,7 @@ class BlockTree extends preact.Component {
             key={ block.id }>
             <div class="d-flex">
                 <button
-                    onClick={ () => !this.disablePageInfo ? this.handleItemClickedOrFocused(block) : function(){} }
+                    onClick={ () => !this.disablePageInfo ? this.handleItemClickedOrFocused(block, undefined, uiStateEntry) : function(){} }
                     class="block-handle text-ellipsis"
                     type="button"
                     disabled={ this.disablePageInfo }>
@@ -408,27 +416,16 @@ class BlockTree extends preact.Component {
     /**
      * @param {Block} block
      * @param {'direct'|'web-page'|'styles-tab'} origin = 'direct'
+     * @param {UiStateEntry} uiStateEntry = null
      * @access public
      */
-    handleItemClickedOrFocused(block, origin = 'direct') {
+    handleItemClickedOrFocused(block, origin = 'direct', uiStateEntry = null) {
+        if (!uiStateEntry) throw new Error('todo');
         this.selectedRoot = block;
         events.emit('block-tree-item-clicked-or-focused', block, origin);
         api.webPagePreview.scrollToBlock(block);
         //
-        const mutRef = this.state.treeState;
-        const root = blockTreeUtils.findBlockMultiTree(block.id, this.props.blocks)[3];
-        const tree = blockTreeUtils.isMainTree(root) ? root : root.blocks;
-        const parentBlockIds = withParentIdPathDo(tree, (parentPath, {id}) => {
-            if (id !== block.id) return null;
-            // Found block, has depth 1
-            if (!parentPath) return [];
-            // Found block, has depth > 1
-            return splitPath(parentPath);
-        });
-        parentBlockIds.forEach(id => {
-            setAsHidden(false, blockTreeUtils.findBlock(id, tree)[0], mutRef);
-        });
-        this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
+        this.setState({uiStateTree: this.setBlockAsSelected(block, uiStateEntry)});
     }
     /**
      * @param {Block} block
@@ -477,35 +474,39 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} block
-     * @param {Object} treeStateMutRef
-     * @returns {Object}
+     * @param {UiStateEntry} uiStateEntry
+     * @returns {Array<UiStateEntry>}
      * @access private
      */
-    setBlockAsSelected(block, treeStateMutRef) {
-        for (const key in treeStateMutRef) treeStateMutRef[key].isSelected = false;
-        treeStateMutRef[block.id].isSelected = true;
+    setBlockAsSelected(block, uiStateEntry) {
+        const mutRef = this.state.uiStateTree;
+
+        // unselect all
+        traverseRecursively(mutRef, itm => { itm.item.isSelected = false; });
+
+        // select this
+        if (uiStateEntry)
+            uiStateEntry.item.isSelected = true;
         this.selectedRoot = block;
-        return treeStateMutRef;
+
+        return mutRef;
     }
     /**
      * @access private
      */
     deSelectAllBlocks() {
-        const mutRef = this.state.treeState;
-        for (const key in mutRef) mutRef[key].isSelected = false;
-        this.selectedRoot = null;
-        this.setState({treeState: mutRef});
+        this.setState({uiStateTree: this.setBlockAsSelected(null, null)});
     }
     /**
-     * @param {Block} block
+     * @param {LiUiState} liUiState
      * @access private
      */
-    toggleBranchIsCollapsed(block) {
-        const mutRef = this.state.treeState;
-        const to = !mutRef[block.id].isCollapsed;
-        mutRef[block.id].isCollapsed = to;
-        hideOrShowChildren(to, block, mutRef);
-        this.setState({treeState: mutRef});
+    toggleBranchIsCollapsed(liUiState) {
+        const mutRef = this.state.uiStateTree;
+        const to = !liUiState.item.isCollapsed;
+        liUiState.item.isCollapsed = to; // mutates mutRef
+        hideOrShowChildren(to, liUiState);
+        this.setState({uiStateTree: mutRef});
     }
     /**
      * @access private

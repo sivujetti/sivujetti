@@ -1557,9 +1557,9 @@ a.popup-close-area {
 .block-tree li[data-last-child="true"]:not([class*="maybe-"]):not([data-has-children="true"]) > div:after {
     content: "";
     position: absolute;
-    width: 1px;
+    width: 2px;
     height: 50%;
-    left: -1px;
+    left: -1.5px;
     background-color: var(--color-bg-default);
     top: 50%;
     margin-top: 1px;

@@ -8,7 +8,7 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import {findGbt, removeFrom} from '../../includes/block/tree-dnd-controller-funcs.js';
 
-const autoCollapse = 'nonUniqueRootLevelItems'; // 'mainContentItem'|'nonUniqueRootLevelItems';
+const autoCollapseNonUniqueRootLevelItems = true;
 
 /**
  * @param {Array<Block>} newBlocks
@@ -16,88 +16,50 @@ const autoCollapse = 'nonUniqueRootLevelItems'; // 'mainContentItem'|'nonUniqueR
  * @returns {Object}
  */
 function createPartialState(newBlocks, previousState = {}) {
-    return {treeState: createTreeState(newBlocks, previousState.treeState)};
+    return {uiStateTree: createTreeState(newBlocks, previousState.uiStateTree)};
 }
 
 /**
- * @param {Array<Block>} tree
- * @param {{[key: string]: BlockTreeItemState;}|undefined} previousTreeState
- * @returns {{[key: string]: BlockTreeItemState;}}
+ * @param {Array<Block} tree
+ * @returns {Array<UiStateEntry>}
  */
-function createTreeState(tree, previousTreeState) {
-    const out = {};
-    const addItem = (block, parenBlock) => {
-        if (!previousTreeState || !previousTreeState[block.id])
-            out[block.id] = createTreeStateItem(!parenBlock ? null : out[parenBlock.id], !block.children.length ? undefined : {isCollapsed: true});
-        else {
-            const clone = {...previousTreeState[block.id]};
-            out[block.id] = clone;
-            // Visible block moved inside a collapsed one -> uncollapse
-            if (parenBlock && out[parenBlock.id].isCollapsed && !clone.isHidden)
-                setAsHidden(false, parenBlock, out, false);
-        }
-    };
-    const traverse = branch => {
-        traverseRecursively(branch, (block, _i, paren) => {
-            if (block.type !== 'GlobalBlockReference')
-                addItem(block, paren);
-            else
-                traverse(blockTreeUtils.getTree(block.globalBlockTreeId)?.blocks || []);
+function createTreeState(tree) {
+    const out = createBranch(tree, {});
+    if (autoCollapseNonUniqueRootLevelItems)
+        out.forEach(entry => {
+            setAsCollapsed(false, entry, false);
         });
-    };
-    traverse(tree);
-    if (autoCollapse === 'nonUniqueRootLevelItems')
-        tree.forEach(block => {
-            if (block.type === 'GlobalBlockReference') return;
-            if (block.children.length)
-                setAsHidden(false, block, out, false);
-        });
-    else if (autoCollapse === 'mainContentItem') {
-        const main = getMainContent(tree);
-        if (main) setAsHidden(false, main, out, false);
-    }
     return out;
 }
 
 /**
- * @param {Array<Block>} tree
- * @returns {Block|null}
+ * @param {Array<Block} branch
+ * @returns {Array<UiStateEntry>}
  */
-function getMainContent(tree) {
-    let headerIndex = null;
-    tree.forEach((block, i) => {
-        if (block.type === 'GlobalBlockReference') return;
-        if (headerIndex === null && block.title.toLowerCase().indexOf('header') > -1)
-            headerIndex = i;
+function createBranch(branch, parentProps = {}) {
+    return branch.map(maybeGbtRefBlock => {
+        const b = getVisibleBlock(maybeGbtRefBlock);
+        const hasChildren = b.children.length > 0;
+        return {
+            item: createTreeStateItem(null, {...parentProps,  isCollapsed: hasChildren, bid: b.type+':'+b.id}),
+            children: createBranch(b.children, {isHidden: hasChildren})
+        };
     });
-    if (headerIndex !== null) {
-        const next = tree[headerIndex + 1];
-        if (next && next.children.length) // next + next + ... ?
-            return next;
-    }
-    if (tree.length === 4) {
-        const [maybPageInfo, maybeMainMenu, maybeMainContent, maybeFooter] = tree;
-        if (
-            maybPageInfo.type === 'PageInfo' &&
-            (maybeMainMenu.type === 'GlobalBlockReference' && blockTreeUtils.findRecursively(maybeMainMenu.__globalBlockTree.blocks, b=>b.type==='Menu')) &&
-            maybeMainContent.children.length &&
-            (maybeFooter.type === 'GlobalBlockReference' && (maybeFooter.__globalBlockTree.blocks[0] || {}).title.toLowerCase().indexOf('footer') > -1)
-        ) return maybeMainContent;
-    }
-    if (tree.length === 2 && tree[0].type === 'PageInfo' && tree[1].children.length)
-        return tree[1];
-    return null;
 }
 
 /**
- * @param {boolean} isHidden
- * @param {Block} block
- * @param {Object} mutTreeState
+ * @param {boolean} asCollapsed
+ * @param {UiStateEntry} entry
  * @param {boolean} recursive = true
  */
-function setAsHidden(isHidden, block, mutTreeState, recursive = true) {
-    mutTreeState[block.id].isCollapsed = isHidden;
-    hideOrShowChildren(isHidden, block, mutTreeState, recursive);
+function setAsCollapsed(asCollapsed, entryMut, recursive = true) {
+    // const visible = getVisibleBlock(block);
+    if (entryMut.children.length) {
+        // uncollpse|uncollapase outermost
+        entryMut.item.isCollapsed = asCollapsed;
+        // show|hide children
+        hideOrShowChildren(asCollapsed, entryMut, recursive);
+    }
 }
 
 /**
@@ -154,25 +116,23 @@ function splitPath(path) {
 
 /**
  * @param {boolean} setAsHidden
- * @param {Block} block
- * @param {Object} mutTreeState
+ * @param {UiStateEntry} entryMut
  * @param {boolean} recursive = true
  */
-function hideOrShowChildren(setAsHidden, block, mutTreeState, recursive = true) {
-    if (!block.children.length) return;
+function hideOrShowChildren(setAsHidden, entryMut, recursive = true) {
+    if (!entryMut.children.length)
+        return;
     if (setAsHidden)
-        block.children.forEach(b2 => {
-            if (b2.type === 'GlobalBlockReference') return; // Ignore
-            mutTreeState[b2.id].isHidden = true;
+        entryMut.children.forEach(entry2 => {
+            entry2.item.isHidden = true;
             // Always hide all children
-            if (recursive) hideOrShowChildren(true, b2, mutTreeState);
+            if (recursive) hideOrShowChildren(true, entry2);
         });
     else
-        block.children.forEach(b2 => {
-            if (b2.type === 'GlobalBlockReference') return; // Ignore
-            mutTreeState[b2.id].isHidden = false;
+        entryMut.children.forEach(entry2 => {
+            entry2.item.isHidden = false;
             // Show children only if it's not collapsed
-            if (recursive && !mutTreeState[b2.id].isCollapsed) hideOrShowChildren(false, b2, mutTreeState);
+            if (recursive && !entry2.item.isCollapsed) hideOrShowChildren(false, entry2);
         });
 }
 
@@ -190,16 +150,17 @@ function getShortFriendlyName(block, type) {
 }
 
 /**
- * @param {Object} overrides = {}
- * @returns {BlockTreeItemState}
+ * @param {LiUiState|null} parent
+ * @param {{[key: keyof LiUiState]: boolean;}} overrides = {}
+ * @returns {LiUiState}
  */
 function createTreeStateItem(parentStateItem, overrides = {}) {
-    return Object.assign({
+    return {
         isSelected: false,
         isCollapsed: false,
-        isHidden: parentStateItem && parentStateItem.isCollapsed,
-        isNew: false,
-    }, overrides);
+        isHidden: parentStateItem && parentStateItem.item.isCollapsed,
+        ...overrides,
+    };
 }
 
 /**
@@ -255,7 +216,7 @@ function duplicateDeepAndReAssignIds(block) {
 /**
  * @param {HTMLLIElement} li
  * @param {dropPosition} pos
- * @returns {[Array<Block>, Array<Block]}
+ * @returns {[Array<Block>, Array<Block>]}
  */
 function createAddContentPlacementCfg(li, pos) {
     if (pos === 'as-child' &&
@@ -265,6 +226,14 @@ function createAddContentPlacementCfg(li, pos) {
         return [[...childLis].at(-1).querySelector('.block-handle'), false];
     }
     return [li.querySelector('.block-handle'), pos === 'before'];
+}
+
+/**
+ * @param {Block} maybeGbtRefBlock
+ * @returns {Block}
+ */
+function getVisibleBlock(maybeGbtRefBlock) {
+    return maybeGbtRefBlock.type !== 'GlobalBlockReference' ? maybeGbtRefBlock : blockTreeUtils.getTree(maybeGbtRefBlock.globalBlockTreeId).blocks[0];
 }
 
 /**
@@ -345,19 +314,35 @@ function createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlockId, o
     }
 }
 
+/**
+ * @returns {(gbtRefBlock: Block) => Array<GlobalBlockTree>}
+ */
+function createGetTreeBlocksFn() {
+    if (api.saveButton.getInstance().getChannelState('theBlockTree'))
+        return ({globalBlockTreeId}) => blockTreeUtils.getTree(globalBlockTreeId).blocks;
+    return _ => [];
+}
+
+/**
+ * @typedef {{item: LiUiState; children: Array<LiUiState>;}} UiStateEntry
+ *
+ * @typedef {{isSelected: boolean; isCollapsed: boolean; isHidden: boolean;}} LiUiState
+ */
+
 export {
     blockToBlueprint,
     clearHighlight,
     createAddContentPlacementCfg,
     createConvertBlockToGlobalOps,
     createDeleteBlockOp,
+    createGetTreeBlocksFn,
     createPartialState,
     createStyleShunkcScssIdReplacer,
     duplicateDeepAndReAssignIds,
     findVisibleLi,
     getShortFriendlyName,
     hideOrShowChildren,
-    setAsHidden,
+    setAsCollapsed,
     splitPath,
     withParentIdPathDo,
 };

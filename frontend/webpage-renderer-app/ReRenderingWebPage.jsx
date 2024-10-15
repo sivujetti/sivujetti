@@ -1,5 +1,5 @@
 import {urlUtils} from '@sivujetti-commons-for-web-pages';
-import {cloneDeep, getMetaKey, traverseRecursively} from '../shared-inline.js';
+import {getMetaKey, traverseRecursively} from '../shared-inline.js';
 import {stringHtmlPropToVNodeArray} from './ReRenderingWebPageFuncs.js';
 import builtInRenderers from './builtin-renderers-all.jsx';
 
@@ -19,7 +19,7 @@ const useCtrlClickBasedFollowLinkLogic = true;
 
 class RenderAll extends preact.Component {
     // messagePortToEditApp;
-    // curHoveredBlockEl;
+    // curHoveredBlock;
     // metaKeyIsPressed;
     // baseUrl;
     // isLocalLink;
@@ -119,20 +119,26 @@ class RenderAll extends preact.Component {
      */
     addHoverHanders(docBody) {
         const handleMouseEntered = el => {
-            this.curHoveredBlockEl = el;
+            this.curHoveredBlock = {
+                el: el,
+                blockId: getBlockId(el),
+                nthOfId: [...docBody.querySelectorAll(`[data-block="${getBlockId(el)}"]`)].indexOf(el) + 1,
+            };
             this.messagePortToEditApp.postMessage(['onBlockHoverStarted',
-                getBlockId(el),
+                this.curHoveredBlock.blockId,
+                this.curHoveredBlock.nthOfId,
                 el.getBoundingClientRect()]);
         };
         const handleMouseExited = el => {
-            this.curHoveredBlockEl = null;
+            this.curHoveredBlock = null;
             this.messagePortToEditApp.postMessage(['onBlockHoverEnded',
                 getBlockId(el)]);
         };
         const handleMouseEnteredTextChild = (childEl, textBlockEl) => {
             this.messagePortToEditApp.postMessage(['onTextBlockChildElHoverStarted',
-                Array.from(textBlockEl.children).indexOf(childEl),
-                getBlockId(textBlockEl)]);
+                [...textBlockEl.children].indexOf(childEl),
+                getBlockId(textBlockEl),
+                [...docBody.querySelectorAll(`[data-block="${getBlockId(textBlockEl)}"]`)].indexOf(textBlockEl) + 1]);
         };
         const handleMouseExitedTextChild = _el => {
             this.messagePortToEditApp.postMessage(['onTextBlockChildElHoverEnded']);
@@ -197,13 +203,13 @@ class RenderAll extends preact.Component {
             if (e.key === metaKey) this.metaKeyIsPressed = false;
         });
         docBody.addEventListener('click', e => {
-            const currentBlock = this.curHoveredBlockEl;
+            const currentBlock = this.curHoveredBlock;
             if (!currentBlock)
                 return;
 
             if (this.isMouseListenersDisabled) {
-                const blockId = getBlockId(currentBlock);
-                if (blockId) this.messagePortToEditApp.postMessage(['onClicked', blockId]);
+                const {blockId, nthOfId} = currentBlock;
+                if (blockId) this.messagePortToEditApp.postMessage(['onClicked', blockId, nthOfId]);
                 return;
             }
 
@@ -219,8 +225,8 @@ class RenderAll extends preact.Component {
                 return;
             }
 
-            const blockId = getBlockId(currentBlock);
-            if (blockId) this.messagePortToEditApp.postMessage(['onClicked', blockId]);
+            const {blockId, nthOfId} = currentBlock;
+            if (blockId) this.messagePortToEditApp.postMessage(['onClicked', blockId, nthOfId]);
         });
     }
     /**
@@ -231,7 +237,7 @@ class RenderAll extends preact.Component {
         let lastDownLink = null;
         let lastDownLinkAlreadyHandled = false;
         document.body.addEventListener('mousedown', e => {
-            if (!(this.curHoveredBlockEl || this.isMouseListenersDisabled)) return;
+            if (!(this.curHoveredBlock || this.isMouseListenersDisabled)) return;
             isDown = true;
             const a = e.button !== 0 ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
             if (!a) return;
@@ -241,25 +247,25 @@ class RenderAll extends preact.Component {
                 if (isDown && e.button === 0) {
                     lastDownLinkAlreadyHandled = true;
                     this.messagePortToEditApp.postMessage(['onClicked',
-                        getBlockId(this.curHoveredBlockEl)]);
+                        this.curHoveredBlock.blockId, this.curHoveredBlock.nthOfId]);
                 }
             }, 80);
         });
         document.body.addEventListener('click', e => {
-            const currentBlock = this.curHoveredBlockEl;
+            const currentBlock = this.curHoveredBlock;
             isDown = false;
             if (!lastDownLink) {
                 if (this.isMouseListenersDisabled) {
-                    this.messagePortToEditApp.postMessage(['onClicked', getBlockId(currentBlock)]);
+                    this.messagePortToEditApp.postMessage(['onClicked', currentBlock.blockId, currentBlock.nthOfId]);
                     return;
                 }
                 const b = e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button');
                 if (b) e.preventDefault();
-                this.messagePortToEditApp.postMessage(['onClicked', getBlockId(currentBlock)]);
+                this.messagePortToEditApp.postMessage(['onClicked', currentBlock.blockId, currentBlock.nthOfId]);
             } else {
                 e.preventDefault();
                 if (!lastDownLinkAlreadyHandled) {
-                    this.messagePortToEditApp.postMessage(['onClicked', null]);
+                    this.messagePortToEditApp.postMessage(['onClicked', null, null]);
                     this.doFollowLink(lastDownLink);
                 }
                 lastDownLink = null;

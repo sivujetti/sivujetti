@@ -32,6 +32,7 @@ import {
     createPartialState,
     createStyleShunkcScssIdReplacer,
     duplicateDeepAndReAssignIds,
+    findUiStateEntry,
     findVisibleLi,
     getShortFriendlyName,
     hideOrShowChildren,
@@ -142,12 +143,12 @@ class BlockTree extends preact.Component {
      * @param {number} depth = 1
      * @param {Block} paren = null
      * @param {Block} ref = null {type:'GlobalBlockReference'...}
-     * @param {number} refDepth = 0
      */
-    doRenderBranch(branch, uiStateArr, getTreeBlocks, nth2DepthCls, depth = 1, paren = null, ref = null, refDepth = 0) { return branch.map((block, i) => {
+    doRenderBranch(branch, uiStateArr, getTreeBlocks, nth2DepthCls, depth = 1, paren = null, ref = null) { return branch.map((block, i) => {
+        const uiStateEntry = uiStateArr[i];
         if (block.type === 'GlobalBlockReference') {
             return this.doRenderBranch(getTreeBlocks(block), [uiStateEntry], getTreeBlocks,
-                nth2DepthCls === '' ? ' is-nth2-depth' : '', depth, paren, block, refDepth + 1);
+                nth2DepthCls === '' ? ' is-nth2-depth' : '', depth, paren, block);
         }
         //
         const lastIxd = branch.length - 1;
@@ -155,7 +156,7 @@ class BlockTree extends preact.Component {
         if (block.type !== 'PageInfo') {
         const type = api.blockTypes.get(block.type);
         const title = getShortFriendlyName(block, type);
-        const c = !block.children.length ? [] : this.doRenderBranch(block.children, uiStateEntry.children, getTreeBlocks, nth2DepthCls, depth + 1, block, ref, refDepth);
+        const c = !block.children.length ? [] : this.doRenderBranch(block.children, uiStateEntry.children, getTreeBlocks, nth2DepthCls, depth + 1, block, ref);
         const rootRefBlockId = ref && block.id === getTreeBlocks(ref)[0].id ? ref.id : null;
         const isStoredTo = !ref ? 'main' : 'globalBlockTree';
         return [<li
@@ -169,7 +170,7 @@ class BlockTree extends preact.Component {
                 const li = e.target.nodeName === 'LI' ? e.target : e.target.closest('li');
                 if (!this.rightColumnViewIsCurrenlyOpen && !this.currentlyHoveredLi && li.getAttribute('data-block-id') === block.id) {
                     this.currentlyHoveredLi = li;
-                    api.webPagePreview.highlightBlock(block, refDepth);
+                    api.webPagePreview.highlightBlock(block, [...this.dragDrop.ul.querySelectorAll(`li[data-block-id="${block.id}"]`)].indexOf(li) + 1);
                 }
             } }
             onMouseLeave={ e => {
@@ -196,7 +197,7 @@ class BlockTree extends preact.Component {
                 <Icon iconId="chevron-down" className="size-xs"/>
             </button> }
             <div class="d-flex">
-                <button onClick={ () => this.handleItemClickedOrFocused(block, undefined, uiStateEntry) } class="block-handle text-ellipsis" type="button">
+                <button onClick={ () => this.handleItemClickedOrFocused(block, uiStateEntry) } class="block-handle text-ellipsis" type="button">
                     <Icon iconId={ api.blockTypes.getIconId(type) } className="size-xs p-absolute"/>
                     <span class="text-ellipsis">{ title }</span>
                 </button>
@@ -219,7 +220,7 @@ class BlockTree extends preact.Component {
             key={ block.id }>
             <div class="d-flex">
                 <button
-                    onClick={ () => !this.disablePageInfo ? this.handleItemClickedOrFocused(block, undefined, uiStateEntry) : function(){} }
+                    onClick={ () => !this.disablePageInfo ? this.handleItemClickedOrFocused(block, uiStateEntry) : function(){} }
                     class="block-handle text-ellipsis"
                     type="button"
                     disabled={ this.disablePageInfo }>
@@ -299,7 +300,7 @@ class BlockTree extends preact.Component {
 
         saveButton.pushOp('theBlockTree', newTree, {event: 'duplicate'});
 
-        api.webPagePreview.scrollToBlockAsync(cloned);
+        api.webPagePreview.scrollToBlockAsync(cloned, 1);
     }
     /**
      * @param {Block} openBlock
@@ -415,17 +416,33 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} block
+     * @param {UiStateEntry|number} nthOfIdOrUiStateEntry
      * @param {'direct'|'web-page'|'styles-tab'} origin = 'direct'
-     * @param {UiStateEntry} uiStateEntry = null
      * @access public
      */
-    handleItemClickedOrFocused(block, origin = 'direct', uiStateEntry = null) {
-        if (!uiStateEntry) throw new Error('todo');
+    handleItemClickedOrFocused(block, nthOfIdOrUiStateEntry, origin = 'direct') {
         this.selectedRoot = block;
-        events.emit('block-tree-item-clicked-or-focused', block, origin);
-        api.webPagePreview.scrollToBlock(block);
-        //
+
+        let uiStateEntry;
+        let nthId;
+        if (typeof nthIdOrUiStateEntry !== 'number') {
+            uiStateEntry = nthIdOrUiStateEntry;
+            nthId = 0;
+            let found = false;
+            traverseRecursively(this.state.uiStateTree, ent => {
+                if (!found && ent.item.blockId === uiStateEntry.item.blockId) {
+                    nthId += 1;
+                    found = ent === uiStateEntry;
+                }
+            });
+        } else {
+            uiStateEntry = findUiStateEntry(block.id, nthOfIdOrUiStateEntry, this.props.blocks, this.state.uiStateTree);
+            nthOfId = nthOfIdOrUiStateEntry;
+        }
+
         this.setState({uiStateTree: this.setBlockAsSelected(block, uiStateEntry)});
+        events.emit('block-tree-item-clicked-or-focused', block, nthOfId, origin);
+        api.webPagePreview.scrollToBlock(block, nthOfId);
     }
     /**
      * @param {Block} block
@@ -513,15 +530,15 @@ class BlockTree extends preact.Component {
      */
     addBlockHoverHighlightListeners() {
         const curHigh = {hovered: null, visible: null};
-        this.unregistrables.push(events.on('highlight-rect-revealed', (blockId, origin) => {
+        this.unregistrables.push(events.on('highlight-rect-revealed', (blockId, nthOfId, origin) => {
             if (origin !== 'web-page') return;
             if (!this.props.blocks?.length) return;
             if (curHigh.hovered) clearHighlight(curHigh);
             const {ul} = this.dragDrop;
-            const li = ul.querySelector(`li[data-block-id="${blockId}"]`);
+            const li = ul.querySelectorAll(`li[data-block-id="${blockId}"]`)[nthOfId - 1];
             if (li) {
                 curHigh.hovered = li;
-                curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, ul, li);
+                curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, nthOfId, ul, li);
                 curHigh.visible.classList.add('highlighted');
             }
         }));

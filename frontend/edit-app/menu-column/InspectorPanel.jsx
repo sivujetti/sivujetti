@@ -77,20 +77,21 @@ class InspectorPanel extends preact.Component {
             <button onClick={ this.close.bind(this) } class="btn btn-link with-icon p-absolute p-1" title={ __('Close') } style="right:0;top:0" type="button">
                 <Icon iconId="x" className="size-sm"/>
             </button>
-            { Renderer ? preact.createElement(Renderer, Object.assign({key: this.rendererKey, inspectorPanel: this}, this.rendererProps)) : null }
+            { Renderer ? <Renderer inspectorPanel={ this } key={ this.rendererKey } { ...this.rendererProps }/> : null }
         </div>;
     }
     /**
      * Note to self: this currently supports BlockEditForm only.
      *
      * @param {Block} block
+     * @param {number} nthOfBlockId = 1
      * @access private
      */
-    open(block) {
-        const newRendererKey = `edit-block-tree-${block.id}`;
+    open(block, nthOfBlockId = 1) {
+        const newRendererKey = `edit-block-tree-${block.id}-${nthOfBlockId}`;
         if (this.rendererKey === newRendererKey) return;
         //
-        this.rendererProps = {block};
+        this.rendererProps = {block, nthOfBlockId};
         this.rendererKey = newRendererKey;
         this.setState({Renderer: BlockEditForm});
         this.props.rootEl.classList.add('inspector-panel-open');

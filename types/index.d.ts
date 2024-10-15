@@ -46,8 +46,8 @@ interface WebPagePreviewApp {
     highlightBlock(block: Block): todo;
     unHighlightBlock(blockId: string): todo;
     unHighlightTextBlockChildEl(): todo;
-    scrollToBlock(block: Block): todo;
-    highlightTextBlockChildEl(elIdx: number, textBlockBlockId: string): todo;
+    scrollToBlock(block: Block, nthOfId: number): todo;
+    highlightTextBlockChildEl(elIdx: number, textBlockBlockId: string, nthOfTextBlockBlockId: number): todo;
     onReady(/*fn*/): todo;
 }
 

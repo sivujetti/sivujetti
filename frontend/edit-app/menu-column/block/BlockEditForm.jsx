@@ -113,10 +113,10 @@ class BlockEditForm extends preact.Component {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{block: Block; inspectorPanel: preact.Component;}} props
+     * @param {{block: Block; nthOfBlockId: number; inspectorPanel: preact.Component;}} props
      * @access protected
      */
-    render(_, {currentTabKind, blockCopyForEditForm, lastBlockTreeChangeEventInfo, blockHasCustomizableStyles}) {
+    render({nthOfBlockId}, {currentTabKind, blockCopyForEditForm, lastBlockTreeChangeEventInfo, blockHasCustomizableStyles}) {
         const blockId = blockCopyForEditForm.id;
         const isMeta = isMetaBlock(blockCopyForEditForm);
         const typeid = isMeta ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
@@ -148,6 +148,7 @@ class BlockEditForm extends preact.Component {
                     content = this.editFormImpls.map(Renderer =>
                         <Renderer
                             block={ blockCopyForEditForm }
+                            nthOfBlockId={ nthOfBlockId }
                             lastBlockTreeChangeEventInfo={ lastBlockTreeChangeEventInfo }
                             emitValueChanged={ (val, key, ...varargs) => { this.handleValuesChanged({[key]: val}, ...varargs); } }
                             emitValueChangedThrottled={ (val, key, hasErrors = false, source = null) => {

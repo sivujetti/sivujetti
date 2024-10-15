@@ -59,11 +59,11 @@ class OnThisPageSection extends MenuSectionAbstract {
                     refreshTheBlockTree([...this.state.loadedPageBlocks]);
             }),
             events.on('web-page-click-received',
-                (blockId) => {
+                (blockId, nthOfId) => {
                     if (!blockId) return;
                     if (!this.state.loadedPageBlocks?.length) return;
                     const [block] = blockTreeUtils.findBlockMultiTree(blockId, this.state.loadedPageBlocks);
-                    this.focusToBlockAndEmitBlockTreeClick(block, 'web-page', () => { });
+                    this.focusToBlockAndEmitBlockTreeClick(block, nthOfId);
                 }
             ),
             events.on('inspector-panel-closed', () => {
@@ -176,23 +176,20 @@ class OnThisPageSection extends MenuSectionAbstract {
     }
     /**
      * @param {Block} visibleBlock
-     * @param {'web-page'|'styles-tab'} clickOrigin
-     * @param {() => void} then
+     * @param {number} nthOfId
      * @access private
      */
-    focusToBlockAndEmitBlockTreeClick(visibleBlock, clickOrigin, then) {
+    focusToBlockAndEmitBlockTreeClick(visibleBlock, nthOfId) {
         if (this.state.isCollapsed) this.setState({isCollapsed: false});
         if (visibleBlock.type !== 'Text') {
-            this.blockTreeRef.current.handleItemClickedOrFocused(visibleBlock, clickOrigin);
+            this.blockTreeRef.current.handleItemClickedOrFocused(visibleBlock, nthOfId, 'web-page');
             setTimeout(() => {
                 api.menuPanel.scrollTo(visibleBlock.id);
-                then();
             }, 100);
         } else {
-            this.blockTreeRef.current.handleItemClickedOrFocused(visibleBlock, clickOrigin);
+            this.blockTreeRef.current.handleItemClickedOrFocused(visibleBlock, nthOfId, 'web-page');
             setTimeout(() => {
                 api.menuPanel.scrollTo(visibleBlock.id);
-                then();
             }, 100);
         }
     }

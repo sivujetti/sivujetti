@@ -45,17 +45,18 @@ class WebPagePreviewApp extends preact.Component {
     }
     /**
      * @param {Block} block
+     * @param {number} nthOfId
      * @param {'web-page'|'block-tree'} origin
      * @param {DOMRect} rect = null
      * @access public
      */
-    highlightBlock(block, origin = 'block-tree', rect = null) {
+    highlightBlock(block, nthOfId, origin = 'block-tree', rect = null) {
         if (isMetaBlock(block)) return;
         const title = (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + (block.title || __(block.type));
-        const foundRect = rect || this.getBlockEl(block.id)?.getBoundingClientRect();
+        const foundRect = rect || this.getBlockEl(block.id, nthOfId)?.getBoundingClientRect();
         if (!foundRect) return;
         this.doShowHighlightRect(foundRect, title, 0);
-        events.emit('highlight-rect-revealed', block.id, origin);
+        events.emit('highlight-rect-revealed', block.id, nthOfId, origin);
     }
     /**
      * @param {string} blockId
@@ -66,11 +67,12 @@ class WebPagePreviewApp extends preact.Component {
     }
     /**
      * @param {number} elIdx
-     * @param {string} textBlockId
+     * @param {string} textBlockBlockId
+     * @param {number} nthOfTextBlockBlockId
      * @access public
      */
-    highlightTextBlockChildEl(elIdx, textBlockBlockId) {
-        const blockEl = this.getBlockEl(textBlockBlockId);
+    highlightTextBlockChildEl(elIdx, textBlockBlockId, nthOfTextBlockBlockId) {
+        const blockEl = this.getBlockEl(textBlockBlockId, nthOfTextBlockBlockId);
         const childEl = blockEl.children[elIdx];
         if (!childEl) return;
         const rect = childEl.getBoundingClientRect();
@@ -86,24 +88,25 @@ class WebPagePreviewApp extends preact.Component {
     }
     /**
      * @param {Block} block
+     * @param {number} nthOfId
      * @returns {boolean} didScroll
      * @access public
      */
-    scrollToBlock(block, win = this.getEl().contentWindow, behavior = 'smooth') {
+    scrollToBlock(block, nthOfId, win = this.getEl().contentWindow, behavior = 'smooth') {
         if (isMetaBlock(block)) return;
-        const blockEl = this.getBlockEl(block.id, this.getEl().contentDocument.body);
+        const blockEl = this.getBlockEl(block.id, nthOfId);
         if (!blockEl) return false;
         return this.scrollToBlockEl(blockEl, win, behavior);
     }
     /**
      * @param {Block} block
+     * @param {number} nthOfId
      * @access public
      */
-    scrollToBlockAsync(block, win = this.getEl().contentWindow, behavior = 'smooth') {
+    scrollToBlockAsync(block, nthOfId, win = this.getEl().contentWindow, behavior = 'smooth') {
         if (isMetaBlock(block)) return;
-        const body = this.getEl().contentDocument.body;
         createTrier(() => {
-            const el = this.getBlockEl(block.id, body);
+            const el = this.getBlockEl(block.id, nthOfId);
             if (!el) return false;
             this.scrollToBlockEl(el, win, behavior);
             return true;
@@ -115,8 +118,7 @@ class WebPagePreviewApp extends preact.Component {
      * @access public
      */
     scrollToTextBlockChildEl(childElemIdx, textBlockBlockId) {
-        const body = this.getEl().contentDocument.body;
-        const blockEl = getBlockEl(textBlockBlockId, body);
+        const blockEl = this.getBlockEl(textBlockBlockId, 1);
         const child = blockEl.children[childElemIdx];
         const rect = child.getBoundingClientRect();
         const win = this.getEl().contentWindow;
@@ -221,24 +223,24 @@ class WebPagePreviewApp extends preact.Component {
                         if (e.data[0] === 'hereIsPageDataBundle') {
                             broadcastCurrentPageData(e);
                         } else if (e.data[0] === 'onBlockHoverStarted') {
-                            const [_, blockId, blockRect] = e.data; // [_, string, DOMRect]
+                            const [_, blockId, nthOfId, blockRect] = e.data; // [_, string, DOMRect]
                             const block = blockRect ? blockTreeUtils.findBlockMultiTree(blockId, api.saveButton.getInstance().getChannelState('theBlockTree'))[0] : null;
-                            if (block) this.highlightBlock(block, 'web-page', blockRect);
+                            if (block) this.highlightBlock(block, nthOfId, 'web-page', blockRect);
                         } else if (e.data[0] === 'onBlockHoverEnded') {
                             const [_, blockId] = e.data; // [_, string]
                             this.doHideHighlightRect(0);
                             events.emit('highlight-rect-removed', blockId);
                         } else if (e.data[0] === 'onTextBlockChildElHoverStarted') {
-                            const [_, childIdx, textBlockBlockId] = e.data; // [_, number, string]
-                            this.highlightTextBlockChildEl(childIdx, textBlockBlockId);
+                            const [_, childIdx, textBlockBlockId, nthOfTextBlockBlockId] = e.data; // [_, number, string]
+                            this.highlightTextBlockChildEl(childIdx, textBlockBlockId, nthOfTextBlockBlockId);
                             events.emit('web-page-text-block-child-el-hover-started', childIdx, textBlockBlockId);
                         } else if (e.data[0] === 'onTextBlockChildElHoverEnded') {
                             this.unHighlightTextBlockChildEl();
                             events.emit('web-page-text-block-child-el-hover-ended');
                         } else if (e.data[0] === 'onClicked') {
-                            const [_, blockId] = e.data; // [_, string|null]
+                            const [_, blockId, nthOfId] = e.data; // [_, string|null, number|null]
                             if (blockId)
-                                events.emit('web-page-click-received', blockId);
+                                events.emit('web-page-click-received', blockId, nthOfId);
                         }
                     };
                     // Transfer port2 to the iframe (that sends the 'hereIsPageDataBundle')
@@ -316,12 +318,14 @@ class WebPagePreviewApp extends preact.Component {
     }
     /**
      * @param {string} blockId
+     * @param {number} nthOfId
      * @returns {HTMLElement|null}
      * @access private
      */
-    getBlockEl(blockId) {
-        const iframe = document.querySelector('.site-preview-iframe');
-        return getBlockEl(blockId, iframe.contentDocument);
+    getBlockEl(blockId, nthOfId) {
+        const from = this.getEl().contentDocument.body;
+        if (nthOfId === 1) return getBlockEl(blockId, from);
+        return getNthBlockEl(blockId, nthOfId, from);
     }
     /**
      * @param {HTMLElement} blockEl
@@ -492,6 +496,17 @@ function attachGlobalBlockTreesAndClone(blocks, gbts) {
     return objectUtils.cloneDeepWithChanges(blocks, copy => {
         attachTrees(copy);
     });
+}
+
+/**
+ * @param {string} blockId
+ * @param {number} nthOfId
+ * @param {HTMLElement} from
+ * @returns {HTMLElement|null}
+ */
+function getNthBlockEl(blockId, nthOfId, from) {
+    const all = from.querySelectorAll(`[data-block="${blockId}"]`);
+    return all[nthOfId - 1] || null;
 }
 
 export default WebPagePreviewApp;

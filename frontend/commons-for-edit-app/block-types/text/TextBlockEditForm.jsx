@@ -23,7 +23,7 @@ events.on('web-page-text-block-child-el-hover-ended', () => {
     currentHoveredNodeInfo = null;
 });
 
-events.on('web-page-click-received', _blockEl => {
+events.on('web-page-click-received', (/*blockId, nthOfId*/) => {
     if (currentInstance && currentHoveredNodeInfo)
         currentInstance.maybeScrollToEditorNode(currentHoveredNodeInfo);
 });
@@ -147,12 +147,15 @@ class TextBlockEditForm extends preact.Component {
     addEditorNodeMouseListeners(instance) {
         const {root} = instance.quill;
         let hovered = null;
+        const doHighlighChildEl = hovered => {
+            api.webPagePreview.highlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.block.id, this.props.nthOfBlockId);
+        };
         root.addEventListener('click', () => {
             if (hovered) {
                 api.webPagePreview.scrollToTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.block.id);
                 setTimeout(() => {
                     if (hovered)
-                        api.webPagePreview.highlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.block.id);
+                        doHighlighChildEl(hovered);
                 }, 100);
             }
         });
@@ -163,13 +166,13 @@ class TextBlockEditForm extends preact.Component {
                 if (hasChanged) {
                     api.webPagePreview.unHighlightTextBlockChildEl();
                     hovered = e.target;
-                    api.webPagePreview.highlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.block.id);
+                    doHighlighChildEl(hovered);
                 }
             } else {
                 const candidate = getNormalizedInitialHoverCandidate(e.target, root);
                 if (candidate !== root) {
                     hovered = candidate;
-                    api.webPagePreview.highlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.block.id);
+                    doHighlighChildEl(hovered);
                 }
             }
         }, true);

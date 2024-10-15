@@ -41,7 +41,7 @@ function createBranch(branch, parentProps = {}) {
         const b = getVisibleBlock(maybeGbtRefBlock);
         const hasChildren = b.children.length > 0;
         return {
-            item: createTreeStateItem(null, {...parentProps,  isCollapsed: hasChildren, bid: b.type+':'+b.id}),
+            item: createTreeStateItem({...parentProps, isCollapsed: hasChildren, blockId: b.id}),
             children: createBranch(b.children, {isHidden: hasChildren})
         };
     });
@@ -73,18 +73,20 @@ function clearHighlight(curHigh) {
 
 /**
  * @param {HTMLLIElement} li
+ * @param {number} nthOfId
  * @param {HTMLUListElement} ul
  * @param {HTMLLIElement} def
  * @returns {HTMLLIElement}
  */
-function findVisibleLi(li, ul, def) {
+function findVisibleLi(li, nthOfId, ul, def) {
     const parentBlockId = li.getAttribute('data-is-children-of');
     if (!parentBlockId) return def;
-    const parentBlockLi = ul.querySelector(`li[data-block-id="${parentBlockId}"]`);
+    const selector = `li[data-block-id="${parentBlockId}"]`;
+    const parentBlockLi = nthOfId < 2 ? ul.querySelector(selector) : ul.querySelectorAll(selector)[nthOfId - 1];
     if (!parentBlockLi.classList.contains('d-none')) // found it
         return parentBlockLi;
     // keep looking
-    return findVisibleLi(parentBlockLi, ul, def);
+    return findVisibleLi(parentBlockLi, nthOfId, ul, def);
 }
 
 /**
@@ -150,15 +152,14 @@ function getShortFriendlyName(block, type) {
 }
 
 /**
- * @param {LiUiState|null} parent
- * @param {{[key: keyof LiUiState]: boolean;}} overrides = {}
+ * @param {{[key: keyof LiUiState]: boolean|string;}} overrides = {}
  * @returns {LiUiState}
  */
-function createTreeStateItem(parentStateItem, overrides = {}) {
+function createTreeStateItem(overrides = {}) {
     return {
         isSelected: false,
         isCollapsed: false,
-        isHidden: parentStateItem && parentStateItem.item.isCollapsed,
+        isHidden: false,
         ...overrides,
     };
 }
@@ -324,9 +325,37 @@ function createGetTreeBlocksFn() {
 }
 
 /**
+ * @param {string} blockId
+ * @param {string} nthOfId
+ * @param {Array<Block} blockBranch
+ * @param {Array<UiStateEntry} uiStateBranch
+ * @param {{nthFound: number;}} stat = {nthFound: 0}
+ * @param {(gbtRefBlock: Block) => Array<GlobalBlockTree>} getTreeBlocks = createGetTreeBlocksFn()
+ * @returns {Block|undefined}
+ */
+function findUiStateEntry(blockId, nthOfId, blockBranch, uiStateBranch, stat = {nthFound: 0}, getTreeBlocks = createGetTreeBlocksFn()) {
+    for (let i = 0; i < blockBranch.length; ++i) {
+        const block = blockBranch[i];
+        if (block.type !== 'GlobalBlockReference') {
+            if (block.id === blockId) {
+                stat.nthFound += 1;
+                if (stat.nthFound === nthOfId) return uiStateBranch[i];
+            }
+            if (block.children.length) {
+                const s = findUiStateEntry(blockId, nthOfId, block.children, uiStateBranch[i].children, stat, getTreeBlocks);
+                if (s) return s;
+            }
+        } else {
+            const s2 = findUiStateEntry(blockId, nthOfId, getTreeBlocks(block), [uiStateBranch[i]], stat, getTreeBlocks);
+            if (s2) return s2;
+        }
+    }
+}
+
+/**
  * @typedef {{item: LiUiState; children: Array<LiUiState>;}} UiStateEntry
  *
- * @typedef {{isSelected: boolean; isCollapsed: boolean; isHidden: boolean;}} LiUiState
+ * @typedef {{isSelected: boolean; isCollapsed: boolean; isHidden: boolean; blockId: string;}} LiUiState
  */
 
 export {
@@ -339,6 +368,7 @@ export {
     createPartialState,
     createStyleShunkcScssIdReplacer,
     duplicateDeepAndReAssignIds,
+    findUiStateEntry,
     findVisibleLi,
     getShortFriendlyName,
     hideOrShowChildren,

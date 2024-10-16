@@ -605,3 +605,5 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
 type scssCodeInput = string|Array<string>;
 
 type translateVarInputToScssCodeTemplateFn = (varName: string, value: string, valueNorm: string) => scssCodeInput;
+
+type globalBlockReferenceBlockId = string;

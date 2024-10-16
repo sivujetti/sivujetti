@@ -35,7 +35,11 @@ import {
     findUiStateEntry,
     findVisibleLi,
     getShortFriendlyName,
+    getVisibleLisCount,
     hideOrShowChildren,
+    setAsCollapsed,
+    splitPath,
+    withIdxPathDo,
 } from './BlockTreeFuncs.js';
 import AddContentPopup from './AddContentPopup.jsx';
 /** @typedef {import('./BlockTreeFuncs.js').UiStateEntry} UiStateEntry */
@@ -83,10 +87,9 @@ class BlockTree extends preact.Component {
     componentWillReceiveProps(props) {
         if (props.blocks !== this.props.blocks) {
             const {pathname} = historyInstance.getCurrentLocation();
-            if (!this.curUrl) this.curUrl = pathname;
+            const isCurrentPage = this.curUrl === pathname;
             //
-            const prevState = pathname === this.curUrl ? this.state : {};
-            //
+            const prevState = isCurrentPage ? this.state.uiStateTree : null;
             this.setState(createPartialState(props.blocks, prevState));
             this.curUrl = pathname;
         }
@@ -137,7 +140,7 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Array<Block>} branch
-     * @param {UiStateEntry} uiStateArr
+     * @param {Array<UiStateEntry>} uiStateArr
      * @param {(gbtRefBlock: Block) => Array<GlobalBlockTree>} getTreeBlocks
      * @param {string} nth2DepthCls
      * @param {number} depth = 1
@@ -205,6 +208,12 @@ class BlockTree extends preact.Component {
                     <Icon iconId="dots" className="size-xs"/>
                 </button>
             </div>
+            { !rootRefBlockId
+                ? null
+                : <span
+                    class="global-block-tree-guide"
+                    style={ `height: calc((1.45rem * ${getVisibleLisCount(uiStateEntry)}) - 0.1rem)` }></span>
+            }
         </li>].concat(c);
         }
         //
@@ -422,27 +431,29 @@ class BlockTree extends preact.Component {
      */
     handleItemClickedOrFocused(block, nthOfIdOrUiStateEntry, origin = 'direct') {
         this.selectedRoot = block;
-
-        let uiStateEntry;
-        let nthId;
-        if (typeof nthIdOrUiStateEntry !== 'number') {
-            uiStateEntry = nthIdOrUiStateEntry;
-            nthId = 0;
-            let found = false;
-            traverseRecursively(this.state.uiStateTree, ent => {
-                if (!found && ent.item.blockId === uiStateEntry.item.blockId) {
-                    nthId += 1;
-                    found = ent === uiStateEntry;
-                }
-            });
-        } else {
-            uiStateEntry = findUiStateEntry(block.id, nthOfIdOrUiStateEntry, this.props.blocks, this.state.uiStateTree);
-            nthOfId = nthOfIdOrUiStateEntry;
-        }
-
-        this.setState({uiStateTree: this.setBlockAsSelected(block, uiStateEntry)});
         events.emit('block-tree-item-clicked-or-focused', block, nthOfId, origin);
         api.webPagePreview.scrollToBlock(block, nthOfId);
+
+        const pieces = withIdxPathDo(this.state.uiStateTree, (idxPath, _i, ent) => {
+            if (ent === uiStateEntry) return splitPath(idxPath);
+        });
+        const mutRef = this.state.uiStateTree;
+
+        // Uncollapse all parents
+        if (pieces?.length) {
+            let branch = mutRef;
+            for (const idx of pieces) {
+                const ent = branch[parseInt(idx)];
+                if (ent.item.isCollapsed) {
+                    setAsCollapsed(false, ent, true);
+                    break;
+                }
+                branch = ent.children;
+            }
+        }
+
+        // Uncollapse selected
+        this.setState({uiStateTree: this.setBlockAsSelected(block, uiStateEntry, mutRef)});
     }
     /**
      * @param {Block} block
@@ -491,22 +502,22 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} block
-     * @param {UiStateEntry} uiStateEntry
+     * @param {UiStateEntry} uiStateEntryMut
+     * @param {UiStateEntry} uiStateEntryMut 
      * @returns {Array<UiStateEntry>}
      * @access private
      */
-    setBlockAsSelected(block, uiStateEntry) {
-        const mutRef = this.state.uiStateTree;
+    setBlockAsSelected(block, uiStateEntry, treeMut = this.state.uiStateTree) {
 
         // unselect all
-        traverseRecursively(mutRef, itm => { itm.item.isSelected = false; });
+        traverseRecursively(treeMut, itm => { itm.item.isSelected = false; });
 
         // select this
         if (uiStateEntry)
             uiStateEntry.item.isSelected = true;
         this.selectedRoot = block;
 
-        return mutRef;
+        return treeMut;
     }
     /**
      * @access private
@@ -553,6 +564,29 @@ class BlockTree extends preact.Component {
     unHighlighCurrentlyHoveredLi() {
         api.webPagePreview.unHighlightBlock(this.currentlyHoveredLi.getAttribute('data-block-id'));
         this.currentlyHoveredLi = null;
+    }
+    /**
+     * @param {Block} block
+     * @param {UiStateEntry|number} nthOfIdOrUiStateEntry
+     * @returns {[UiStateEntry, number]} [uiStateEntry, nthOfId]
+     * @access private
+     */
+    findUiStateEntryAndNthOfId(block, nthOfIdOrUiStateEntry) {
+        if (typeof nthOfIdOrUiStateEntry !== 'number') {
+            let nthOfId = 0;
+            let found = false;
+            traverseRecursively(this.state.uiStateTree, ent => {
+                if (!found && ent.item.blockId === nthOfIdOrUiStateEntry.item.blockId) {
+                    nthOfId += 1;
+                    found = ent === nthOfIdOrUiStateEntry;
+                }
+            });
+            return [nthOfIdOrUiStateEntry, nthOfId];
+        }
+        return [
+            findUiStateEntry(block.id, nthOfIdOrUiStateEntry, this.props.blocks, this.state.uiStateTree),
+            nthOfIdOrUiStateEntry,
+        ];
     }
 }
 

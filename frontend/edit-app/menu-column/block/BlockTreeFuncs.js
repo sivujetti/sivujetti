@@ -12,28 +12,62 @@ const autoCollapseNonUniqueRootLevelItems = true;
 
 /**
  * @param {Array<Block>} newBlocks
- * @param {Object} previousState = {}
+ * @param {Array<UiStateEntry>} previousState
  * @returns {Object}
  */
-function createPartialState(newBlocks, previousState = {}) {
-    return {uiStateTree: createTreeState(newBlocks, previousState.uiStateTree)};
+function createPartialState(newBlocks, previousState = null) {
+    return {uiStateTree: createTreeState(newBlocks, previousState)};
 }
 
 /**
- * @param {Array<Block} tree
+ * @param {Array<Block>} tree
+ * @param {Array<UiStateEntry>|null} previousState
  * @returns {Array<UiStateEntry>}
  */
-function createTreeState(tree) {
-    const out = createBranch(tree, {});
-    if (autoCollapseNonUniqueRootLevelItems)
-        out.forEach(entry => {
-            setAsCollapsed(false, entry, false);
-        });
-    return out;
+function createTreeState(tree, previousState) {
+    if (!previousState) {
+        const out = createBranch(tree, {});
+        if (autoCollapseNonUniqueRootLevelItems)
+            out.forEach(entry => {
+                setAsCollapsed(false, entry, false);
+            });
+        return out;
+    }
+    return createBranchFromPrev(tree, createFindPrevUiStateEntryFn(previousState), {});
 }
 
 /**
- * @param {Array<Block} branch
+ * @param {Array<Block>} branch
+ * @param {(blockId: string, isPartOf: globalBlockReferenceBlockId = null) => UiStateEntry|null} findPrev
+ * @param {{[key: keyof LiUiState]: boolean|string;}} parentProps = {}
+ * @returns {Array<UiStateEntry>}
+ */
+function createBranchFromPrev(branch, findPrev, parentProps = {}) {
+    return branch.map(maybeGbtRefBlock => {
+        const b = getVisibleBlock(maybeGbtRefBlock);
+        const p = findPrev(b.id, b === maybeGbtRefBlock ? null : maybeGbtRefBlock.id);
+
+        // New content
+        if (!p)
+            return createBranch([b], parentProps)[0];
+
+        // New child content (inserted or dragged)
+        if (p.item.isCollapsed && b.children.length > p.children.length && !p.item.isPartOf)
+            return {
+                item: {...p.item, ...parentProps, isCollapsed: false},
+                children: createBranchFromPrev(b.children, findPrev, {isHidden: false})
+            };
+
+        return {
+            item: {...p.item, ...parentProps},
+            children: createBranchFromPrev(b.children, findPrev, {isHidden: p.item.isCollapsed})
+        };
+    });
+}
+
+/**
+ * @param {Array<Block>} branch
+ * @param {{[key: keyof LiUiState]: boolean|string;}} parentProps = {}
  * @returns {Array<UiStateEntry>}
  */
 function createBranch(branch, parentProps = {}) {
@@ -41,10 +75,24 @@ function createBranch(branch, parentProps = {}) {
         const b = getVisibleBlock(maybeGbtRefBlock);
         const hasChildren = b.children.length > 0;
         return {
-            item: createTreeStateItem({...parentProps, isCollapsed: hasChildren, blockId: b.id}),
+            item: createTreeStateItem({...parentProps, isCollapsed: hasChildren, blockId: b.id, isPartOf: b === maybeGbtRefBlock ? null : maybeGbtRefBlock.id}),
             children: createBranch(b.children, {isHidden: hasChildren})
         };
     });
+}
+
+/**
+ * @param {Array<UiStateEntry>|null} fromsState
+ * @returns {((blockId: string, isPartOf: globalBlockReferenceBlockId = null) => UiStateEntry|null)|null}
+ */
+function createFindPrevUiStateEntryFn(fromsState) {
+    if (!fromsState)
+        return null;
+    return (blockId, isPartOf = null) =>
+        blockTreeUtils.findRecursively(fromsState, ({item}) =>
+            item.blockId === blockId && item.isPartOf === isPartOf
+        )
+    ;
 }
 
 /**
@@ -90,17 +138,19 @@ function findVisibleLi(li, nthOfId, ul, def) {
 }
 
 /**
- * @param {Array<Block>} blocks
- * @param {(parentIdPath: string, block: Block) => any} fn
- * @param {string} parentIdPath
+ * @template {T}
+ * @param {Array<T>} blocks
+ * @param {(idxPath: string, i: number, itm: T) => any} fn
+ * @param {string} idxPath
  * @returns {any}
  */
-function withParentIdPathDo(blocks, fn, parentIdPath = '') {
-    for (const block of blocks) {
-        const ret = fn(parentIdPath, block);
+function withIdxPathDo(blocks, fn, idxPath = '') {
+    for (let i = 0; i < blocks.length; ++i) {
+        const block = blocks[i];
+        const ret = fn(`${idxPath}/${i}`, i, block);
         if (ret) return ret;
         if (block.children.length) {
-            const ret2 = withParentIdPathDo(block.children, fn, `${parentIdPath}/${block.id}`);
+            const ret2 = withIdxPathDo(block.children, fn, `${idxPath}/${i}`);
             if (ret2) return ret2;
         }
     }
@@ -316,6 +366,19 @@ function createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlockId, o
 }
 
 /**
+ * @param {UiStateEntry} uiStateEntry
+ * @returns {number}
+ */
+function getVisibleLisCount(uiStateEntry) {
+    const single = ent =>
+        ent.item.isCollapsed || !ent.children.length
+            ? 1
+            : ent.children.reduce((tot, ent2) => tot + single(ent2), 1)
+    ;
+    return single(uiStateEntry);
+}
+
+/**
  * @returns {(gbtRefBlock: Block) => Array<GlobalBlockTree>}
  */
 function createGetTreeBlocksFn() {
@@ -327,7 +390,7 @@ function createGetTreeBlocksFn() {
 /**
  * @param {string} blockId
  * @param {string} nthOfId
- * @param {Array<Block} blockBranch
+ * @param {Array<Block>} blockBranch
  * @param {Array<UiStateEntry} uiStateBranch
  * @param {{nthFound: number;}} stat = {nthFound: 0}
  * @param {(gbtRefBlock: Block) => Array<GlobalBlockTree>} getTreeBlocks = createGetTreeBlocksFn()
@@ -355,7 +418,7 @@ function findUiStateEntry(blockId, nthOfId, blockBranch, uiStateBranch, stat = {
 /**
  * @typedef {{item: LiUiState; children: Array<LiUiState>;}} UiStateEntry
  *
- * @typedef {{isSelected: boolean; isCollapsed: boolean; isHidden: boolean; blockId: string;}} LiUiState
+ * @typedef {{isSelected: boolean; isCollapsed: boolean; isHidden: boolean; blockId: string; isPartOf: globalBlockReferenceBlockId|null;}} LiUiState
  */
 
 export {
@@ -371,8 +434,9 @@ export {
     findUiStateEntry,
     findVisibleLi,
     getShortFriendlyName,
+    getVisibleLisCount,
     hideOrShowChildren,
     setAsCollapsed,
     splitPath,
-    withParentIdPathDo,
+    withIdxPathDo,
 };

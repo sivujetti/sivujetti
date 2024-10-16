@@ -1515,7 +1515,7 @@ a.popup-close-area {
 .block-tree li[data-block-type="PageInfo"].selected {
     background: hsla(var(--components-color-purple), .1);
 }
-.block-tree:not(.no-hover) li:not(li[data-first-in-group-title]):not(li[data-last]):hover,
+.block-tree:not(.no-hover) li:not(li[data-last]):hover,
 .block-tree li.highlighted {
     border: 1px solid var(--color-highlight-outline) !important;
     padding-top: calc(0.2rem - 1px);
@@ -1580,6 +1580,9 @@ a.popup-close-area {
 .block-tree li.globalBlockTree-block button {
     color: rgb(var(--components-global-block-text));
 }
+.block-tree li.globalBlockTree-block.is-nth2-depth button {
+    filter: brightness(0.6);
+}
 .block-tree .block-handle .icon-tabler {
     color: var(--color-icon-normal-block);
 }
@@ -1591,6 +1594,19 @@ a.popup-close-area {
 }
 .block-tree li > div > button span {
     margin-left: 1.2rem;
+}
+.block-tree li .global-block-tree-guide {
+    background: rgb(215, 162, 137); /* rgba(var(--components-global-block-text),.4) */
+    width: 2px;
+    position: absolute;
+    top: 0;
+    left: -1.5px;
+}
+.block-tree:not(.no-hover) li:hover .global-block-tree-guide {
+    top: -1px;
+}
+.block-tree li.globalBlockTree-block.is-nth2-depth .global-block-tree-guide {
+    filter: contrast(0.7);
 }
 
 /* block-tre li states */
@@ -1611,7 +1627,6 @@ a.popup-close-area {
 .block-tree li[data-depth="1"].maybe-drop-after:after,
 .block-tree li[data-last].maybe-drop-before:before {
     background-color: #595959; /* same as #393939db */
-    left: -.2rem;
     width: calc(75% + .2rem);
 }
 .block-tree li[data-last].maybe-drop-before:before {

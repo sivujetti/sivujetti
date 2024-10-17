@@ -16,11 +16,11 @@ function createCssDeclExtractor(scss) {
          */
         extractVal(prop, scope = rootScope, propTmpl = null) {
             scope = scope.replace('&:', '&\f:');
-            const [declNode, _parenNode] = findRecursively(ast, (node, parenNode) =>
-                parenNode &&
+            const [declNode, _parentNode] = findRecursively(ast, (node, parentNode) =>
+                parentNode &&
                 node.type === 'decl' &&
                 node.props === prop &&
-                parenNode.value === scope
+                parentNode.value === scope
             );
             const cand1 = declNode ? declNode.children : null;
 
@@ -205,20 +205,20 @@ function createScssInspectorInternal(scss) {
          * @returns {StylisAstNode|null}
          */
         findNodeByDeclNameFromScope(declName, scope) {
-            return findRecursively(ast, (node, parenNode) =>
-                parenNode && node.type === 'decl' && (/*log('p',`${parenNode.value} === ${selector1}`,parenNode.value === selector1), */node.props === declName && parenNode.value === scope)
+            return findRecursively(ast, (node, parentNode) =>
+                parentNode && node.type === 'decl' && node.props === declName && parentNode.value === scope
             );
         },
         /**
          * @param {(node: StylisAstNode, parentNode: StylisAstNode) => any} fn
-         * @returns {[StylisAstNode|null, StylisAstNode|null]} [node, parenNode]
+         * @returns {[StylisAstNode|null, StylisAstNode|null]} [node, parentNode]
          */
         findNode(fn) {
             return findRecursively(ast, fn);
         },
         /**
          * @param {(node: StylisAstNode, parentNode: StylisAstNode) => any} fn
-         * @returns {Array<[StylisAstNode|null, StylisAstNode|null]>} [ [node, parenNode], ... ]
+         * @returns {Array<[StylisAstNode|null, StylisAstNode|null]>} [ [node, parentNode], ... ]
          */
         findNodes(fn) {
             return filterRecursively(ast, fn);
@@ -235,17 +235,17 @@ function createScssInspectorInternal(scss) {
 /**
  * @param {Array<StylisAstNode>} ast
  * @param {(node: StylisAstNode, parentNode: StylisAstNode) => any} fn
- * @param {StylisAstNode|null} parenNode = null
+ * @param {StylisAstNode|null} parentNode = null
  * @returns {[StylisAstNode|null, StylisAstNode|null]} [node, parentNode]
  */
-function findRecursively(ast, fn, parenNode = null) {
+function findRecursively(ast, fn, parentNode = null) {
     for (const node of ast) {
         if (Array.isArray(node.children) && node.children.length) {
             const fromC = findRecursively(node.children, fn, node);
             if (fromC[0]) return fromC;
         }
-        const found = fn(node, parenNode);
-        if (found) return [node, parenNode];
+        const found = fn(node, parentNode);
+        if (found) return [node, parentNode];
     }
     return [null, null];
 }
@@ -253,13 +253,13 @@ function findRecursively(ast, fn, parenNode = null) {
 /**
  * @param {Array<StylisAstNode>} ast
  * @param {(node: StylisAstNode, parentNode: StylisAstNode) => any} fn
- * @param {StylisAstNode|null} parenNode = null
+ * @param {StylisAstNode|null} parentNode = null
  * @returns {Array<[StylisAstNode|null, StylisAstNode|null]>} [ [node, parentNode], ... ]
  */
-function filterRecursively(ast, fn, parenNode = null) {
+function filterRecursively(ast, fn, parentNode = null) {
     const out = [];
     for (const node of ast) {
-        const inc = fn(node, parenNode);
+        const inc = fn(node, parentNode);
 
         let c = null;
         if (Array.isArray(node.children) && node.children.length) {
@@ -268,7 +268,7 @@ function filterRecursively(ast, fn, parenNode = null) {
         }
 
         if (inc)
-            out.push([node, parenNode]);
+            out.push([node, parentNode]);
 
         if (c) out.push(...c);
     }
@@ -328,29 +328,29 @@ function addOrUpdateCodeTo(scssTo, codeTemplate, val) {
     const incoming1 = Array.isArray(codeTemplate) ? codeTemplate.join('\n') : codeTemplate;
     const incoming = incoming1.replace(/%s/g, val);
     const linesIncoming = incoming.split('\n');
-    const decls = createScssInspectorInternal(incoming).findNodes((node, _parenNode) => {
+    const decls = createScssInspectorInternal(incoming).findNodes((node, _parentNode) => {
         return node.type === 'decl';
     });
 
     let inspector = createScssInspectorInternal(scssTo);
     let lines = scssTo.split('\n');
-    decls.forEach(([fromInc, fromIncParen]) => {
+    decls.forEach(([fromInc, fromIncParent]) => {
         // name of the decl we're adding or updating, 'column-gap' for example
         const declName = fromInc.props;
 
         // find it from current scssTo
-        const containingCssBlockSel = getSelectorForDecl(fromIncParen, inspector);
-        const [toUpdate, _toUpdateParen] = inspector.findNode((node, parenNode) =>
-            parenNode &&
+        const containingCssBlockSel = getSelectorForDecl(fromIncParent, inspector);
+        const [toUpdate, _toUpdateParent] = inspector.findNode((node, parentNode) =>
+            parentNode &&
             (node.type === 'decl' && node.props === declName) &&
-            (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
+            (parentNode.type === 'rule' && parentNode.value === containingCssBlockSel)
         );
 
         const newLine = indent(linesIncoming[fromInc.line - 1], 1);
         if (toUpdate) { // update it
             lines[toUpdate.line - 1] = newLine;
         } else { // add
-            if (!fromIncParen) { // root level decl, add to the beginning
+            if (!fromIncParent) { // root level decl, add to the beginning
                 lines.splice(1, 0, newLine);
             } else { // inner block's decl
                 const targetScope = inspector.getAst().find((n, i) =>
@@ -389,22 +389,22 @@ const EMPTY_LINE = '^::empty::^';
 function deleteCodeFrom(scssFrom, codeTemplate, val) {
     const incoming1 = Array.isArray(codeTemplate) ? codeTemplate.join('\n') : codeTemplate;
     const incoming = incoming1.replace(/%s/g, val);
-    const decls = createScssInspectorInternal(incoming).findNodes((node, _parenNode) => {
+    const decls = createScssInspectorInternal(incoming).findNodes((node, _parentNode) => {
         return node.type === 'decl';
     });
 
     let inspector = createScssInspectorInternal(scssFrom);
     let lines = scssFrom.split('\n');
-    decls.forEach(([fromDel, fromDelParen]) => {
+    decls.forEach(([fromDel, fromDelParent]) => {
         // name of the decl we're deleting 'column-gap' for example
         const declName = fromDel.props;
 
         // find it from current scssFrom
-        const containingCssBlockSel = getSelectorForDecl(fromDelParen, inspector);
-        const [nodeToDelete, _toDeleteParen] = inspector.findNode((node, parenNode) =>
-            parenNode &&
+        const containingCssBlockSel = getSelectorForDecl(fromDelParent, inspector);
+        const [nodeToDelete, _toDeleteParent] = inspector.findNode((node, parentNode) =>
+            parentNode &&
             (node.type === 'decl' && node.props === declName) &&
-            (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
+            (parentNode.type === 'rule' && parentNode.value === containingCssBlockSel)
         );
         if (!nodeToDelete)
             throw new Error(`Expected "${scssFrom}" to contain "${declName}"`);

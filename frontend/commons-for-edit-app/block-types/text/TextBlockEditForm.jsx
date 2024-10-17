@@ -188,11 +188,11 @@ class TextBlockEditForm extends preact.Component {
 
 /**
  * @param {HTMLElement} node Child node of .ql-editor
- * @param {HTMLDivElement} paren .ql-editor
+ * @param {HTMLDivElement} parent .ql-editor
  * @returns {number}
  */
-function getChildNodeIdx(node, paren) {
-    return Array.from(paren.children).indexOf(node);
+function getChildNodeIdx(node, parent) {
+    return Array.from(parent.children).indexOf(node);
 }
 
 /**

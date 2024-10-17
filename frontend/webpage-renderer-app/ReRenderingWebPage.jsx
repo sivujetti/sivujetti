@@ -149,13 +149,13 @@ class RenderAll extends preact.Component {
             if (stack.indexOf(e.target) > -1) return;
             stack.push(e.target);
             const end = stack.at(-1);
-            const endParen = stack.at(-2) || null;
+            const endParent = stack.at(-2) || null;
             if (isBlockEl(end)) {
-                if (endParen && isBlockEl(endParen))
-                    handleMouseExited(endParen);
+                if (endParent && isBlockEl(endParent))
+                    handleMouseExited(endParent);
                 handleMouseEntered(end);
-            } else if (endParen && isSubHoverable(end, endParen)) {
-                handleMouseEnteredTextChild(end, endParen);
+            } else if (endParent && isSubHoverable(end, endParent)) {
+                handleMouseEnteredTextChild(end, endParent);
             }
         }, true);
 
@@ -163,29 +163,29 @@ class RenderAll extends preact.Component {
             if (this.isMouseListenersDisabled) return;
             if (stack.indexOf(e.target) < 0) return;
             const end = stack.at(-1);
-            const endParen = stack.at(-2) || null;
+            const endParent = stack.at(-2) || null;
             // Example:
             // [body.j-_body_, ..., div.j-Text,   p  ]
             //                           ^        ^
-            //                        endParen   end
-            if (endParen && isSubHoverable(end, endParen)) {
+            //                        endParent  end
+            if (endParent && isSubHoverable(end, endParent)) {
                 handleMouseExitedTextChild(end);
             } else {
-                const endParen2 = stack.at(-3) || null;
+                const endParent2 = stack.at(-3) || null;
                 if (isBlockEl(end))
                     handleMouseExited(end);
                 // Example:
                 // [body.j-_body_, div.j-Section2, div.j-Section2-cols, div.j-Wrapper]
                 //                        ^                ^                    ^
-                //                    endParen2         endParen               end
-                if (endParen2 && isBlockEl(endParen2))
-                    handleMouseEntered(endParen2);
+                //                    endParent2        endParent              end
+                if (endParent2 && isBlockEl(endParent2))
+                    handleMouseEntered(endParent2);
                 // Example:
                 // [body.j-_body_, ..., nav.j-Menu, a.j-Button]
                 //                          ^            ^
-                //                      endParen        end
-                if (endParen && isBlockEl(endParen))
-                    handleMouseEntered(endParen);
+                //                      endParent       end
+                if (endParent && isBlockEl(endParent))
+                    handleMouseEntered(endParent);
             }
             stack.pop();
         }, true);

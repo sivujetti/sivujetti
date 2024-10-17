@@ -143,14 +143,14 @@ class BlockTree extends preact.Component {
      * @param {(gbtRefBlock: Block) => Array<GlobalBlockTree>} getTreeBlocks
      * @param {string} nth2DepthCls
      * @param {number} depth = 1
-     * @param {Block} paren = null
+     * @param {Block} parent = null
      * @param {Block} ref = null {type:'GlobalBlockReference'...}
      */
-    doRenderBranch(branch, uiStateArr, getTreeBlocks, nth2DepthCls, depth = 1, paren = null, ref = null) { return branch.map((block, i) => {
+    doRenderBranch(branch, uiStateArr, getTreeBlocks, nth2DepthCls, depth = 1, parent = null, ref = null) { return branch.map((block, i) => {
         const uiStateEntry = uiStateArr[i];
         if (block.type === 'GlobalBlockReference') {
             return this.doRenderBranch(getTreeBlocks(block), [uiStateEntry], getTreeBlocks,
-                nth2DepthCls === '' ? ' is-nth2-depth' : '', depth, paren, block);
+                nth2DepthCls === '' ? ' is-nth2-depth' : '', depth, parent, block);
         }
         //
         const lastIxd = branch.length - 1;
@@ -188,7 +188,7 @@ class BlockTree extends preact.Component {
             data-is-root-block-of={ rootRefBlockId }
             data-depth={ depth }
             data-has-children={ c.length > 0 }
-            data-is-children-of={ paren ? paren.id : null }
+            data-is-children-of={ parent ? parent.id : null }
             data-first-child={ i === 0 }
             data-last-child={ i === lastIxd }
             data-draggable={ true }

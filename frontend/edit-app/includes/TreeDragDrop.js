@@ -168,7 +168,7 @@ class TreeDragDrop {
 
         // 2. Substitute ('before' li[data-last]) with ('after' li[data-last].previous)
         const nextCandReal = !nextCandVisual.li.getAttribute('data-last')
-            ? Object.assign({}, nextCandVisual)
+            ? {...nextCandVisual}
             : {li: getOutermostParent(nextCandVisual.li.previousElementSibling), pos: 'after'};
 
         // 3. Do reject tests
@@ -181,7 +181,7 @@ class TreeDragDrop {
 
         // 4. Do replacements
         if (accept) {
-            // -- Replace "after of .has-children" with "before of .has-children:first-child" ---
+            // -- Replace "after of .has-children" with "before of .has-children.nextElementSibling" ---
             if (nextCandVisual.pos === 'after' && li.getAttribute('data-has-children') === 'true' && !li.classList.contains('collapsed')) {
                 nextCandVisual.pos = 'before';
                 nextCandVisual.li = li.nextElementSibling;
@@ -438,14 +438,18 @@ function norm(e) {
 
 /**
  * @param {HTMLLIElement|null} li
- * @param {number} nth = 0 For internal use
- * @returns {HTMLLIElement|null} null, li:last-child or li:last-child's parent
+ * @returns {HTMLLIElement|null}
  */
-function getOutermostParent(li, i = 0) {
-    if (!li && i === 0) // Empty tree
+function getOutermostParent(li) {
+    if (!li) // Empty tree
         return null;
     const parentBlockId = li.getAttribute('data-is-children-of');
-    return !parentBlockId ? li : getOutermostParent(li.closest('ul').querySelector(`li[data-block-id="${parentBlockId}"]`), i + 1);
+    if (!parentBlockId) return li;
+
+    let previous = li.previousElementSibling;
+    while (previous.getAttribute('data-block-id') !== parentBlockId)
+        previous = previous.previousElementSibling;
+    return previous;
 }
 
 export default TreeDragDrop;

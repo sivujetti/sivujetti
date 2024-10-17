@@ -15,6 +15,7 @@ import BlockTree from '../block/BlockTree.jsx';
 const globalBlockTreeEventsThatNeedRefresh = [
     'create-and-convert',
     'delete',
+    'duplicate',
     'insert-block-at',
     'move-block-between',
     'move-block-within',

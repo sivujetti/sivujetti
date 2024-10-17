@@ -281,12 +281,12 @@ function removeFrom(blockOrIdx, branchMut) {
  * ```
  *
  * @param {BlockDescriptor} target
- * @param {dropPosition} dropOrInsertPos
+ * @param {dropPosition|null} dropOrInsertPos
  * @returns {[string, string]} [isStoredToTreeId, blockId]
  */
 function getRealTarget(target, dropOrInsertPos) {
     return dropOrInsertPos !== 'as-child' && target.data?.refBlockIsStoredToTreeId
-        ? [target.data?.refBlockIsStoredToTreeId, target.data?.refBlockId]
+        ? [target.data.refBlockIsStoredToTreeId, target.data.refBlockId]
         : [target.isStoredToTreeId, target.blockId];
 }
 
@@ -303,5 +303,6 @@ export {
     createBlockTreeInsertAtOp,
     createBlockTreeMoveToOps,
     findGbt,
+    getRealTarget,
     removeFrom,
 };

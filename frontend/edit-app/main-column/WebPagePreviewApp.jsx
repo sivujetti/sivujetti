@@ -46,16 +46,16 @@ class WebPagePreviewApp extends preact.Component {
     /**
      * @param {Block} block
      * @param {number} nthOfId
-     * @param {'web-page'|'block-tree'} origin
      * @param {DOMRect} rect = null
      * @access public
      */
-    highlightBlock(block, nthOfId, origin = 'block-tree', rect = null) {
+    highlightBlock(block, nthOfId, rect = null) {
         if (isMetaBlock(block)) return;
         const title = (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + (block.title || __(block.type));
         const foundRect = rect || this.getBlockEl(block.id, nthOfId)?.getBoundingClientRect();
         if (!foundRect) return;
         this.doShowHighlightRect(foundRect, title, 0);
+        const origin = rect ? 'web-page' : 'block-tree';
         events.emit('highlight-rect-revealed', block.id, nthOfId, origin);
     }
     /**
@@ -223,9 +223,9 @@ class WebPagePreviewApp extends preact.Component {
                         if (e.data[0] === 'hereIsPageDataBundle') {
                             broadcastCurrentPageData(e);
                         } else if (e.data[0] === 'onBlockHoverStarted') {
-                            const [_, blockId, nthOfId, blockRect] = e.data; // [_, string, DOMRect]
+                            const [_, blockId, nthOfId, blockRect] = e.data; // [_, string, number, DOMRect]
                             const block = blockRect ? blockTreeUtils.findBlockMultiTree(blockId, api.saveButton.getInstance().getChannelState('theBlockTree'))[0] : null;
-                            if (block) this.highlightBlock(block, nthOfId, 'web-page', blockRect);
+                            if (block) this.highlightBlock(block, nthOfId, blockRect);
                         } else if (e.data[0] === 'onBlockHoverEnded') {
                             const [_, blockId] = e.data; // [_, string]
                             this.doHideHighlightRect(0);

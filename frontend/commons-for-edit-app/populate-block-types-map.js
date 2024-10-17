@@ -18,10 +18,10 @@ blockTypesRegister.setup([
     ['GlobalBlockReference', {
         name: 'GlobalBlockReference',
         friendlyName: 'GlobalBlockReference',
-        createOwnProps(defProps) {
+        createOwnProps(_defProps) {
             return {
-                globalBlockTreeId: defProps.__globalBlockTree.id,
-                overrides: "{}",
+                globalBlockTreeId: '',
+                overrides: '{}',
                 useOverrides: 0,
             };
         }

@@ -103,7 +103,7 @@ function createBlockDescriptorFromLi(li) {
     } else
         return {blockId, isStoredToTreeId, isGbtRefRoot: true, data: {
             refBlockId: maybeRefBlockId,
-            refBlockIsStoredToTreeId: li.previousElementSibling?.getAttribute('data-is-stored-to-tree-id') || 'main'
+            refBlockIsStoredToTreeId: blockTreeUtils.getIsStoredToTreeId(maybeRefBlockId, api.saveButton.getInstance().getChannelState('theBlockTree')),
         }};
 }
 

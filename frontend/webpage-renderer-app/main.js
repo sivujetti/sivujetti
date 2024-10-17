@@ -26,8 +26,8 @@ function mountWebPageRendererApp(dataBundle) {
         outerEl
     );
 
-    window.addEventListener('message', receiveMessageFromPreviewApp);
-    function receiveMessageFromPreviewApp(e) {
+    window.addEventListener('message', receiveInitialDataFromPreviewApp);
+    function receiveInitialDataFromPreviewApp(e) {
         if ((Array.isArray(e.data) ? e.data[0] : '') !== 'establishLinkAndGetPageDataBundle') return;
         const messagePortToEditApp = e.ports[0];
         // Start listening for messages from WebPagePreviewApp
@@ -36,7 +36,7 @@ function mountWebPageRendererApp(dataBundle) {
         reRenderingWebPage.current.hookUpEventHandlersAndEmitters(messagePortToEditApp);
         // Pass the data bundle to WebPagePreviewApp & finish up
         messagePortToEditApp.postMessage(['hereIsPageDataBundle', dataBundle]);
-        window.removeEventListener('message', receiveMessageFromPreviewApp);
+        window.removeEventListener('message', receiveInitialDataFromPreviewApp);
     }
 }
 
@@ -62,8 +62,8 @@ function createMessageChannelController(reRenderingWebPage) {
             const newBlocks = e.data[1];
             reRenderingWebPage.current.exchangeBlocks(newBlocks);
         } else if (e.data[0] === 'reRenderBlock') {
-            const newBlocks = e.data[1];
-            const updatedBlock = e.data[2];
+            const newBlocks = e.data[2];
+            const updatedBlock = e.data[1];
             reRenderingWebPage.current.exchangeSingleBlock(updatedBlock, newBlocks);
         } else if (e.data[0] === 'handleMetaKeyPressedOrReleased') {
             const isDown = e.data[1];

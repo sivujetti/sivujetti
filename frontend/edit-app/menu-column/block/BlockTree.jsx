@@ -10,12 +10,11 @@ import {
     objectUtils,
     scssWizard,
     traverseRecursively,
-    writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import createDndController, {
-    callGetBlockPropChangesEvent,
     createBlockDescriptorFromLi,
 } from '../../includes/block/create-block-tree-dnd-controller.js';
+import {getRealTarget} from '../../includes/block/tree-dnd-controller-funcs.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import {createBlock, treeToTransferable} from '../../includes/block/utils.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
@@ -28,10 +27,10 @@ import {
     createAddContentPlacementCfg,
     createConvertBlockToGlobalOps,
     createDeleteBlockOp,
+    createDuplicateBlockOp,
     createGetTreeBlocksFn,
     createPartialState,
     createStyleShunkcScssIdReplacer,
-    duplicateDeepAndReAssignIds,
     findUiStateEntry,
     findVisibleLi,
     getShortFriendlyName,
@@ -236,7 +235,7 @@ class BlockTree extends preact.Component {
                     <Icon iconId={ api.blockTypes.getIconId('PageInfo') } className="size-xs p-absolute"/>
                     <span class="text-ellipsis">{ title }</span>
                 </button>
-                <button onClick={ e => this.openMoreMenu(block, false, e) } class="more-toggle pl-1" type="button">
+                <button onClick={ e => this.openMoreMenu(block, null, e) } class="more-toggle pl-1" type="button">
                     <Icon iconId="dots" className="size-xs"/>
                 </button>
             </div>
@@ -262,9 +261,12 @@ class BlockTree extends preact.Component {
                 {maxWidth: 580, offsetY: !placeAtBefore ? 4 : -25},
             );
         } else if (link.id === 'duplicate-block') {
-            this.cloneBlock(this.openMoreMenuData.block);
+            const [blockToCloneTrid, blockToCloneId] = getRealTarget(createBlockDescriptorFromLi(this.openMoreMenuData.li), null);
+            this.cloneBlock(blockToCloneId, blockToCloneTrid);
         } else if (link.id === 'delete-block') {
-            this.deleteBlock(this.openMoreMenuData.block);
+            const blockVisible = this.openMoreMenuData.block;
+            const [blockToDeleteTrid, blockToDeleteId] = getRealTarget(createBlockDescriptorFromLi(this.openMoreMenuData.li), null);
+            this.deleteBlock(blockVisible, blockToDeleteId, blockToDeleteTrid);
         } else if (link.id === 'save-block-as-reusable') {
             const blockToStore = this.openMoreMenuData.block;
             const blockIsStoredTo = this.openMoreMenuData.li.getAttribute('data-is-stored-to-tree-id');
@@ -289,33 +291,22 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} openBlock
+     * @param {string} blockIsStoredTo
      * @access private
      */
-    cloneBlock(openBlock) {
+    cloneBlock(blockId, blockIsStoredTo) {
         const saveButton = api.saveButton.getInstance();
-        let cloned;
-
-        const newTree = blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-            const [origBlockRef, refBranch] = blockTreeUtils.findBlockMultiTree(openBlock.id, newTreeCopy);
-            const cloned2 = duplicateDeepAndReAssignIds(origBlockRef);
-            const changes = callGetBlockPropChangesEvent(cloned2.type, 'cloneBlock', [cloned2]);
-            if (changes) writeBlockProps(cloned2, changes);
-
-            // insert after current
-            refBranch.splice(refBranch.indexOf(origBlockRef) + 1, 0, cloned2);
-            cloned = cloned2;
-            return newTreeCopy;
-        });
-
-        saveButton.pushOp('theBlockTree', newTree, {event: 'duplicate'});
-
+        const [op, cloned] = createDuplicateBlockOp(blockId, blockIsStoredTo, saveButton);
+        saveButton.pushOp(...op);
         api.webPagePreview.scrollToBlockAsync(cloned, 1);
     }
     /**
-     * @param {Block} openBlock
+     * @param {Block} blockVisible
+     * @param {string} blockToDeleteId
+     * @param {string} blockToDeleteTrid
      * @access private
      */
-    deleteBlock(blockVisible) {
+    deleteBlock(blockVisible, blockToDeleteId, blockToDeleteTrid) {
         const isSelectedRootCurrentlyClickedBlock = () => {
             if (!this.selectedRoot)
                 return false;
@@ -334,16 +325,9 @@ class BlockTree extends preact.Component {
                                         isSelectedRootChildOfCurrentlyClickedBlock();
         if (wasCurrentlySelectedBlock) this.selectedRoot = null;
         //
-        const blockToDeleteId = this.openMoreMenuData.isRootBlockOf || blockVisible.id;
         const saveButton = api.saveButton.getInstance();
-        saveButton.pushOp(
-            'theBlockTree',
-            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                const [ref, refBranch] = blockTreeUtils.findBlockMultiTree(blockToDeleteId, newTreeCopy);
-                refBranch.splice(refBranch.indexOf(ref), 1); // mutates newTreeCopy
-                return newTreeCopy;
-            }), {event: 'delete', wasCurrentlySelectedBlock}
-        );
+        const op = createDeleteBlockOp(blockToDeleteId, blockToDeleteTrid, wasCurrentlySelectedBlock);
+        saveButton.pushOp(...op);
     }
     /**
      * @param {{name: string;}} data
@@ -430,34 +414,35 @@ class BlockTree extends preact.Component {
      * @access public
      */
     handleItemClickedOrFocused(block, nthOfIdOrUiStateEntry, origin = 'direct') {
+        const [uiStateEntry, nthOfId] = this.findUiStateEntryAndNthOfId(block, nthOfIdOrUiStateEntry);
         this.selectedRoot = block;
         events.emit('block-tree-item-clicked-or-focused', block, nthOfId, origin);
         api.webPagePreview.scrollToBlock(block, nthOfId);
-
-        const pieces = withIdxPathDo(this.state.uiStateTree, (idxPath, _i, ent) => {
-            if (ent === uiStateEntry) return splitPath(idxPath);
-        });
         const mutRef = this.state.uiStateTree;
 
-        // Uncollapse all parents
-        if (pieces?.length) {
-            let branch = mutRef;
-            for (const idx of pieces) {
-                const ent = branch[parseInt(idx)];
-                if (ent.item.isCollapsed) {
-                    setAsCollapsed(false, ent, true);
-                    break;
+        // Uncollapse parents if needed
+        if (origin === 'web-page' && uiStateEntry.item.isHidden) {
+            const indices = withIdxPathDo(this.state.uiStateTree, (idxPath, _i, ent) => {
+                if (ent === uiStateEntry) return splitPath(idxPath);
+            });
+
+            if (indices?.length) {
+                let branch = mutRef;
+                for (const idx of indices) {
+                    const ent = branch[parseInt(idx)];
+                    if (ent.item.isCollapsed) {
+                        setAsCollapsed(false, ent, true);
+                    }
+                    branch = ent.children;
                 }
-                branch = ent.children;
             }
         }
 
-        // Uncollapse selected
         this.setState({uiStateTree: this.setBlockAsSelected(block, uiStateEntry, mutRef)});
     }
     /**
      * @param {Block} block
-     * @param {string|null} isRootBlockOf
+     * @param {globalBlockReferenceBlockId|null} isRootBlockOf
      * @param {Event} e
      * @access private
      */
@@ -468,11 +453,11 @@ class BlockTree extends preact.Component {
         api.contextMenu.open(e, this.createContextMenuController(!!isRootBlockOf));
     }
     /**
-     * @param {boolean} blockIsGbtsOutermostBlock
+     * @param {boolean} isGbtRoot
      * @returns {ContextMenuController}
      * @access private
      */
-    createContextMenuController(blockIsGbtsOutermostBlock) {
+    createContextMenuController(isGbtRoot) {
         const isPageInfo = this.openMoreMenuData.block.type === 'PageInfo';
         const spawnLinks = [
             {text: __('↑ Add content above'), title: __('↑ Add content above'), id: 'add-content-above'},
@@ -493,7 +478,7 @@ class BlockTree extends preact.Component {
                     : [
                         spawnLinks[1],
                     ];
-                const notThese = blockIsGbtsOutermostBlock ? ['duplicate-block', 'save-block-as-reusable'] : [];
+                const notThese = isGbtRoot ? ['save-block-as-reusable'] : [];
                 return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
             },
             onItemClicked: this.handleContextMenuLinkClicked.bind(this),
@@ -503,18 +488,17 @@ class BlockTree extends preact.Component {
     /**
      * @param {Block} block
      * @param {UiStateEntry} uiStateEntryMut
-     * @param {UiStateEntry} uiStateEntryMut 
+     * @param {Array<UiStateEntry>} treeMut = this.state.uiStateTree
      * @returns {Array<UiStateEntry>}
      * @access private
      */
-    setBlockAsSelected(block, uiStateEntry, treeMut = this.state.uiStateTree) {
-
+    setBlockAsSelected(block, uiStateEntryMut, treeMut = this.state.uiStateTree) {
         // unselect all
         traverseRecursively(treeMut, itm => { itm.item.isSelected = false; });
 
         // select this
-        if (uiStateEntry)
-            uiStateEntry.item.isSelected = true;
+        if (uiStateEntryMut)
+            uiStateEntryMut.item.isSelected = true;
         this.selectedRoot = block;
 
         return treeMut;

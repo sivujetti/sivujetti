@@ -5,7 +5,9 @@ import {
     generatePushID,
     objectUtils,
     traverseRecursively,
+    writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
+import {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
 import {findGbt, removeFrom} from '../../includes/block/tree-dnd-controller-funcs.js';
 
 const autoCollapseNonUniqueRootLevelItems = true;
@@ -33,34 +35,43 @@ function createTreeState(tree, previousState) {
             });
         return out;
     }
-    return createBranchFromPrev(tree, createFindPrevUiStateEntryFn(previousState), {});
+    const newRootLevelItemIndices = autoCollapseNonUniqueRootLevelItems ? [] : null;
+    const out = createBranchFromPrev(tree, createFindPrevUiStateEntryFn(previousState),
+        {}, newRootLevelItemIndices);
+    if (newRootLevelItemIndices?.length) newRootLevelItemIndices.forEach(idx => {
+        setAsCollapsed(false, out[idx], false);
+    });
+    return out;
 }
 
 /**
  * @param {Array<Block>} branch
  * @param {(blockId: string, isPartOf: globalBlockReferenceBlockId = null) => UiStateEntry|null} findPrev
- * @param {{[key: keyof LiUiState]: boolean|string;}} parentProps = {}
+ * @param {{[key: keyof LiUiState]: boolean|string;}} parentProps
+ * @param {Array<number>|null} collectNewRootItemIndicesTo
  * @returns {Array<UiStateEntry>}
  */
-function createBranchFromPrev(branch, findPrev, parentProps = {}) {
-    return branch.map(maybeGbtRefBlock => {
+function createBranchFromPrev(branch, findPrev, parentProps, collectNewRootItemIndicesTo) {
+    return branch.map((maybeGbtRefBlock, i) => {
         const b = getVisibleBlock(maybeGbtRefBlock);
         const p = findPrev(b.id, b === maybeGbtRefBlock ? null : maybeGbtRefBlock.id);
 
         // New content
-        if (!p)
+        if (!p) {
+            if (collectNewRootItemIndicesTo) collectNewRootItemIndicesTo.push(i);
             return createBranch([b], parentProps)[0];
+        }
 
         // New child content (inserted or dragged)
         if (p.item.isCollapsed && b.children.length > p.children.length && !p.item.isPartOf)
             return {
                 item: {...p.item, ...parentProps, isCollapsed: false},
-                children: createBranchFromPrev(b.children, findPrev, {isHidden: false})
+                children: createBranchFromPrev(b.children, findPrev, {isHidden: false}, null)
             };
 
         return {
             item: {...p.item, ...parentProps},
-            children: createBranchFromPrev(b.children, findPrev, {isHidden: p.item.isCollapsed})
+            children: createBranchFromPrev(b.children, findPrev, {isHidden: p.item.isCollapsed}, null)
         };
     });
 }
@@ -366,6 +377,50 @@ function createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlockId, o
 }
 
 /**
+ * @param {string} blockId
+ * @param {string} blockIsStoredTo
+ * @param {SaveButton} saveButton
+ * @returns {[['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree>, StateChangeUserContext], Block]} [duplicateOp, clonedBlock]
+ */
+function createDuplicateBlockOp(blockId, blockIsStoredTo, saveButton) {
+    let cloned, channel, newState;
+    if (blockIsStoredTo === 'main') {
+        channel = 'theBlockTree';
+        newState = blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+            cloned = duplicateBlockWithin(blockId, newTreeCopy);
+            return newTreeCopy;
+        });
+    } else {
+        channel = 'globalBlockTrees';
+        newState = objectUtils.cloneDeepWithChanges(saveButton.getChannelState('globalBlockTrees'), newGbtsCopy => {
+            const gbt = findGbt(blockIsStoredTo, newGbtsCopy);
+            cloned = duplicateBlockWithin(blockId, gbt.blocks); // mutates gbt.blocks (and thus gbt and newGbtsCopy)
+            return newGbtsCopy;
+        });
+    }
+    return [
+        [channel, newState, {event: 'duplicate'}],
+        cloned,
+    ];
+}
+
+/**
+ * @param {string} blockId
+ * @param {Array<Block>} treeMut
+ * @returns {Block} clonedBlock
+ */
+function duplicateBlockWithin(blockId, treeMut) {
+    const [origBlockRef, refBranch] = blockTreeUtils.findBlock(blockId, treeMut);
+    const cloned = duplicateDeepAndReAssignIds(origBlockRef);
+    const changes = callGetBlockPropChangesEvent(cloned.type, 'cloneBlock', [cloned]);
+    if (changes) writeBlockProps(cloned, changes);
+
+    // insert after current
+    refBranch.splice(refBranch.indexOf(origBlockRef) + 1, 0, cloned);
+    return cloned;
+}
+
+/**
  * @param {UiStateEntry} uiStateEntry
  * @returns {number}
  */
@@ -427,10 +482,10 @@ export {
     createAddContentPlacementCfg,
     createConvertBlockToGlobalOps,
     createDeleteBlockOp,
+    createDuplicateBlockOp,
     createGetTreeBlocksFn,
     createPartialState,
     createStyleShunkcScssIdReplacer,
-    duplicateDeepAndReAssignIds,
     findUiStateEntry,
     findVisibleLi,
     getShortFriendlyName,

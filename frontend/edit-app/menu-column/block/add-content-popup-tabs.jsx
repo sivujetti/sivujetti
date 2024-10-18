@@ -9,6 +9,7 @@ import {
     objectUtils,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
+import {getRealTarget} from '../../includes/block/tree-dnd-controller-funcs.js';
 import {createBlockFromBlueprint, createBlockFromType} from '../../includes/block/utils.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import VerticalTabs from '../../includes/VerticalTabs.jsx';
@@ -226,7 +227,7 @@ class AddTemplateContentTab extends preact.Component {
                 <button onClick={ () => {
                     let descr;
                     try {
-                        descr = createContentTemplateSpawnDescriptor(tmpl);
+                        descr = createContentTemplateSpawnDescriptor(tmpl, this.props);
                     } catch (e) {
                         env.window.console.error(e);
                         env.window.alert(__('Failed to create block from template'));
@@ -253,9 +254,10 @@ function fetchContentTemplates() {
 
 /**
  * @param {ContentTemplate} template
+ * @param {AddContentTabProps} props
  * @returns {SpawnDescriptor}
  */
-function createContentTemplateSpawnDescriptor(template) {
+function createContentTemplateSpawnDescriptor(template, props) {
     if (template.blockBlueprints.length > 1)
         throw new Error('template.blockBlueprints.length > 1 not implemented yet');
 
@@ -263,7 +265,7 @@ function createContentTemplateSpawnDescriptor(template) {
     const styles = [];
     let spawnClassName = null;
     let checkIsDuplicateChunk = null;
-    const newBlock = createBlockFromBlueprint(root, ({initialStyles}, block) => {
+    let newBlock = createBlockFromBlueprint(root, ({initialStyles}, block) => {
         if (block.styleClasses.indexOf(ccPlaceholder) < 0) return;
 
         if (initialStyles.length !== 1)
@@ -298,6 +300,13 @@ function createContentTemplateSpawnDescriptor(template) {
         });
     });
 
+    const wrapInSectionBlock = newBlock.type !== 'Section' && props.getIsInsertAfterOrBeforeRootLevelBlock();
+    if (wrapInSectionBlock)
+        newBlock = {
+            ...createBlockFromType('Section'),
+            children: [newBlock],
+        };
+
     return {block: newBlock, isReusable: false, styles};
 }
 
@@ -308,6 +317,7 @@ function createContentTemplateSpawnDescriptor(template) {
  *
  * @typedef {{
  *   onContentPicked: (todo: todo) => void;
+ *   getIsInsertAfterOrBeforeRootLevelBlock: () => boolean;
  * }} AddTemplateContentTabProps
  */
 

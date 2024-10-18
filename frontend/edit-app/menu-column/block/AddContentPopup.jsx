@@ -4,7 +4,7 @@ import {
     scssWizard,
     Tabs,
 } from '@sivujetti-commons-for-edit-app';
-import {createBlockTreeInsertAtOp} from '../../includes/block/tree-dnd-controller-funcs.js';
+import {createBlockTreeInsertAtOp, getRealTarget} from '../../includes/block/tree-dnd-controller-funcs.js';
 import {
     AddReusableContentTab,
     AddSimpleContentBlocksTab,
@@ -40,6 +40,16 @@ class AddContentPopup extends preact.Component {
                         onContentPicked={ this.handleContentPicked.bind(this) }/>;
                 if (currentTabIdx === 2)
                     return <AddTemplateContentTab
+                        getIsInsertAfterOrBeforeRootLevelBlock={ () => {
+                            if (this.props.insertPos === 'as-child') // Not after|before
+                                return false;
+                            const [trid, blockId] = getRealTarget(this.props.targetInfo);
+                            if (trid !== 'main') // Inner gbt block, can't be a root level block
+                                return false;
+                            const block = api.saveButton.getInstance().getChannelState('theBlockTree').find(({id}) => id === blockId);
+                            const isRootLevel = !!block;
+                            return isRootLevel;
+                        } }
                         onContentPicked={ this.handleContentPicked.bind(this) }/>;
             })() }
         </div>;

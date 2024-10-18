@@ -8,7 +8,7 @@ import {
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
-import {findGbt, removeFrom} from '../../includes/block/tree-dnd-controller-funcs.js';
+import {findGbt, removeFrom, replaceAt} from '../../includes/block/tree-dnd-controller-funcs.js';
 
 const autoCollapseNonUniqueRootLevelItems = true;
 
@@ -347,8 +347,7 @@ function createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlockId, o
         const updateBlockTreeOp = [
             'theBlockTree',
             blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                const [curBlockRef, refBranch] = blockTreeUtils.findBlock(originalBlockId, newTreeCopy);
-                refBranch[refBranch.indexOf(curBlockRef)] = newGbRefBlock;
+                replaceAt(newGbRefBlock, newTreeCopy, originalBlockId);
                 return newTreeCopy;
             }),
             {
@@ -368,8 +367,7 @@ function createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlockId, o
             // 1
             copy.push(newGbt);
             // 2
-            const [block, branch] = blockTreeUtils.findBlock(originalBlockId, findGbt(originalBlockIsStoredTo, copy).blocks);
-            branch[branch.indexOf(block)] = newGbRefBlock;
+            replaceAt(newGbRefBlock, findGbt(originalBlockIsStoredTo, copy).blocks, originalBlockId);
 
             return copy;
         }), {event: 'create-and-convert'}]];

@@ -45,7 +45,7 @@ function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, target, insertPos, is
  * @returns {Array<['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree>, StateChangeUserContext]>}
  */
 function createBlockTreeMoveToOps(dragInf, dropInf, dropPos) {
-    const [dragTreeId, dragBlockId] = getRealTarget(dragInf, dropPos);
+    const [dragTreeId, dragBlockId] = getRealTarget(dragInf, null);
     const [dropTreeId, dropBlockId] = getRealTarget(dropInf, dropPos);
 
     if (dragTreeId === dropTreeId) {
@@ -274,7 +274,7 @@ function insertTo(block, branchMut, refBlock, pos, replace = 0) {
  */
 function replaceAt(block, arrMut, refBlockId) {
     const [refBlock, branchMut] = blockTreeUtils.findBlock(refBlockId, arrMut);
-    branchMut.splice(branchMut.indexOf(refBlock), 1, block);
+    branchMut[branchMut.indexOf(refBlock)] = block;
 }
 
 /**
@@ -321,4 +321,5 @@ export {
     findGbt,
     getRealTarget,
     removeFrom,
+    replaceAt,
 };

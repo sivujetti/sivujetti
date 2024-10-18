@@ -250,6 +250,7 @@ class BlockTree extends preact.Component {
             'add-content-above': 'before',
             'add-content-below': 'after',
             'add-content-as-child': 'as-child',
+            'replace-block-with': 'as-child',
         }[link.id]) || null;
         if (addContentKind) {
             const {li} = this.openMoreMenuData;
@@ -257,7 +258,7 @@ class BlockTree extends preact.Component {
             api.mainPopper.open(
                 AddContentPopup,
                 arrowRefEl,
-                {targetInfo: createBlockDescriptorFromLi(li), insertPos: addContentKind},
+                {targetInfo: createBlockDescriptorFromLi(li), insertPos: addContentKind, isReplace: link.id === 'replace-block-with'},
                 {maxWidth: 580, offsetY: !placeAtBefore ? 4 : -25},
             );
         } else if (link.id === 'duplicate-block') {
@@ -463,6 +464,7 @@ class BlockTree extends preact.Component {
             {text: __('↑ Add content above'), title: __('↑ Add content above'), id: 'add-content-above'},
             {text: __('↓ Add content below'), title: __('↓ Add content below'), id: 'add-content-below'},
             {text: __('↳ Add content as child'), title: __('↳ Add content as child'), id: 'add-content-as-child'},
+            {text: __('↹ Replace with content'), title: __('Replace this content with'), id: 'replace-block-with'},
         ];
         return {
             getLinks: () => {

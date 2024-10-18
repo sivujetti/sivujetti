@@ -4,7 +4,7 @@ import {
     scssWizard,
 } from '@sivujetti-commons-for-edit-app';
 import {
-    createBlockTreeInsertAtOp,
+    createBlockTreeInsertOrReplaceAtOp,
     createBlockTreeMoveToOps,
 } from './tree-dnd-controller-funcs.js';
 
@@ -40,7 +40,7 @@ function createDndController(saveButton) {
                     saveButton.pushOpGroup(...ops);
             } else {
                 const targetInf = createBlockDescriptorFromLi(cand.li);
-                const insertBlockAtOp = createBlockTreeInsertAtOp(extDragData.block, targetInf, cand.pos);
+                const insertBlockAtOp = createBlockTreeInsertOrReplaceAtOp(extDragData.block, targetInf, cand.pos);
                 if (!extDragData.isReusable) // Plain block -> add block but no styles
                     saveButton.pushOp(...insertBlockAtOp);
                 else { // Reusable -> add block and copies of all of its styles recursively

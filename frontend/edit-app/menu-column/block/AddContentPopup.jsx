@@ -4,7 +4,7 @@ import {
     scssWizard,
     Tabs,
 } from '@sivujetti-commons-for-edit-app';
-import {createBlockTreeInsertAtOp, getRealTarget} from '../../includes/block/tree-dnd-controller-funcs.js';
+import {createBlockTreeInsertOrReplaceAtOp, getRealTarget} from '../../includes/block/tree-dnd-controller-funcs.js';
 import {
     AddReusableContentTab,
     AddSimpleContentBlocksTab,
@@ -41,7 +41,7 @@ class AddContentPopup extends preact.Component {
                 if (currentTabIdx === 2)
                     return <AddTemplateContentTab
                         getIsInsertAfterOrBeforeRootLevelBlock={ () => {
-                            if (this.props.insertPos === 'as-child') // Not after|before
+                            if (this.props.insertPos === 'as-child' && !this.props.isReplace) // Not after|before
                                 return false;
                             const [trid, blockId] = getRealTarget(this.props.targetInfo);
                             if (trid !== 'main') // Inner gbt block, can't be a root level block
@@ -59,14 +59,14 @@ class AddContentPopup extends preact.Component {
      * @access private
      */
     handleContentPicked(descr) {
-        const {targetInfo, insertPos} = this.props;
-        const insertBlockAtOp = createBlockTreeInsertAtOp(descr.block, targetInfo, insertPos);
+        const {targetInfo, insertPos, isReplace} = this.props;
+        const insertOrReplaceBlockOp = createBlockTreeInsertOrReplaceAtOp(descr.block, targetInfo, insertPos, isReplace);
         if (!descr.styles?.length) {
-            api.saveButton.getInstance().pushOp(...insertBlockAtOp);
+            api.saveButton.getInstance().pushOp(...insertOrReplaceBlockOp);
         } else {
             const updatedAll = scssWizard.addManyNewChunksAndReturnAllRecompiled(descr.styles);
             api.saveButton.getInstance().pushOpGroup(
-                insertBlockAtOp,
+                insertOrReplaceBlockOp,
                 ['stylesBundle', updatedAll]
             );
         }
@@ -86,6 +86,7 @@ class AddContentPopup extends preact.Component {
  * @typedef {{
  *   targetInfo: BlockDescriptor;
  *   insertPos: dropPosition;
+ *   isReplace: boolean;
  * }} AddContentPopupProps
  *
  * @typedef {string} blockTypeName

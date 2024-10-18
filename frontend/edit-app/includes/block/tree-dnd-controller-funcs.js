@@ -8,28 +8,33 @@ import {
  * @param {Block} blockOrBranch
  * @param {BlockDescriptor} target
  * @param {dropPosition} insertPos
+ * @param {boolean} isReplace = false
  * @returns {['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree, StateChangeUserContext]}
  */
-function createBlockTreeInsertAtOp(blockOrBranch, target, insertPos) {
+function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, target, insertPos, isReplace = false) {
     const [targetTrid, targetBlockId] = getRealTarget(target, insertPos);
+    const eventName = !isReplace ? 'insert-block-at' : 'replace-block';
     if (targetTrid === 'main')
         return [
             'theBlockTree',
             blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
-                insertAfterBeforeOrAsChild(blockOrBranch, newTreeCopy, targetBlockId, insertPos);
+                if (!isReplace) insertAfterBeforeOrAsChild(blockOrBranch, newTreeCopy, targetBlockId, insertPos);
+                else replaceAt(blockOrBranch, newTreeCopy, targetBlockId);
                 return newTreeCopy;
             }),
-            {event: 'insert-block-at'}
+            {event: eventName}
         ];
     else
         return [
             'globalBlockTrees',
             objectUtils.cloneDeepWithChanges(api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
                 const gbt = findGbt(targetTrid, newGbtsCopy);
-                insertAfterBeforeOrAsChild(blockOrBranch, gbt.blocks, targetBlockId, insertPos); // mutates gbt.blocks (and thus gbt and newGbtsCopy)
+                // mutates gbt.blocks (and thus gbt and newGbtsCopy)
+                if (!isReplace) insertAfterBeforeOrAsChild(blockOrBranch, gbt.blocks, targetBlockId, insertPos);
+                else replaceAt(blockOrBranch, gbt.blocks, targetBlockId);
                 return newGbtsCopy;
             }),
-            {event: 'insert-block-at'}
+            {event: eventName}
         ];
 }
 
@@ -238,7 +243,7 @@ function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBef
 /**
  * @param {Block} block Block to insert
  * @param {Array<Block>} arrMut Array to insert to
- * @param {string} refBlockId Id of block in $arrMut (for 'before'|'after')
+ * @param {string} refBlockId Id of the block in $arrMut (for 'before'|'after')
  * @param {dropPosition} insertPos
  */
 function insertAfterBeforeOrAsChild(block, arrMut, refBlockId, insertPos) {
@@ -253,12 +258,23 @@ function insertAfterBeforeOrAsChild(block, arrMut, refBlockId, insertPos) {
  * @param {Block} block Block to insert
  * @param {Array<Block>} branchMut Array to insert to
  * @param {Block} refBlock Block in $branchMut
+ * @param {number} replace = 0 0 = no, 1 = yes
  * @param {dropPosition} pos
  */
-function insertTo(block, branchMut, refBlock, pos) {
+function insertTo(block, branchMut, refBlock, pos, replace = 0) {
     const idx = branchMut.indexOf(refBlock);
-    const posAdj = idx + (pos === 'before' ? 0 : 1);
-    branchMut.splice(posAdj, 0, block);
+    const posAdj = idx + (pos === 'before' || replace ? 0 : 1);
+    branchMut.splice(posAdj, replace, block);
+}
+
+/**
+ * @param {Block} block Block to replace with
+ * @param {Array<Block>} arrMut Array in which to replace
+ * @param {Block} refBlockId Id of the block in $arrMut
+ */
+function replaceAt(block, arrMut, refBlockId) {
+    const [refBlock, branchMut] = blockTreeUtils.findBlock(refBlockId, arrMut);
+    branchMut.splice(branchMut.indexOf(refBlock), 1, block);
 }
 
 /**
@@ -300,7 +316,7 @@ function findGbt(gbtId, from) {
 }
 
 export {
-    createBlockTreeInsertAtOp,
+    createBlockTreeInsertOrReplaceAtOp,
     createBlockTreeMoveToOps,
     findGbt,
     getRealTarget,

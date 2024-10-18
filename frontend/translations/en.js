@@ -129,6 +129,8 @@ stringBundles.push({
     '↑ Add content above': '↑ Add content above',
     '↓ Add content below': '↓ Add content below',
     '↳ Add content as child': '↳ Add content as child',
+    '↹ Replace with content': '↹ Replace with content',
+    'Replace this content with': 'Replace this content with',
     'Duplicate': 'Duplicate',
     'Duplicate content': 'Duplicate content',
     'Delete': 'Delete',

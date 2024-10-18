@@ -130,6 +130,8 @@ stringBundles.push({
     '↑ Add content above': '↑ Lisää sisältöä yläpuolelle',
     '↓ Add content below': '↓ Lisää sisältöä alapuolelle',
     '↳ Add content as child': '↳ Lisää lapsisisältöä',
+    '↹ Replace with content': '↹ Korvaa sisällöllä',
+    'Replace this content with': 'Korvaa tämä sisältö sisällöllä',
     'Duplicate': 'Monista',
     'Duplicate content': 'Monista sisältö',
     'Delete': 'Poista',

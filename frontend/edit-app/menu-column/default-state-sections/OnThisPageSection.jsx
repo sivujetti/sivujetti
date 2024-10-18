@@ -19,6 +19,7 @@ const globalBlockTreeEventsThatNeedRefresh = [
     'insert-block-at',
     'move-block-between',
     'move-block-within',
+    'replace-block',
 ];
 
 class OnThisPageSection extends MenuSectionAbstract {

@@ -509,6 +509,7 @@ class BlockTree extends preact.Component {
      * @access private
      */
     deSelectAllBlocks() {
+        if (!this.state.uiStateTree) return;
         this.setState({uiStateTree: this.setBlockAsSelected(null, null)});
     }
     /**

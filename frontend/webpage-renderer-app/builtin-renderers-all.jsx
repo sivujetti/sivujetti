@@ -100,30 +100,36 @@ class ImageBlock extends preact.Component {
     }
 }
 
-/** @type {Map<string, {htmlArr: Array<preact.ComponentChild>; hash: string;}>} */
-const cachedRenders = new Map;
 class ListingBlock extends preact.Component {
+    // cachedRenders;
+    // prevFetchAborter;
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        this.cachedRenders = new Map;
+        this.setState({content: __('Loading ...'), contentHash: '@waiting'});
+        const {block} = this.props;
+        this.renderCacheAndSetToState(block, createHash(block));
+    }
     /**
      * @param {BlockRendererProps} props
      * @access protected
      */
-    render({block, renderChildren, createDefaultProps}) {
-        let content = null;
-        const cachedRender = cachedRenders.get(block.id);
-        if (!cachedRender) {
-            content = __('Loading ...');
-            this.renderInBackend(block).then(htmlArr => {
-                cachedRenders.set(block.id, {htmlArr, hash: createHash(block)});
-                this.forceUpdate();
-            });
-        } else {
-            content = cachedRender.htmlArr;
-            const maybeChanged = createHash(block);
-            if (maybeChanged !== cachedRender.hash) {
-                cachedRenders.delete(block.id);
-                this.forceUpdate();
-            }
+    componentWillReceiveProps(props) {
+        const {block} = props;
+        const maybeChanged = createHash(block);
+        if (maybeChanged !== this.state.contentHash) {
+            const fromCache = this.cachedRenders.get(maybeChanged);
+            if (!fromCache) this.renderCacheAndSetToState(block, maybeChanged);
+            else this.setState({content: fromCache, contentHash: maybeChanged});
         }
+    }
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({block, renderChildren, createDefaultProps}, {content}) {
         return <div { ...createDefaultProps(`page-type-${block.filterPageType.toLowerCase()}`) }>
             { content }
             { renderChildren() }
@@ -131,22 +137,45 @@ class ListingBlock extends preact.Component {
     }
     /**
      * @param {Block} block
-     * @returns {Promise<Array<preact.ComponentChild>>}
+     * @param {AbortController} abortCtrl
+     * @returns {Promise<Array<preact.ComponentChild>>|null}
      * @access private
      */
-    async renderInBackend(block) {
+    async renderInBackend(block, abortCtrl) {
         try {
             const {__pages, __pageType, ...rest} = block;
-            const resp = await http.post('/api/blocks/render', {block: rest});
+            const resp = await http.post('/api/blocks/render', {block: rest}, {signal: abortCtrl.signal});
+            this.prevFetchAborter = null;
             const withWrapperDiv = htmlStringToVNodeArray(resp.result);
             const divChildren = withWrapperDiv[0].props.children;
             return divChildren;
         } catch (err) {
+            this.prevFetchAborter = null;
+            if (err === '@overridden-by-renderer')
+                return null;
             env.window.console.error(err);
             return <p>{ __('Failed to render content.') }</p>;
         }
     }
+    /**
+     * @param {Block} block
+     * @param {string} contentHash
+     * @access private
+     */
+    async renderCacheAndSetToState(block, contentHash) {
+        if (this.prevFetchAborter)
+            this.prevFetchAborter.abort('@overridden-by-renderer');
+        this.prevFetchAborter = new AbortController();
+        const htmlArr = await this.renderInBackend(block, this.prevFetchAborter);
+        if (!htmlArr) return; // abortet
+        this.cachedRenders.set(contentHash, htmlArr);
+        this.setState({content: htmlArr, contentHash});
+    }
 }
+/**
+ * @param {Block} block
+ * @returns {string}
+ */
 function createHash(block) {
     return JSON.stringify({...block.propsData, renderer: block.renderer});
 }

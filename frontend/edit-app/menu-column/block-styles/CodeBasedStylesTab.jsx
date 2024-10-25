@@ -58,7 +58,7 @@ class CodeBasedStylesList extends preact.Component {
                                     {scss},
                                     ref,
                                     selectedMediaScopeId
-                                );
+                                )[0];
                                 saveButtonInstance.pushOp('stylesBundle', updatedAll);
                             } }
                             scss={ ref.scss }/></li>;

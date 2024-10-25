@@ -46,7 +46,7 @@ function handleBaseChunkScssChanged(updatedScss, chunk) {
     const updatedAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
         {scss: updatedScss},
         chunk,
-    );
+    )[0];
     saveButtonInstance.pushOp('stylesBundle', updatedAll);
 }
 

@@ -50,10 +50,10 @@ function createCssDeclExtractor(scss) {
  * @param {Array<StyleChunk>} styles
  * @param {string} cachedCompiledCss
  * @param {string} pageIdPair
- * @returns {string}
+ * @returns {[string, string|null]}
  */
 function stylesToBaked(styles, cachedCompiledCss, pageIdPair) {
-    if (!styles.length) return '';
+    if (!styles.length) return ['', null];
 
     const {hoisted, base, userGlobal, userPageScoped, dev} = styles.reduce((out, s) => {
         const {scope} = s;
@@ -91,7 +91,10 @@ function stylesToBaked(styles, cachedCompiledCss, pageIdPair) {
     const updateCurrentPageCss = createCompiledPageScopedLinesUpdateFn(cachedCompiledCss, pageIdPair);
     const userPageCss = updateCurrentPageCss(currentPageCss)?.filter(line => line !== NO_CSS).join('\n') || NO_CSS;
 
-    return [
+    const [devCss, error] = validateAndCompileDevStyles(dev);
+    if (error) return ['', error];
+
+    return [[
         ...(hoisted.length ? hoisted : ['']),
         '@layer base-styles {\n',
             serialize(compile(base.map(({scss}) => scss).join('')), stringify),
@@ -105,9 +108,24 @@ function stylesToBaked(styles, cachedCompiledCss, pageIdPair) {
             '/* == page-scoped:end */\n',
         '}\n',
         '@layer dev-styles {\n',
-            serialize(compile(dev.map(({scss}) => scss).join('')), stringify), '\n',
+            devCss, '\n',
         '}\n',
-    ].join('');
+    ].join(''), null];
+}
+
+/**
+ * @param {Array<StyleChunk>} styles
+ * @returns {[string, string|null]}
+ */
+function validateAndCompileDevStyles(styles) {
+    const earlyError = styles.reduce((out, {scss}) =>
+        /^\.cc-[0-9]+ \{\r?\n/.test(scss)
+            ? out
+            : [...out, `dev chunk's first line must match \`.cc-<n>\` ( (was \`${scss.split('\n')[0]}\`)`]
+    , []).join(', ');
+    return !earlyError
+        ? [serialize(compile(styles.map(({scss}) => scss).join('')), stringify), null]
+        : ['', earlyError];
 }
 
 /**

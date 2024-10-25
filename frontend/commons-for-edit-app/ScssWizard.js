@@ -82,7 +82,7 @@ class ScssWizard {
      */
     addNewUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, blockId, blockTreeId) {
         const updated = this.doAddFirstScssChunk(codeTemplate, val, blockId, blockTreeId);
-        return this.commitAll(updated);
+        return this.tryToCommitAll(updated)[0];
     }
     /**
      * @param {Array<StyleChunk>} chunksToAdd
@@ -101,7 +101,7 @@ class ScssWizard {
             ...this.styles,
             ...chunksToAdd,
         ];
-        return this.commitAll(updated);
+        return this.tryToCommitAll(updated)[0];
     }
     /**
      * @param {scssCodeInput} codeTemplate Examples 'color: red;', '> sub-selector {\n  color: red;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
@@ -113,7 +113,7 @@ class ScssWizard {
      */
     addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, currentStyle, mediaScopeId = 'all') {
         const updated = this.doAddOrUpdateScssCodeOfExistingUniqueScopedChunk(codeTemplate, val, currentStyle);
-        return this.commitAll(updated, mediaScopeId);
+        return this.tryToCommitAll(updated, mediaScopeId)[0];
     }
     /**
      * @param {scssCodeInput} newScss
@@ -135,7 +135,7 @@ class ScssWizard {
                 ].join('\n'),
             };
         });
-        return this.commitAll(updated, mediaScopeId);
+        return this.tryToCommitAll(updated, mediaScopeId)[0];
     }
     /**
      * @param {StyleChunk} chunkToDelete
@@ -144,7 +144,7 @@ class ScssWizard {
      */
     deleteStyleChunkAndReturnAllRecompiled(chunkToDelete) {
         const updated = this.styles.filter(s => s !== chunkToDelete);
-        return this.commitAll(updated);
+        return this.tryToCommitAll(updated)[0];
     }
     /**
      * @param {scssCodeInput} codeTemplate
@@ -156,7 +156,7 @@ class ScssWizard {
      */
     deleteScssCodeFromExistingUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, currentStyle, mediaScopeId = 'all') {
         const updated = this.deleteScssCodeFromExistingUniqueScopedChunk(codeTemplate, val, currentStyle);
-        return this.commitAll(updated, mediaScopeId);
+        return this.tryToCommitAll(updated, mediaScopeId)[0];
     }
     /**
      * @param {string} initialScssCode Example: '  // Your code here ...\n  color: red;'
@@ -176,19 +176,19 @@ class ScssWizard {
                 data,
             }
         ];
-        return this.commitAll(updated);
+        return this.tryToCommitAll(updated)[0];
     }
     /**
      * @param {{scss?: string; data?: CustomClassStyleChunkData;}} changes Example: {scss: 'color: blue;'}
      * @param {StyleChunk} currentStyle
-     * @returns {StylesBundleWithId}
+     * @returns {[StylesBundleWithId|null, string|null]}
      * @access public
      */
     updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(changes, currentStyle) {
         const updated = this.styles.map(s =>
             s !== currentStyle ? s : {...s, ...changes}
         );
-        return this.commitAll(updated);
+        return this.tryToCommitAll(updated);
     }
     /**
      * @param {Array<StyleChunk>} uniqueScopeChunks
@@ -277,7 +277,7 @@ class ScssWizard {
             return out;
         }, []);
 
-        return this.commitAll(optimized, affectedMediaScopeIds);
+        return this.tryToCommitAll(optimized, affectedMediaScopeIds)[0];
     }
     /**
      * @param {scssCodeInput} codeTemplate
@@ -402,28 +402,31 @@ class ScssWizard {
     /**
      * @param {Array<StyleChunk>} newStylesArr
      * @param {mediaScope|{[key: mediaScope]: any;}} mediaScopeIdOrIds
-     * @returns {StylesBundleWithId}
+     * @returns {[StylesBundleWithId|null, string|null]}
      * @access private
      */
-    commitAll(newStylesArr, mediaScopeIdOrIds) {
-        this.styles = newStylesArr;
+    tryToCommitAll(newStylesArr, mediaScopeIdOrIds) {
 
-        const compiledNew = stylesToBaked(
-            this.styles,
+        const [compiledNew, error] = stylesToBaked(
+            newStylesArr,
             this.cachedCompiledCss,
             this.currentPageIdPair
         );
-        if (compiledNew.length > 1024000) throw new Error('??');
+        if (compiledNew.length > 2048000)
+            return [null, 'compiled css over 2MB'];
+        if (error)
+            return [null, error];
 
+        this.styles = newStylesArr;
         this.cachedCompiledCss = compiledNew;
 
         this.stateId += 1;
 
-        return {
+        return [{
             styleChunks: this.styles,
             cachedCompiledCss: this.cachedCompiledCss,
             id: this.stateId,
-        };
+        }, error];
     }
     /**
      * @param {string} scss

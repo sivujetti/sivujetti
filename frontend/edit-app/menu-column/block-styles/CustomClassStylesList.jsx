@@ -139,10 +139,14 @@ class CustomClassStylesList extends preact.Component {
      * @access private
      */
     emitChunksChanges(changes, chunkVisible) {
-        const updatedAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
+        const [updatedAll, error] = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
             changes,
             chunkVisible,
         );
+        if (!updatedAll) {
+            if (error === 'compiled css over 2MB') env.window.alert(error);
+            return;
+        }
         saveButtonInstance.pushOp('stylesBundle', updatedAll);
     }
     /**
@@ -257,7 +261,7 @@ class CustomClassStylesList extends preact.Component {
         const newAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
             {data: Object.keys(obj).length ? obj : null},
             current,
-        );
+        )[0];
         saveButtonInstance.pushOp('stylesBundle', newAll);
     }
 }

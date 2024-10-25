@@ -9,7 +9,7 @@ class ManyToManyItemSelector extends preact.Component {
     // unregistrables;
     // selectionType;
     /**
-     * @param {{curSelections: Array<string>; onSelectionsChanged: (newList: Array<string>) => void; relPageType: PageType; onItemsFetched?: (manyToManyPages: Array<RelPage>) => void; useRadios?: boolean;}} props
+     * @param {{curSelections: Array<string>; onSelectionsChanged: (newSelections: Array<string>) => void; relPageType: PageType; onItemsFetched?: (manyToManyPages: Array<RelPage>) => void; useRadios?: boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -84,22 +84,22 @@ class ManyToManyItemSelector extends preact.Component {
         const manyToManyPageId = e.target.value;
         const {currentManyToManyIdList} = this.state;
         //
-        let newList;
+        let newSelections;
         if (!this.props.useRadios) {
             const cur = currentManyToManyIdList.indexOf(manyToManyPageId) > -1 ? 1 : 0;
             const val = e.target.checked ? 1 : 0;
             if (cur === 0 && val === 1) {
-                newList = [...this.state.currentManyToManyIdList, manyToManyPageId];
+                newSelections = [...this.state.currentManyToManyIdList, manyToManyPageId];
             } else if (cur === 1 && val === 0) {
-                newList = currentManyToManyIdList.filter(manyToManyPageId2 => manyToManyPageId2 !== manyToManyPageId);
+                newSelections = currentManyToManyIdList.filter(manyToManyPageId2 => manyToManyPageId2 !== manyToManyPageId);
             }
         } else if ((currentManyToManyIdList[0] || '') !== manyToManyPageId) {
-            newList = [manyToManyPageId];
+            newSelections = [manyToManyPageId];
         }
         //
-        if (newList) {
-            this.props.onSelectionsChanged(newList);
-            this.setState({currentManyToManyIdList: newList});
+        if (newSelections) {
+            this.props.onSelectionsChanged(newSelections);
+            this.setState({currentManyToManyIdList: newSelections});
         }
     }
 }

@@ -30,7 +30,7 @@ class IsInCategoryPart extends preact.Component {
         const {workableFilter} = this.props;
         const relPageTypeName = findFieldInfo(workableFilter.propPath, this.props.getListPageTypeOwnProps()).dataType.rel;
         this.relPageType = api.getPageTypes().find(({name}) => name === relPageTypeName);
-        this.updateState(workableFilter);
+        this.setState(this.createState(workableFilter));
     }
     /**
      * @param {FilterPartProps} props
@@ -38,7 +38,7 @@ class IsInCategoryPart extends preact.Component {
      */
     componentWillReceiveProps(props) {
         if (props.workableFilter.value[0] !== this.props.workableFilter.value[0])
-            this.updateState(props.workableFilter);
+            this.setState(this.createState(props.workableFilter));
     }
     /**
      * @access protected
@@ -54,9 +54,9 @@ class IsInCategoryPart extends preact.Component {
                 <div class="select-list-scroller">
                     <ManyToManyItemSelector
                         curSelections={ [theCat] }
-                        onSelectionsChanged={ newList => this.props.parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, newList[0], this.props.currentFiltersJson), 'updated', this.popup.current) }
+                        onSelectionsChanged={ selections => this.emitNewCat(selections[0]) }
                         relPageType={ this.relPageType }
-                        onItemsFetched={ manyToManyPages => { this.setState({curAllList: manyToManyPages}); } }
+                        onItemsFetched={ this.receivePagesList.bind(this) }
                         useRadios/>
                 </div>
             </PopupPrerendered>
@@ -64,10 +64,30 @@ class IsInCategoryPart extends preact.Component {
     }
     /**
      * @param {ParsedFilter} workableFilter
+     * @returns {Object}
      * @access private
      */
-    updateState({value}) {
-        this.setState({theCat: value[0]});
+    createState({value}) {
+        return {theCat: value[0]};
+    }
+    /**
+     * @param {Array<RelPage>} manyToManyPages
+     * @access private
+     */
+    receivePagesList(manyToManyPages) {
+        const pageDoesntExistAnyMore = this.state.theCat && !manyToManyPages.some(({id}) => id === this.state.theCat);
+        if (pageDoesntExistAnyMore)
+        this.emitNewCat(null, null);
+        //
+        this.setState({curAllList: manyToManyPages});
+    }
+    /**
+     * @param {string|null} pageId
+     * @param {PopupPrerendered} openPopup = this.popup.current
+     * @access private
+     */
+    emitNewCat(pageId, openPopup = this.popup.current) {
+        this.props.parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, pageId, this.props.currentFiltersJson), 'updated', openPopup);
     }
     /**
      * @param {string} isInCategory

@@ -157,6 +157,17 @@ class SaveButton extends preact.Component {
         };
     }
     /**
+     * @param {string} channelName
+     * @param {fn(activeStates: Array<state>) => void} withFn
+     * @returns {Array<state>}
+     * @access public
+     */
+    mutateActiveStates(channelName, fn) {
+        const activeStatesMut = this.getActiveState(channelName, 0);
+        fn(activeStatesMut);
+        return activeStatesMut;
+    }
+    /**
      * @access protected
      */
     componentDidMount() {
@@ -308,16 +319,16 @@ class SaveButton extends preact.Component {
     }
     /**
      * @param {string} channelName
+     * @param {number} start = 1
      * @returns {Array<state>}
      * @access private
      */
-    getActiveState(channelName) {
+    getActiveState(channelName, start = 1) {
         const pool = this.states[channelName];
-        const afterInitial = 1;
         // ['initial', '1st', '2nd', '3rd'] -> ['1st']               (if cursor = 1)
         // ['initial', '1st', '2nd', '3rd'] -> ['1st', '2nd']        (if cursor = 2)
         // ['initial', '1st', '2nd', '3rd'] -> ['1st', '2nd', '3rd'] (if cursor = 3)
-        const fromFirstToCursor = pool.slice(afterInitial, this.stateCursors[channelName] + afterInitial);
+        const fromFirstToCursor = pool.slice(start, this.stateCursors[channelName] + 1);
         return fromFirstToCursor;
     }
     /**

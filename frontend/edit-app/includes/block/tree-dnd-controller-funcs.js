@@ -9,11 +9,29 @@ import {
  * @param {BlockDescriptor} target
  * @param {dropPosition} insertPos
  * @param {boolean} isReplace = false
- * @returns {['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree, StateChangeUserContext]}
+ * @returns {[['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree, StateChangeUserContext], (() => void)|null]}
  */
 function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, target, insertPos, isReplace = false) {
     const [targetTrid, targetBlockId] = getRealTarget(target, insertPos);
     const eventName = !isReplace ? 'insert-block-at' : 'replace-block';
+
+    const newGbts = new Map;
+    blockTreeUtils.traverseRecursivelyMultiTree([blockOrBranch], b => {
+        if (b.type === 'GlobalBlockReference' && !newGbts.get(b.globalBlockTreeId)) {
+            newGbts.set(b.globalBlockTreeId, blockTreeUtils.getTree(b.globalBlockTreeId));}
+    });
+    const patchedGbtStates = !newGbts.size ? null : (() => {
+    // Note: this call mutates SaveButton's internal state
+        return api.saveButton.getInstance().mutateActiveStates('globalBlockTrees', stateArrMut => {
+            for (const [newTrid, gbtFromBackend] of newGbts) {
+                for (const gbts of stateArrMut) {
+                    if (!findGbt(newTrid, gbts))
+                        gbts.push(gbtFromBackend);
+                }
+            }
+        });
+    })();
+
     if (targetTrid === 'main')
         return [
             'theBlockTree',
@@ -27,7 +45,7 @@ function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, target, insertPos, is
     else
         return [
             'globalBlockTrees',
-            objectUtils.cloneDeepWithChanges(api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
+            objectUtils.cloneDeepWithChanges(patchedGbtStates?.at(-1) || api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
                 const gbt = findGbt(targetTrid, newGbtsCopy);
                 // mutates gbt.blocks (and thus gbt and newGbtsCopy)
                 if (!isReplace) insertAfterBeforeOrAsChild(blockOrBranch, gbt.blocks, targetBlockId, insertPos);

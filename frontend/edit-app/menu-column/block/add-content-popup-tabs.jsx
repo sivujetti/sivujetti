@@ -30,7 +30,7 @@ class AddReusableContentTab extends preact.Component {
     componentWillMount() {
         http.get('/api/global-block-trees')
             .then(globalBlockTrees => {
-                blockTreeUtils.setAllGlobalBlockTrees(globalBlockTrees);
+                blockTreeUtils.setBackendGlobalBlockTrees(globalBlockTrees);
                 const latest = api.saveButton.getInstance().getChannelState('globalBlockTrees');
                 const uniqueMerged = [...latest, ...globalBlockTrees].reduce((out, gbt) => !out.some(({id}) => id === gbt.id) ? [...out, gbt] : out, []);
                 this.setState({globalBlockTrees: uniqueMerged});

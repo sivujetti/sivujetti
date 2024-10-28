@@ -3,7 +3,7 @@ import {objectUtils} from '../utils.js';
 
 const blockTreeUtils = {
     /** @type {Array<GlobalBlockTree>} */
-    _allGlobalBlockTrees: [],
+    _backendGlobalBlockTrees: [],
     /**
      * @param {string} id
      * @param {Array<Block>} branch
@@ -42,7 +42,8 @@ const blockTreeUtils = {
      */
     findBlockMultiTree(id, tree, _parentBlock = null, _root = null) {
         for (const b of tree) {
-            if (b.id === id) return [b, tree, _parentBlock, _root || tree];
+            if (b.id === id)
+                return [b, tree, _parentBlock, _root || tree];
             if (b.type !== 'GlobalBlockReference') {
                 const c = b.children;
                 if (c.length) {
@@ -51,14 +52,30 @@ const blockTreeUtils = {
                 }
             } else {
                 const gbt = this.getTree(b.globalBlockTreeId);
-                const c = gbt.blocks;
-                if (c.length) {
-                    const sub = this.findBlockMultiTree(id, c, b, gbt);
-                    if (sub[0]) return sub;
-                }
+                const sub = this.findBlockMultiTree(id, gbt.blocks, b, gbt);
+                if (sub[0]) return sub;
             }
         }
         return [null, null, null, null];
+    },
+    /**
+     * @param {Array<Block>} branch
+     * @param {(item: Block, i: number, parent: Block|null, root: GlobalBlockTree|null) => any} fn
+     * @param {Block|null} parent
+     * @param {GlobalBlockTree|null} root
+     * @access public
+     */
+    traverseRecursivelyMultiTree(branch, fn, parent = null, root = null) {
+        branch.forEach((b, i) => {
+            fn(b, i, parent, root);
+            if (b.type !== 'GlobalBlockReference') {
+                const children = b.children;
+                if (children.length) this.traverseRecursivelyMultiTree(children, fn, b, root);
+            } else {
+                const gbt = this.getTree(b.globalBlockTreeId);
+                this.traverseRecursivelyMultiTree(gbt.blocks, fn, b, gbt);
+            }
+        });
     },
     /**
      * @param {GlobalBlockTree|Array<Block>} input
@@ -121,22 +138,6 @@ const blockTreeUtils = {
         return null;
     },
     /**
-     * @param {Array<Object>} branch
-     * @param {(item: Object, i: number, parent: Object|null, parentIdPath: string) => any} fn
-     * @param {Object} parent = null
-     * @param {string} parentIdPath = ''
-     * @returns {Array<Object>}
-     * @access public
-     */
-    traverseWithIdRecursively(branch, fn, parent = null, parentIdPath = '') {
-        branch.forEach((b, i) => {
-            fn(b, i, parent, parentIdPath);
-            if (b.children.length) {
-                this.traverseWithIdRecursively(b.children, fn, b, `${parentIdPath}/${b.id}`);
-            }
-        });
-    },
-    /**
      * @param {string} trid
      * @param {Array<GlobalBlockTree>} storeState = null
      * @returns {Array<Block>|GlobalBlockTree|undefined}
@@ -144,9 +145,9 @@ const blockTreeUtils = {
     getTree(trid, storeState = null) {
         if (trid === 'main')
             return api.saveButton.getInstance().getChannelState('theBlockTree');
-        const fromSaveButtonState = (storeState|| api.saveButton.getInstance().getChannelState('globalBlockTrees')).find((({id}) => id === trid));
+        const fromSaveButtonState = (storeState || api.saveButton.getInstance().getChannelState('globalBlockTrees')).find((({id}) => id === trid));
         if (fromSaveButtonState) return fromSaveButtonState;
-        const fromBackend = this._allGlobalBlockTrees.find((({id}) => id === trid));
+        const fromBackend = this._backendGlobalBlockTrees.find((({id}) => id === trid));
         return fromBackend;
     },
     /**
@@ -167,8 +168,8 @@ const blockTreeUtils = {
      * @param {Array<GlobalBlockTree>} allTrees
      * @access public
      */
-    setAllGlobalBlockTrees(allTrees) {
-        this._allGlobalBlockTrees = allTrees;
+    setBackendGlobalBlockTrees(allTrees) {
+        this._backendGlobalBlockTrees = allTrees;
     },
     /**
      * @param {Array<Block>} theTree

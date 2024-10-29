@@ -132,20 +132,18 @@ function clearHighlight(curHigh) {
 
 /**
  * @param {HTMLLIElement} li
- * @param {number} nthOfId
  * @param {HTMLUListElement} ul
  * @param {HTMLLIElement} def
  * @returns {HTMLLIElement}
  */
-function findVisibleLi(li, nthOfId, ul, def) {
+function findVisibleLi(li, ul, def) {
     const parentBlockId = li.getAttribute('data-is-children-of');
     if (!parentBlockId) return def;
-    const selector = `li[data-block-id="${parentBlockId}"]`;
-    const parentBlockLi = nthOfId < 2 ? ul.querySelector(selector) : ul.querySelectorAll(selector)[nthOfId - 1];
+    const parentBlockLi = ul.querySelector(`li[data-block-id="${parentBlockId}"]`);
     if (!parentBlockLi.classList.contains('d-none')) // found it
         return parentBlockLi;
     // keep looking
-    return findVisibleLi(parentBlockLi, nthOfId, ul, def);
+    return findVisibleLi(parentBlockLi, ul, def);
 }
 
 /**

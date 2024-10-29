@@ -59,8 +59,9 @@ class AddContentPopup extends preact.Component {
      * @access private
      */
     handleContentPicked(descr) {
-        const {targetInfo, insertPos, isReplace} = this.props;
-        const insertOrReplaceBlockOp = createBlockTreeInsertOrReplaceAtOp(descr.block, targetInfo, insertPos, isReplace);
+        const {targetInfo, insertPos, isReplace, wasCurrentlySelectedBlock} = this.props;
+        const insertOrReplaceBlockOp = createBlockTreeInsertOrReplaceAtOp(descr.block, targetInfo,
+            insertPos, isReplace, wasCurrentlySelectedBlock);
         if (!descr.styles?.length) {
             api.saveButton.getInstance().pushOp(...insertOrReplaceBlockOp);
         } else {
@@ -87,6 +88,7 @@ class AddContentPopup extends preact.Component {
  *   targetInfo: BlockDescriptor;
  *   insertPos: dropPosition;
  *   isReplace: boolean;
+ *   wasCurrentlySelectedBlock: boolean;
  * }} AddContentPopupProps
  *
  * @typedef {string} blockTypeName

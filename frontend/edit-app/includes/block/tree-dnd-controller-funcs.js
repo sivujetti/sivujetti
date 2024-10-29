@@ -9,9 +9,10 @@ import {
  * @param {BlockDescriptor} target
  * @param {dropPosition} insertPos
  * @param {boolean} isReplace = false
+ * @param {wasCurrentlySelectedBlock} wasCurrentlySelectedBlock = false
  * @returns {[['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree, StateChangeUserContext], (() => void)|null]}
  */
-function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, target, insertPos, isReplace = false) {
+function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, target, insertPos, isReplace = false, wasCurrentlySelectedBlock = false) {
     const [targetTrid, targetBlockId] = getRealTarget(target, insertPos);
     const eventName = !isReplace ? 'insert-block-at' : 'replace-block';
 
@@ -40,7 +41,7 @@ function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, target, insertPos, is
                 else replaceAt(blockOrBranch, newTreeCopy, targetBlockId);
                 return newTreeCopy;
             }),
-            {event: eventName}
+            {event: eventName, wasCurrentlySelectedBlock}
         ];
     else
         return [
@@ -52,7 +53,7 @@ function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, target, insertPos, is
                 else replaceAt(blockOrBranch, gbt.blocks, targetBlockId);
                 return newGbtsCopy;
             }),
-            {event: eventName}
+            {event: eventName, wasCurrentlySelectedBlock}
         ];
 }
 

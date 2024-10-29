@@ -90,17 +90,16 @@ class BlockEditForm extends preact.Component {
             //
             refreshBlockCopyForEditFormIfNeeded(userCtx, ctx, flags, event, theTree);
             //
-            if (event === 'delete') {
-                const {wasCurrentlySelectedBlock} = userCtx || {};
-                if (wasCurrentlySelectedBlock) this.props.inspectorPanel.close();
-            }
+            this.closeInspectorPanelIfBlockIsDeletedOrReplaced(event, userCtx);
         }),
 
         saveButton.subscribeToChannel('globalBlockTrees', (_gbts, userCtx, ctx, flags) => {
-            refreshBlockCopyForEditFormIfNeeded(userCtx, ctx, flags, userCtx?.event || '', null);
+            const event = userCtx?.event || '';
+            refreshBlockCopyForEditFormIfNeeded(userCtx, ctx, flags, event, null);
+            this.closeInspectorPanelIfBlockIsDeletedOrReplaced(event, userCtx);
         }),
 
-        saveButton.subscribeToChannel('stylesBundle', (bundle, userCtx, ctx) => {
+        saveButton.subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
             if (!doesTabContainStylesStuff(this.state.currentTabKind)) return;
             if (ctx === 'initial') return;
             this.setState({stylesStateId: bundle.id, blockHasCustomizableStyles: getUserStyleTabHasContent(this.state.blockCopyForEditForm, this.tabsInfo)});
@@ -291,6 +290,15 @@ class BlockEditForm extends preact.Component {
         }
 
         return [tabs, blockHasCustomizableStyles];
+    }
+    /**
+     * @param {string} event
+     * @param {StateChangeUserContext} userCtx
+     * @access private
+     */
+    closeInspectorPanelIfBlockIsDeletedOrReplaced(event, userCtx) {
+        if ((event === 'delete' || event === 'replace-block') && userCtx.wasCurrentlySelectedBlock)
+            this.props.inspectorPanel.close();
     }
 }
 

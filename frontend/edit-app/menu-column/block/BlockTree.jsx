@@ -255,10 +255,12 @@ class BlockTree extends preact.Component {
         if (addContentKind) {
             const {li} = this.openMoreMenuData;
             const [arrowRefEl, placeAtBefore] = createAddContentPlacementCfg(li, addContentKind);
+            const isReplace = link.id === 'replace-block-with';
             api.mainPopper.open(
                 AddContentPopup,
                 arrowRefEl,
-                {targetInfo: createBlockDescriptorFromLi(li), insertPos: addContentKind, isReplace: link.id === 'replace-block-with'},
+                {targetInfo: createBlockDescriptorFromLi(li), insertPos: addContentKind, isReplace,
+                    wasCurrentlySelectedBlock: isReplace && this.isCurrentlySelectedBlock(this.openMoreMenuData.block)},
                 {maxWidth: 580, offsetY: !placeAtBefore ? 4 : -25},
             );
         } else if (link.id === 'duplicate-block') {
@@ -308,27 +310,24 @@ class BlockTree extends preact.Component {
      * @access private
      */
     deleteBlock(blockVisible, blockToDeleteId, blockToDeleteTrid) {
-        const isSelectedRootCurrentlyClickedBlock = () => {
-            if (!this.selectedRoot)
-                return false;
-            return this.selectedRoot.id === blockVisible.id;
-        };
-        const isSelectedRootChildOfCurrentlyClickedBlock = () => {
-            if (!this.selectedRoot)
-                return false;
-            if (!blockVisible.children.length)
-                return false;
-            return !!blockTreeUtils.findRecursively(blockVisible.children,
-                b => b.id === this.selectedRoot.id);
-        };
-        //
-        const wasCurrentlySelectedBlock = isSelectedRootCurrentlyClickedBlock() ||
-                                        isSelectedRootChildOfCurrentlyClickedBlock();
+        const wasCurrentlySelectedBlock = this.isCurrentlySelectedBlock(blockVisible);
         if (wasCurrentlySelectedBlock) this.selectedRoot = null;
         //
         const saveButton = api.saveButton.getInstance();
         const op = createDeleteBlockOp(blockToDeleteId, blockToDeleteTrid, wasCurrentlySelectedBlock);
         saveButton.pushOp(...op);
+    }
+    /**
+     * @param {Block} block
+     * @returns {boolean}
+     * @access private
+     */
+    isCurrentlySelectedBlock(block) {
+        if (!this.selectedRoot)
+            return false;
+        return this.selectedRoot.id === block.id ||
+            (block.children.length && blockTreeUtils.findRecursively(block.children,
+                b => b.id === this.selectedRoot.id));
     }
     /**
      * @param {{name: string;}} data
@@ -536,7 +535,7 @@ class BlockTree extends preact.Component {
             const li = ul.querySelectorAll(`li[data-block-id="${blockId}"]`)[nthOfId - 1];
             if (li) {
                 curHigh.hovered = li;
-                curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, nthOfId, ul, li);
+                curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, ul, li, 1);
                 curHigh.visible.classList.add('highlighted');
             }
         }));

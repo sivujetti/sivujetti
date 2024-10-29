@@ -116,7 +116,6 @@ class DefaultStyleCustomizatorForm extends preact.Component {
     handleVisualVarChanged(input, varName, varInputToScssCode) {
         const val = input instanceof Event ? input.target.value : input;
         const updatedAll = this.doHandleValChanged(val, varName, varInputToScssCode);
-        console.log('then',updatedAll);
         api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
     }
     /**

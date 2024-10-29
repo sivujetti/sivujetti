@@ -81,7 +81,7 @@ class ImageBlockEditForm extends preact.Component {
                     ref={ this.imagePicker }/>
             </FormGroup>,
             <FormGroup labelFlow="break">
-                <label htmlFor="altText" class="form-label with-icon" title={ __('Alt text') }>
+                <label htmlFor="altText" class="form-label" title={ __('Alt text') }>
                     { __('Alt text') }
                 </label>
                 <div class="p-relative">
@@ -96,7 +96,7 @@ class ImageBlockEditForm extends preact.Component {
                 <InputErrors vm={ this } prop="altText"/>
             </FormGroup>,
             <FormGroup>
-                <label htmlFor="caption" class="form-label with-icon" title={ __('Caption') }>
+                <label htmlFor="caption" class="form-label" title={ __('Caption') }>
                     { __('Caption') }
                 </label>
                 <Textarea vm={ this } prop="caption" id="caption" rows="2" style="min-height:unset"/>

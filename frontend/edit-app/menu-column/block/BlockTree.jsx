@@ -417,7 +417,7 @@ class BlockTree extends preact.Component {
         const [uiStateEntry, nthOfId] = this.findUiStateEntryAndNthOfId(block, nthOfIdOrUiStateEntry);
         this.selectedRoot = block;
         events.emit('block-tree-item-clicked-or-focused', block, nthOfId, origin);
-        api.webPagePreview.scrollToBlock(block, nthOfId);
+        if (origin === 'direct') api.webPagePreview.scrollToBlock(block, nthOfId);
         const mutRef = this.state.uiStateTree;
 
         // Uncollapse parents if needed

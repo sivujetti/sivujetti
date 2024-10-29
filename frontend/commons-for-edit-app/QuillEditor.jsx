@@ -14,20 +14,21 @@ const toolbarBundles = {
     simple: [
         common.concat('link'),
         ['blockquote', {'list': 'ordered'}, {'list': 'bullet'}],
-        [{'size': ['small', false, 'large', 'huge'] }],
+        [{'size': ['small', false, 'large', 'huge']}],
         ['clean'],
     ],
     longText: [
         [headingToobarItem, ...common, ...['link', 'id-anchor']],
         ['blockquote', {'list': 'ordered'}, {'list': 'bullet'}],
+        [{'size': ['small', false, 'large', 'huge']}, {'align': []}],
         ['clean'],
     ],
     full: [
         common.concat('blockquote'),
         [{'list': 'ordered'}, {'list': 'bullet'}],
-        [{'indent': '-1'}, {'indent': '+1'}, {'align': [] }],
+        [{'indent': '-1'}, {'indent': '+1'}, {'align': []}],
         [headingToobarItem],
-        [{'size': ['small', false, 'large', 'huge'] }],
+        [{'size': ['small', false, 'large', 'huge']}],
         ['link', 'id-anchor', 'image', 'video', 'code-block'],
         ['clean'],
     ]

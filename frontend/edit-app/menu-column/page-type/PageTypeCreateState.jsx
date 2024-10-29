@@ -93,8 +93,9 @@ class PageTypeCreateState extends preact.Component {
                     class="btn btn-link btn-sm"
                     title={ __('Cancel create %s', __('page type')) }
                     type="button">&lt; { __('Back') }</button>
+                <p class="info-box mb-0 notice">This feature is still work in progress.</p>
             </header>,
-            <main style="--header-height: 116px">
+            <main style="--header-height: 190px">
                 <div id="edit-app-sections-wrapper">
                     <OnThisPageSection
                         currentPageSlug="/page-types/create"/>

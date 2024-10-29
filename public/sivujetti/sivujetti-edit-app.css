@@ -346,6 +346,9 @@ h2 {
     position: relative;
     top: -2px;
 }
+.ql-snow .ql-picker.ql-size {
+    width: 76px;
+}
 .jsPanel.animating {
     transition: height cubic-bezier(0.73, -0.32, 0.58, 1) .325s;
 }
@@ -530,7 +533,7 @@ p.info-box.error, .toaster-message.error {
     border-color: rgb(254,90,120);
     background-color: rgba(254,90,120,0.031);
 }
-p.info-box.error, .toaster-message.notice {
+p.info-box.notice, .toaster-message.notice {
     border-color: rgb(254,203,90);
     background-color: rgba(255,146,57,0.05);
 }

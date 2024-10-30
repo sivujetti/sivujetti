@@ -12,6 +12,7 @@ import {
     reHookValues,
     setFocusTo,
     Sortable,
+    stringUtils,
     Textarea,
     unhookForm,
     validateAll,
@@ -41,7 +42,7 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
      */
     componentWillReceiveProps(props) {
         if (JSON.stringify(props.currentSettings) !== JSON.stringify(this.props.currentSettings))
-            this.setState({varDefs: createVarDefsState(props)});
+            this.setState({varDefs: createVarDefsState(props), idxOfItemInEditMode: null});
     }
     /**
      * @access protected
@@ -49,7 +50,7 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
     render(_, {varDefs, idxOfItemInEditMode}) {
         const editModeCls = idxOfItemInEditMode === null ? '': ' edit-mode-is-on';
         return <div>
-            <div class="text-prose mb-2">{ __('...') }</div>
+            <div class="text-prose mb-2 pb-2">{ __('Here you can define the widgets that can be used to modify this style in the visual Styles tab on a per-block basis. The widgets are also visible to non-admin users') }</div>
             <ul
                 class={ `list styles-list style-tweak-settings-list mb-2 color-dimmed${editModeCls}` }
                 ref={ this.activateSorting.bind(this) }>{ varDefs.length ? varDefs.map((v, i) =>
@@ -82,12 +83,12 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
                         onEditEnded={ this.handleEditEnded.bind(this) }
                         widgetNamesTranslated={ this.widgetNamesTranslated }/>
                 }</li>
-            ) : <li><p style="transform: translate(-2.3rem, .58rem);">{ __('No variables yet.') }</p></li> }</ul>
+            ) : <li><p style="transform: translate(-2.3rem, .58rem);">{ __('No widgets yet.') }</p></li> }</ul>
             <button
                 onClick={ this.appendVariable.bind(this) }
                 class="btn btn-primary btn-sm"
                 type="button"
-                disabled={ idxOfItemInEditMode !== null }>{ __('Add variable') }</button>
+                disabled={ idxOfItemInEditMode !== null }>{ __('Add widget') }</button>
         </div>;
     }
     /**
@@ -164,23 +165,31 @@ function createVarDefsState({currentSettings}) {
 
 /** @extends {preact.Component<EditConfigSettingsFormProps, any>} */
 class EditConfigSettingsForm extends preact.Component {
-    // nameInputRef;
+    // widgetTypeInputRef;
+    // cssPropTextareaRef;
     // disableGlobalUndoHotkeys;
     /**
      * @access protected
      */
     componentWillMount() {
-        this.nameInputRef = preact.createRef();
+        this.widgetTypeInputRef = preact.createRef();
+        this.cssPropTextareaRef = preact.createRef();
         const {cssProp, cssSubSelector, widgetSettings} = this.props.item;
         const widgetType = widgetSettings.valueType;
         this.disableGlobalUndoHotkeys = createSaveButtonUndoHotkeyDisabler();
+        const nameInputVal = widgetSettings.label;
         this.setState(hookForm(this, [
-            {name: 'name', value: widgetSettings.label, validations: [
+            {name: 'name', value: nameInputVal, validations: [
                 ['required'], ['maxLength', 128]
-            ], label: __('Name')},
+            ], label: __('Name'), onAfterValueChanged: (_value, hasErrors, source) => {
+                if (source === 'default' && !hasErrors) this.setState({nameInputIsGenerated: false});
+            }},
             {name: 'cssProp', value: cssProp, validations: [
-                ['required'], ['maxLength', 128], ['regexp', '^[-a-z]*$']
-            ], label: 'CSS prop'},
+                ['required'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN],
+            ], label: 'CSS prop', onAfterValueChanged: (value, hasErrors, _source) => {
+                if (this.state.nameInputIsGenerated && !hasErrors)
+                    this.inputApis['name'].triggerInput(generateName(value), 'programmatic');
+            }},
             {name: 'subSelector', value: cssSubSelector || '', validations: [
                 ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]
             ], label: 'Sub selector'},
@@ -192,6 +201,7 @@ class EditConfigSettingsForm extends preact.Component {
             ], label: __('Initial unit')},
         ], {
             widgetType,
+            nameInputIsGenerated: !nameInputVal || (cssProp && generateName(cssProp) === nameInputVal),
             ...(widgetType !== 'option' ? {} : {optionWidgetOptions: [...widgetSettings.options]}),
         }));
     }
@@ -199,7 +209,9 @@ class EditConfigSettingsForm extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        setFocusTo(this.nameInputRef);
+        setFocusTo(this.widgetTypeInputRef);
+        const textareaEl = this.cssPropTextareaRef.current.inputEl.current;
+        window.autosize(textareaEl);
     }
     /**
      * @access protected
@@ -213,39 +225,14 @@ class EditConfigSettingsForm extends preact.Component {
     render({widgetNamesTranslated}, {widgetType}) {
         return <form onSubmit={ this.doHandleSubmit.bind(this) } class="form-horizontal text-tinyish py-0">
             <FormGroupInline className="my-1 mx-0">
-                <label htmlFor="varName" class="form-label">{ __('Name') }</label>
-                <Input
-                    vm={ this }
-                    prop="name"
-                    id="varName"
-                    placeholder={ __('Examples: Font size, Background color') }
-                    ref={ this.nameInputRef }
-                    { ...this.disableGlobalUndoHotkeys }/>
-                <InputErrors vm={ this } prop="name"/>
-            </FormGroupInline>
-            <FormGroupInline className="my-1 mx-0">
-                <label htmlFor="varCssProp" class="form-label">CSS prop</label>
-                <Textarea
-                    vm={ this }
-                    prop="cssProp" id="varCssProp"
-                    placeholder={ `${__('Examples:')} font-size, background-color` }
-                    rows="1"
-                    { ...this.disableGlobalUndoHotkeys }/>
-                <InputErrors vm={ this } prop="cssProp"/>
-            </FormGroupInline>
-            <FormGroupInline className="my-1 mx-0">
-                <label htmlFor="varSubSelector" class="form-label">Sub selector</label>
-                <Input vm={ this } prop="subSelector" id="varSubSelector" placeholder={ `${__('Examples:')} img, > div` } { ...this.disableGlobalUndoHotkeys }/>
-                <InputErrors vm={ this } prop="subSelector"/>
-            </FormGroupInline>
-            <FormGroupInline className="my-1 mx-0">
-                <label class="form-label">{ __('Type') }</label>
+                <label class="form-label">{ __('Type') } *</label>
                 <div>
                     <select
                         onChange={ this.handleWidgetTypeChanged.bind(this) }
                         value={ widgetType }
                         class="form-select"
-                        name="varType">
+                        name="varType"
+                        ref={ this.widgetTypeInputRef }>
                         { Object.keys(widgetNamesTranslated).map(name =>
                             <option value={ name }>{ widgetNamesTranslated[name] }</option>
                         ) }
@@ -260,6 +247,41 @@ class EditConfigSettingsForm extends preact.Component {
                         itemTypeFriendlyName={ __('option') }
                         contextMenuZIndex={ 101 }/> }
                 </div>
+            </FormGroupInline>
+            <FormGroupInline className="my-1 mx-0">
+                <label htmlFor="varCssProp" class="form-label">CSS prop *</label>
+                { [
+                    <Textarea
+                        vm={ this }
+                        prop="cssProp"
+                        id="varCssProp"
+                        placeholder={ `${__('Examples:')} font-size, background-color` }
+                        rows="1"
+                        ref={ this.cssPropTextareaRef }
+                        { ...this.disableGlobalUndoHotkeys }/>,
+                    <div style="transform: scale(.85) translateX(-1.9rem)">
+                        <InputErrors vm={ this } prop="cssProp"/>
+                    </div>,
+                ] }
+            </FormGroupInline>
+            <FormGroupInline className="my-1 mx-0">
+                <label htmlFor="varName" class="form-label">{ __('Name') } *</label>
+                { [
+                    <Input
+                        vm={ this }
+                        prop="name"
+                        id="varName"
+                        placeholder={ __('Examples: Font size, Background color') }
+                        { ...this.disableGlobalUndoHotkeys }/>,
+                    <div style="transform: scale(.85) translateX(-1.9rem)">
+                        <InputErrors vm={ this } prop="name"/>
+                    </div>,
+                ] }
+            </FormGroupInline>
+            <FormGroupInline className="my-1 mx-0">
+                <label htmlFor="varSubSelector" class="form-label">Sub selector</label>
+                <Textarea vm={ this } prop="subSelector" id="varSubSelector" placeholder={ `${__('Examples:')} img, > div` } rows="1" { ...this.disableGlobalUndoHotkeys }/>
+                <InputErrors vm={ this } prop="subSelector"/>
             </FormGroupInline>
             <FormGroupInline className="my-1 mx-0">
                 <label htmlFor="varDefaultValue" class="form-label" placeholder={ __('Examples: 1rem, flex-end') }>{ __('Default value') }</label>
@@ -308,8 +330,10 @@ class EditConfigSettingsForm extends preact.Component {
      */
     doHandleSubmit(e) {
         e.preventDefault();
-        if (!validateAll(this))
+        if (!validateAll(this, false)) {
+            this.setState({blurStates: {...this.state.blurStates, cssProp: true, name: true}});
             return false;
+        }
         const {values, optionWidgetOptions, widgetType} = this.state;
         this.props.onEditEnded({
             cssProp: values.cssProp,
@@ -323,6 +347,14 @@ class EditConfigSettingsForm extends preact.Component {
             },
         });
     }
+}
+
+/**
+ * @param {string} cssPropExpr Examples: 'font-size', 'width: %s\nheight: %s;'
+ * @returns {string} Examples: 'Font size', 'Width'
+ */
+function generateName(cssPropExpr) {
+    return stringUtils.capitalize(cssPropExpr.split(':')[0].split('-').join(' '));
 }
 
 

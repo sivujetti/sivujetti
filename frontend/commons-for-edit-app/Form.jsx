@@ -110,6 +110,7 @@ function createApi(cmp, k, inp) {
         newState.errors = Object.assign({}, cmp.state.errors, {[k]: errors});
         cmp.setState(newState);
         cmp.state.values = newState.values;
+        cmp.state.errors = newState.errors;
         if (inp.onAfterValueChanged) inp.onAfterValueChanged(value, errors.length, source);
     };
     out.onInput = e => {
@@ -134,18 +135,18 @@ function createApi(cmp, k, inp) {
 
 /**
  * @param {preact.Component} cmp
+ * @param {boolean} takeOnlyFirst = true
  * @returns {boolean}
  */
-function validateAll(cmp) {
+function validateAll(cmp, takeOnlyFirst = true) {
     const inputApis = cmp.inputApis;
     let numErrors = 0;
-    const newErrors = Object.assign({}, cmp.state.errors);
+    const newErrors = {...cmp.state.errors};
     for (const k in inputApis) {
         const errors = inputApis[k].doValidate(cmp.state.values[k]);
-        if (errors && !numErrors) {
-            newErrors[k] = errors;
-        }
+        if (errors) newErrors[k] = errors;
         numErrors += errors.length;
+        if (takeOnlyFirst) break;
     }
     cmp.setState({errors: newErrors});
     return numErrors === 0;

@@ -25,7 +25,10 @@ export default {
             filterLimit: 0,
             filterLimitType: 'all',
             filterOrder: 'desc',
-            filterAdditional: {},
+            filterAdditional: {
+                tokens: [],
+                paramMap: {},
+            },
             rendererSettings: {parts: [
                 {kind: 'heading', data: {level: 2}},
                 {kind: 'link', data: {text: 'Read more'}},

@@ -1,5 +1,6 @@
 import {env} from '@sivujetti-commons-for-web-pages';
-import {validationConstraints,} from '../../constants.js';
+import setFocusTo from '../../auto-focusers.js';
+import {validationConstraints} from '../../constants.js';
 import {__, api, events} from '../../edit-app-singletons.js';
 import {InputError} from '../../Form.jsx';
 import {Icon} from '../../Icon.jsx';
@@ -27,18 +28,18 @@ class IsInCategoryPart extends preact.Component {
      */
     componentWillMount() {
         this.popup = preact.createRef();
-        const {workableFilter} = this.props;
-        const relPageTypeName = findFieldInfo(workableFilter.propPath, this.props.getListPageTypeOwnProps()).dataType.rel;
+        const {filterInfo} = this.props;
+        const relPageTypeName = findFieldInfo(filterInfo.propPath, this.props.getListPageTypeOwnProps()).dataType.rel;
         this.relPageType = api.getPageTypes().find(({name}) => name === relPageTypeName);
-        this.setState(this.createState(workableFilter));
+        this.setState(createState(filterInfo));
     }
     /**
      * @param {FilterPartProps} props
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.workableFilter.value[0] !== this.props.workableFilter.value[0])
-            this.setState(this.createState(props.workableFilter));
+        if (props.filterInfo.value !== this.props.filterInfo.value)
+            this.setState(createState(props.filterInfo));
     }
     /**
      * @access protected
@@ -48,7 +49,7 @@ class IsInCategoryPart extends preact.Component {
             <button
                 onClick={ () => (setTimeout(() => this.popup.current.popperInstance.update(), 20), this.popup.current.open()) }
                 class="form-select poppable pl-1"
-                type="button">{ theCat.length ? this.getSelectedCatTitle(theCat) : '-' }
+                type="button">{ theCat ? this.getSelectedCatTitle(theCat) : '-' }
             </button>
             <PopupPrerendered ref={ this.popup }>
                 <div class="select-list-scroller">
@@ -63,21 +64,13 @@ class IsInCategoryPart extends preact.Component {
         </div>;
     }
     /**
-     * @param {ParsedFilter} workableFilter
-     * @returns {Object}
-     * @access private
-     */
-    createState({value}) {
-        return {theCat: value[0]};
-    }
-    /**
      * @param {Array<RelPage>} manyToManyPages
      * @access private
      */
     receivePagesList(manyToManyPages) {
         const pageDoesntExistAnyMore = this.state.theCat && !manyToManyPages.some(({id}) => id === this.state.theCat);
         if (pageDoesntExistAnyMore)
-        this.emitNewCat(null, null);
+            this.emitNewCat(null, null);
         //
         this.setState({curAllList: manyToManyPages});
     }
@@ -87,7 +80,7 @@ class IsInCategoryPart extends preact.Component {
      * @access private
      */
     emitNewCat(pageId, openPopup = this.popup.current) {
-        this.props.parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, pageId, this.props.currentFiltersJson), 'updated', openPopup);
+        this.props.onFilterValueChanged(`%${pageId || ''}%`, openPopup);
     }
     /**
      * @param {string} isInCategory
@@ -102,6 +95,17 @@ class IsInCategoryPart extends preact.Component {
 }
 
 /**
+ * @param {FilterInfo} filterInfo
+ * @returns {Object}
+ */
+function createState({value}) {
+    return {theCat: value
+        ? value.slice(1, -1) // '%page-id%' -> 'page-id'
+        : value
+    };
+}
+
+/**
  * @param {string} colPath
  * @param {Array<PageTypeField>} fieldsInfo
  * @returns {PageTypeField|undefined}
@@ -113,6 +117,7 @@ function findFieldInfo(colPath, fieldsInfo) {
 
 class UrlStartsWithPart extends preact.Component {
     // popup;
+    // inputEl;
     // throttledHandleValueChanged;
     /**
      * @param {'all'|'single'|'atMost'} howManyType
@@ -127,15 +132,16 @@ class UrlStartsWithPart extends preact.Component {
      */
     componentWillMount() {
         this.popup = preact.createRef();
-        this.updateState(this.props.workableFilter.value);
+        this.inputEl = preact.createRef();
+        this.updateState(this.props.filterInfo.value);
     }
     /**
      * @param {FilterPartProps} props
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.workableFilter.value !== this.props.workableFilter.value)
-            this.updateState(props.workableFilter.value);
+        if (props.filterInfo.value !== this.props.filterInfo.value)
+            this.updateState(props.filterInfo.value);
     }
     /**
      * @access protected
@@ -143,7 +149,13 @@ class UrlStartsWithPart extends preact.Component {
     render(_, {theVal, theValNotCommitted, validationError}) {
         return <div>
             <button
-                onClick={ () => (setTimeout(() => this.popup.current.popperInstance.update(), 20), this.popup.current.open()) }
+                onClick={ () => {
+                    setTimeout(() => {
+                        this.popup.current.popperInstance.update();
+                        setFocusTo(this.inputEl);
+                    }, 20);
+                    this.popup.current.open();
+                } }
                 class="form-select poppable pl-1"
                 type="button">&quot;{ theVal }&quot;
             </button>
@@ -154,7 +166,8 @@ class UrlStartsWithPart extends preact.Component {
                     placeholder={ `/${__('blog')}/` }
                     class={ `form-input tight mt-1${!validationError ? '' : ' is-error'}` }
                     type="text"
-                    style="width: auto;"/>
+                    style="width: auto;"
+                    ref={ this.inputEl }/>
                 <InputError errorMessage={ validationError }/>
             </PopupPrerendered>
         </div>;
@@ -164,7 +177,9 @@ class UrlStartsWithPart extends preact.Component {
      * @access private
      */
     updateState(filterValue) {
-        const theVal = filterValue || '/';
+        const theVal = filterValue
+            ? filterValue.slice(0, -1) // '/slug%' -> '/slug'
+            : filterValue;
         this.throttledHandleValueChanged = timingUtils.debounce(this.handleValueChanged.bind(this),
             env.normalTypingDebounceMillis);
         this.setState({theVal, theValNotCommitted: theVal, validationError: ''});
@@ -181,7 +196,7 @@ class UrlStartsWithPart extends preact.Component {
             err = __('regexp').replace('{field}', __('This value'));
         }
         if (!err)
-            this.props.parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.URL_STARTS_WITH, val, this.props.currentFiltersJson), 'updated', this.popup.current);
+            this.props.onFilterValueChanged(`${val.charAt(0) === '/' ? val : `/${val}`}%`, this.popup.current);
         else
             this.setState({theValNotCommitted: e.target.value, validationError: err});
     }
@@ -189,22 +204,22 @@ class UrlStartsWithPart extends preact.Component {
 
 class AddFilterPopup extends preact.Component {
     /**
-     * @param {{filtersParsed: Array<Object>; howManyTypeAdjusted: 'all'|'single'|'atMost'; currentFiltersJson: string; showAddCategoryFilterButton: boolean; parent: ListingBlockEditForm;}} props
+     * @param {{filtersCopy: AdditionalFilters; howManyTypeAdjusted: 'all'|'single'|'atMost'; showAddCategoryFilterButton: boolean; parent: ListingBlockEditForm;}} props
      * @access protected
      */
-    render({filtersParsed, howManyTypeAdjusted, currentFiltersJson, showAddCategoryFilterButton, parent}) {
+    render({filtersCopy, howManyTypeAdjusted, showAddCategoryFilterButton, parent}) {
         const a1 = __('and');
         return [
-            <div class="py-1">{ filtersParsed.length ? a1 : '' }</div>,
+            <div class="py-1">{ filtersCopy.tokens.length ? a1 : '' }</div>,
             <div class="instructions-list d-grid">
                 { showAddCategoryFilterButton ? <button
-                    onClick={ () => { parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, '', currentFiltersJson), 'added'); parent.closeCurrentPopup(); } }
+                    onClick={ () => { parent.onFiltersChanged(createFilters(filtersCopy, mut => insertFilterAt(FilterKind.IS_IN_CAT, mut)), 'added'); parent.closeCurrentPopup(); } }
                     class="group-2 poppable perhaps text-left"
                     type="button">
                     { IsInCategoryPart.getLabel(howManyTypeAdjusted) }
                 </button> : null }
                 <button
-                    onClick={ () => { parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.URL_STARTS_WITH, '', currentFiltersJson), 'added'); parent.closeCurrentPopup(); } }
+                    onClick={ () => { parent.onFiltersChanged(createFilters(filtersCopy, mut => insertFilterAt(FilterKind.URL_STARTS_WITH, mut)), 'added'); parent.closeCurrentPopup(); } }
                     class="group-2 poppable perhaps text-left"
                     type="button">
                     { UrlStartsWithPart.getLabel(howManyTypeAdjusted) }
@@ -215,54 +230,67 @@ class AddFilterPopup extends preact.Component {
 }
 
 /**
- * @param {Object} filters
- * @returns {Array<ParsedFilter>}
+ * @param {AdditionalFilters} from
+ * @param {(filtersMut: AdditionalFilters) => any} mutator
+ * @returns {AdditionalFilters}
  */
-function buildWorkableFilters(filters) {
-    const out = [];
-    for (const propPath in filters) {
-        if (propPath === 'p.slug') {
-            out.push({kind: FilterKind.URL_STARTS_WITH, value: filters[propPath].$startsWith, propPath});
-        } else if (propPath === 'p.categories') {
-            out.push({kind: FilterKind.IS_IN_CAT, value: [filters[propPath].$contains.slice(1, -1)], propPath});
-        } else env.window.console.log('Not implemented yet.');
-    }
+function createFilters(from, mutator) {
+    const out = cloneFilters(from);
+    mutator(out);
     return out;
 }
 
 /**
- * @param {'isInCategory'|'urlStartsWith'} kind
- * @param {string|null} val
- * @param {string} current
- * @returns {Object} Updated $current
+ * @param {number} at
+ * @param {AdditionalFilters} filtersMut
  */
-function mergeToFilterAdditional(kind, val, current) {
-    const parsed = JSON.parse(current);
-    if (kind === FilterKind.URL_STARTS_WITH) {
-        if (val !== null)
-            parsed['p.slug'] = {$startsWith: val.charAt(0) === '/' ? val : `/${val}`};
-        else
-            delete parsed['p.slug'];
-    } else if (kind === FilterKind.IS_IN_CAT) {
-        if (val !== null)
-            parsed['p.categories'] = {$contains: val.length ? `"${val}"` : ''};
-        else
-            delete parsed['p.categories'];
-    } else
-        throw new Error(`Unkown additional filter \`${kind}\``);
-    return parsed;
+function deleteFilter(at, filtersMut) {
+    const paramKey = filtersMut.tokens[at + 2];
+    const and = filtersMut.tokens.length > 3 ? 1 : 0;
+    filtersMut.tokens.splice(at - (at > 0 ? and : 0), 3 + and);
+    delete filtersMut.paramMap[paramKey];
 }
 
 /**
- * @param {string} from
- * @returns {Object} $from without the isInCategory filter
+ * @param {filterKind} kind
+ * @param {AdditionalFilters} filtersMut
  */
-function removeIsInCatFilter(from) {
-    return mergeToFilterAdditional(FilterKind.IS_IN_CAT, null, from);
+function insertFilterAt(kind, filtersMut) {
+    const keysCur = Object.keys(filtersMut.paramMap);
+    const paramKey = `:b${getLargestIxd(keysCur) + 1}`;
+    const cont = keysCur.length ? ['AND'] : [];
+    if (kind === FilterKind.URL_STARTS_WITH) {
+        filtersMut.tokens.push(...cont, 'p.slug', 'LIKE', paramKey);
+        filtersMut.paramMap[paramKey] = `/%`; // dupe
+    }
+    if (kind === FilterKind.IS_IN_CAT) {
+        filtersMut.tokens.push(...cont, 'p.categories', 'LIKE', paramKey);
+        filtersMut.paramMap[paramKey] = `%%`; // dupe
+    }
+}
+
+/**
+ * @param {AdditionalFilters} filters
+ * @returns {AdditionalFilters}
+ */
+function cloneFilters(filters) {
+    return {tokens: [...filters.tokens], paramMap: {...filters.paramMap}};
+}
+
+/**
+ * @param {Array<string} keys Example [':b0', ':b1']
+ * @returns {number}
+ */
+function getLargestIxd(keys) {
+    return keys.reduce((max, key) => {
+        const asInt = parseInt(key.substring(2), 10);
+        return asInt > max ? asInt : max;
+    }, -1);
 }
 
 class PopupPrerendered extends preact.Component {
     // popperInstance;
+    // unregistrables;
     /**
      * @param {{children: () => preact.ComponentChild; marginLeft?: string;}} props
      */
@@ -282,21 +310,13 @@ class PopupPrerendered extends preact.Component {
             options,
             {modifiers: [
                 ...options.modifiers,
-                { name: 'eventListeners', enabled: true },
+                {name: 'eventListeners', enabled: true},
             ]},
         ));
         // Update its position
         setTimeout(() => {
             this.popperInstance.update();
         }, 1);
-        const updatePopper = () => {
-            if (this.state.isOpen && this.popperInstance)
-                this.popperInstance.update();
-        };
-        this.unregistrables = [
-            events.on('left-column-width-changed', updatePopper),
-            events.on('inspector-panel-height-changed', updatePopper)
-        ];
     }
     /**
      * @access public
@@ -312,6 +332,30 @@ class PopupPrerendered extends preact.Component {
                 { name: 'eventListeners', enabled: false },
             ]}
         ));
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        const updatePopper = () => {
+            if (this.state.isOpen && this.popperInstance)
+                this.popperInstance.update();
+        };
+        this.unregistrables = [
+            events.on('left-column-width-changed', updatePopper),
+            events.on('inspector-panel-height-changed', updatePopper),
+            (() => {
+                const closeOnEsc = e => { if (this.state.isOpen && e.key === 'Escape') this.close(); };
+                window.addEventListener('keydown', closeOnEsc);
+                return () => { window.removeEventListener('keydown', closeOnEsc); };
+            })(),
+        ];
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.unregistrables.forEach(unreg => unreg());
     }
     /**
      * @access protected
@@ -355,24 +399,32 @@ class PopupPrerendered extends preact.Component {
 }
 
 /**
- * @typedef ParsedFilter
- * @prop {'urlStartsWith'|'isInCategory'} kind
+ * @typedef AdditionalFilters
+ * @prop {Array<string>} tokens
+ * @prop {{[key: string]: any}} paramMap
+ *
+ * @typedef FilterInfo
+ * @prop {filterKind} kind
  * @prop {string|Array<string>} value
  * @prop {string} propPath
+ * @prop {string} paramKey
+ *
+ * @typedef {'urlStartsWith'|'isInCategory'} filterKind
  *
  * @typedef FilterPartProps
- * @prop {ParsedFilter} workableFilter
+ * @prop {FilterInfo} filterInfo
  * @prop {() => Array<PageTypeField>} getListPageTypeOwnProps
- * @prop {string} currentFiltersJson
+ * @prop {(newValue: string, openPopup: PopupPrerendered) => void} onFilterValueChanged
+ * @prop {ListingBlockEditForm} parent
  */
 
 export default AddFilterPopup;
 export {
-    buildWorkableFilters,
+    cloneFilters,
+    createFilters,
+    deleteFilter,
     FilterKind,
     IsInCategoryPart,
-    mergeToFilterAdditional,
     PopupPrerendered,
-    removeIsInCatFilter,
     UrlStartsWithPart,
 };

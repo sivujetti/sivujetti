@@ -5,14 +5,16 @@ import {InputError} from '../../Form.jsx';
 import {Icon} from '../../Icon.jsx';
 import {objectUtils, timingUtils} from '../../utils.js';
 import AddFilterPopup, {
-    buildWorkableFilters,
+    cloneFilters,
+    createFilters,
+    deleteFilter,
     FilterKind,
     IsInCategoryPart,
-    mergeToFilterAdditional,
-    removeIsInCatFilter,
     UrlStartsWithPart,
 } from './AddFilterPopup.jsx';
 import RendererPartEditForm from './RendererPartEditForm.jsx';
+/** @typedef {import('./AddFilterPopup.jsx').FilterInfo} FilterInfo */
+/** @typedef {import('./AddFilterPopup.jsx').AdditionalFilters} AdditionalFilters */
 /** @typedef {import('./RendererPartEditForm.jsx').RendererPart} RendererPart */
 /** @typedef {import('./RendererPartEditForm.jsx').RendererPartData} RendererPartData */
 /** @typedef {import('./RendererPartEditForm.jsx').HeadingPartData} HeadingPartData */
@@ -52,8 +54,7 @@ class ListingBlockEditForm extends preact.Component {
             howManyType: block.filterLimitType,
             howManyAmountNotCommitted: block.filterLimit > 1 ? block.filterLimit : null,
             howManyAmountError: '',
-            additionalFiltersJson: JSON.stringify(block.filterAdditional),
-            filtersParsed: buildWorkableFilters(block.filterAdditional),
+            filtersCopy: cloneFilters(block.filterAdditional),
             renderWith: block.renderer || block.renderWith,
             order: block.filterOrder,
         });
@@ -83,8 +84,7 @@ class ListingBlockEditForm extends preact.Component {
      * @param {BlockEditFormProps} props
      * @access protected
      */
-    render(_, {filterPageType, howManyType, howManyAmount, additionalFiltersJson,
-               filtersParsed, order, renderWith}) {
+    render(_, {filterPageType, howManyType, howManyAmount, filtersCopy, order, renderWith}) {
         if (!filterPageType) return;
         const a1 = __('and');
         const a2 = `${__(howManyType !== 'single' ? 'which#nominative' : 'which') }/${ __(howManyType !== 'single' ? 'whose' : 'which#genitive')}`;
@@ -124,20 +124,25 @@ class ListingBlockEditForm extends preact.Component {
             </div>
 
             { [
-                ...filtersParsed.map((filter, i) => {
-                    const Cls = filter.kind === FilterKind.URL_STARTS_WITH ? UrlStartsWithPart : IsInCategoryPart;
+                ...mapFilters(filtersCopy, (filterInfo, at, i) => {
+                    const {kind} = filterInfo;
+                    const Cls = kind === FilterKind.URL_STARTS_WITH ? UrlStartsWithPart : IsInCategoryPart;
                     return [
-                        <span class="group-2 ml-1 pl-2 pr-1 no-round-right">{ // todo trigger next element when clicked
+                        <span class="group-2 ml-1 pl-2 pr-1 no-round-right c-hand" onClick={ e => e.target.nextElementSibling.querySelector('.form-select').click() } >{
                             (i ? `${__('and')} ` : '') + Cls.getLabel(howManyTypeAdjusted)
                         }</span>,
-                        <div class="group-2 no-round-left flex-centered pl-0" data-filter-part-kind={ filter.kind }>
+                        <div class="group-2 no-round-left flex-centered pl-0" data-filter-part-kind={ kind }>
                             <Cls
-                                workableFilter={ filter }
+                                filterInfo={ filterInfo }
                                 getListPageTypeOwnProps={ () => this.selectedPageTypeBundle.pageType.ownFields }
-                                currentFiltersJson={ additionalFiltersJson }
+                                onFilterValueChanged={ (newVal, openPopup) => {
+                                    const filtersNew = cloneFilters(filtersCopy);
+                                    filtersNew.paramMap[filterInfo.paramKey] = newVal;
+                                    this.onFiltersChanged(filtersNew, 'updated', openPopup);
+                                } }
                                 parent={ this }/>
                             <button
-                                onClick={ () => this.onFiltersChanged(mergeToFilterAdditional(filter.kind, null, additionalFiltersJson), 'removed') }
+                                onClick={ () => this.onFiltersChanged(createFilters(filtersCopy, mut => deleteFilter(at, mut)), 'removed') }
                                 class="btn btn-sm btn-link btn-icon flex-centered pl-1"
                                 type="button"
                                 title={ __('Delete filter') }
@@ -151,7 +156,7 @@ class ListingBlockEditForm extends preact.Component {
                         onClick={ e => this.openPartPopup(AddFilterPopup, e) }
                         type="button"
                         title={ __('Add filter') }>
-                        { (filtersParsed.length ? `${a1} ` : '') + a2 } ... <Icon iconId="plus" className="size-xs ml-1"/>
+                        { (filtersCopy.length ? `${a1} ` : '') + a2 } ... <Icon iconId="plus" className="size-xs ml-1"/>
                     </button>
                 </div>
             ] }
@@ -227,10 +232,8 @@ class ListingBlockEditForm extends preact.Component {
             PopupClsToRefresh = ConfigureRendererPopup;
         }
 
-        const filtersJson = JSON.stringify(block.filterAdditional);
-        if (this.state.additionalFiltersJson !== filtersJson) {
-            state = {...(state || {}), additionalFiltersJson: filtersJson,
-                filtersParsed: buildWorkableFilters(block.filterAdditional)};
+        if (JSON.stringify(this.state.filtersCopy) !== JSON.stringify(block.filterAdditional)) {
+            state = {...(state || {}), filtersCopy: cloneFilters(block.filterAdditional)};
             PopupClsToRefresh = AddFilterPopup;
         }
         if (this.state.renderWith !== block.renderer) {
@@ -254,9 +257,8 @@ class ListingBlockEditForm extends preact.Component {
             return {howManyType: state.howManyType, filterPageType: state.filterPageType, parent: this};
         if (PopupRendererCls === AddFilterPopup) {
             const hasCategoryOwnField = this.selectedPageTypeBundle.pageType.ownFields.some(f => typeof f.dataType.rel === 'string');
-            return {filtersParsed: state.filtersParsed,
+            return {filtersCopy: state.filtersCopy,
                     howManyTypeAdjusted: createAdjustedHowManyType(state.howManyType, state.howManyAmount),
-                    currentFiltersJson: state.additionalFiltersJson,
                     showAddCategoryFilterButton: hasCategoryOwnField,
                     parent: this};
         }
@@ -308,13 +310,61 @@ class ListingBlockEditForm extends preact.Component {
     /**
      * @param {Object} updatedFilters
      * @param {'added'|'updated'|'removed'} event = null
-     * @param {Popup} popup = null
+     * @param {PopupPrerendered} popup = null
      * @access private
      */
-    onFiltersChanged(updatedFilters, event = null , popup = null) {
+    onFiltersChanged(updatedFilters, event = null, popup = null) {
         this.props.emitValueChanged(updatedFilters, 'filterAdditional', false, 0);
         if (event === 'updated' && popup) setTimeout(() => popup.popperInstance.update(), 20);
     }
+}
+
+/**
+ * @returns {AdditionalFilters}
+ * @access public
+ */
+function deleteIsInCatFilters(filters) {
+    let deleteAts = getInCatFilterAts(filters);
+    if (!deleteAts.length) return filters;
+
+    let copy = cloneFilters(filters);
+    while (deleteAts.length) {
+        deleteFilter(deleteAts[0], copy); // mutates $copy
+        deleteAts = getInCatFilterAts(copy);
+    }
+    return copy;
+}
+
+/**
+ * @param {AdditionalFilters} filters
+ * @param {(finfo: FilterInfo, tokenpos: number, i: number) => any} fn
+ * @returns {Array<any>}
+ */
+function mapFilters({tokens, paramMap}, fn) {
+    const out = [];
+    for (let at = 0, i = 0; at < tokens.length; ) {
+        const propPath = tokens[at++];
+        ++at; // skip operator
+        const paramKey = tokens[at++];
+        const value = paramMap[paramKey];
+        const kind = propPath === 'p.slug' ? FilterKind.URL_STARTS_WITH : FilterKind.IS_IN_CAT;
+
+        const ret = fn({kind, value, propPath, paramKey}, at - 3, i++);
+        if (ret) out.push(ret);
+
+        if (['AND', 'OR'].indexOf(tokens[at]) > -1) ++at;
+    }
+    return out;
+}
+
+/**
+ * @param {AdditionalFilters} from
+ * @returns {Array<number>}
+ */
+function getInCatFilterAts(from) {
+    return mapFilters(from, (filter, at/*, i*/) => {
+        if (filter.kind === FilterKind.IS_IN_CAT) return at;
+    });
 }
 
 /**
@@ -428,7 +478,7 @@ class DefinePageTypePopup extends preact.Component {
         this.props.parent.setSelectedPageTypeBundle(newSelectedPageTypeName);
         const newData = {
             filterPageType: newSelectedPageTypeName,
-            filterAdditional: removeIsInCatFilter(this.props.parent.state.additionalFiltersJson), // clear in case the seleted page type does not have applied property
+            filterAdditional: deleteIsInCatFilters(this.props.parent.state.filtersCopy), // clear in case the seleted page type does not have applied property
             renderer: this.props.parent.pageTypeBundles.find(({pageType}) => pageType.name === newSelectedPageTypeName).renderers[0].fileId,
         };
         this.props.parent.props.emitManyValuesChanged(newData);

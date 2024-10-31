@@ -73,7 +73,7 @@ final class Block extends \stdClass {
     public int $filterLimit; Example 10
     public string $filterLimitType; "all"|"single"|"atMost"
     public string $filterOrder; "desc"|"asc"|"rand"
-    public object $filterAdditional; Example: {slug: {$startsWith: "foo"}}
+    public object $filterAdditional; Example: {tokens: ["p.categories", "LIKE", ":b1", "AND", "p.slug", "LIKE", ":b2"], paramMap: [":b1" => "%id-here%", ":b2" => "/slug"]}
     public object|null $rendererSettings; Example: {parts: [{kind: "heading", data: {level: 2}}, {kind: "link", data: {text: "Read more"}}]}
     public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page>
     public ?\Sivujetti\PageType\Entities\PageType $__pageType; */

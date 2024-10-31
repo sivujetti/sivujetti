@@ -119,7 +119,7 @@ final class PageTestUtils {
      */
     public function makeTestPageData(?array $blocks = null, ?string $pageTypeName = null, ?string $id = null): object {
         if ($pageTypeName === "PagesCategories") {
-            $out = $this->makeTestPageData($blocks, null);
+            $out = $this->makeTestPageData($blocks, null, $id);
             $out->slug = "/uncategorized";
             $out->path = "pages-categories/uncategorized/";
             $out->title = "Uncategorized";

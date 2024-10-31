@@ -4,7 +4,6 @@ namespace Sivujetti\BlockType;
 
 use Pike\{ArrayUtils, Injector, PikeException, Request};
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\{JsonUtils};
 use Sivujetti\Page\{PagesController, PagesRepository2};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
@@ -27,7 +26,13 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
             ->newProperty("filterOrder")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
                 ["in", ["desc", "asc", "rand"]]
             ])
-            ->newProperty("filterAdditional", $builder::DATA_TYPE_OBJECT/*, sanitizeWith: omit/allow object as it is */)
+            ->newProperty("filterAdditional")->dataType(
+                $builder::DATA_TYPE_OBJECT,
+                sanitizeWith: fn(object $f) => (object) [
+                    "tokens" => is_array($f->tokens) ? $f->tokens : [],
+                    "paramMap" => is_object($f->paramMap) ? $f->paramMap : (object) [],
+                ]
+            )
             ->newProperty("rendererSettings")->dataType(
                 $builder::DATA_TYPE_OBJECT,
                 sanitizeWith: fn(?object $s) => $s
@@ -79,20 +84,6 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
                                           Request $req): void {
         $pageType = ArrayUtils::findByKey($theWebsite->pageTypes, $block->filterPageType, "name");
         $q = $pagesRepo->select($block->filterPageType, ["@own", "@blocks"]); // <- note @blocks
-
-        if (!defined("USE_SQL_LISTING_FILTERS")) {
-        $mongoFilters = count((array) $block->filterAdditional)
-            ? self::getValidFilters($block->filterAdditional, $pageType->ownFields)
-            : new \stdClass;
-        $statusFilter = PagesController::createGetPublicPageFilters("-", $req->myData->user)["filters"][1] ?? null;
-        if ($statusFilter) {
-            [$col, $val] = $statusFilter; // Example ["status", 0]
-            $mongoFilters->{$col} = (object) ["\$eq" => $val];
-        }
-        if (count((array) $mongoFilters)) {
-            $q = $q->mongoWhere(JsonUtils::stringify($mongoFilters));
-        }
-        } else {
         // @allow \RuntimeException
         [$sql, $params] = self::createWhereSqlBundleOrThrow($block->filterAdditional, $pageType->ownFields);
         $statusFilter = PagesController::createGetPublicPageFilters("-", $req->myData->user)["filters"][1] ?? null;
@@ -102,7 +93,6 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
             $params[] = $val;
         }
         $q->where($sql, $params);
-        }
 
         if ($block->filterLimit)
             $q = $q->limit($block->filterLimit);
@@ -117,44 +107,21 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
         $block->__pageType = $pageType;
     }
     /**
-     * @param ?array $filtersIn Example: [["p.categories LIKE :b1"], [":b1" => "%foo%"]]
+     * @param object $filtersIn Example: {tokens: ["p.categories", "LIKE", ":b1", "AND", "p.slug", "LIKE", ":b2"], paramMap: [":b1" => "%id-here%", ":b2" => "/slug"]}
      * @param array<int, RawPageTypeField> $ownCols
      * @return array [sql, bindParams]
      */
-    private static function createWhereSqlBundleOrThrow(?array $filtersIn, array $ownCols): array {
-        if (!$filtersIn)
+    private static function createWhereSqlBundleOrThrow(object $filtersIn, array $ownCols): array {
+        if (!$filtersIn->tokens)
             return ["", []];
         $builtinCols = ["slug"];
         $generator = new SqlGenerator(function ($colPath) use ($ownCols, $builtinCols) {
-            if (in_array($colPath, $builtinCols, true)) return true;
-            $col = explode(".", $colPath)[1] ?? ""; // "p.categories" -> "categories"
+            $col = explode(".", $colPath)[1] ?? ""; // "p.somecol" -> "somecol"
+            if (in_array($col, $builtinCols, true)) return true;
             return ArrayUtils::findIndexByKey($ownCols, $col, "name") > -1;
         });
         // @allow \RuntimeException
         return $generator->generateBundle($filtersIn);
-    }
-    /**
-     * @param object $filtersIn Example: {"p.categories": {$contains: "\"catid\""}, "p.slug": {$startsWith: "/slug"}}
-     * @param array<int, RawPageTypeField> $pageTypesFields
-     * @return object Identical to $filterIn if all props are valid
-     */
-    private static function getValidFilters(object $filtersIn, array $pageTypesFields): object {
-        $out = new \stdClass;
-        $builtinCols = ["slug"];
-        foreach ($filtersIn as $colPath => $obj) {
-            $col = explode(".", $colPath)[1]; // "p.categories" -> "categories"
-
-            if (!in_array($col, $builtinCols, true) &&                  // not builtin ...
-                !ArrayUtils::findByKey($pageTypesFields, $col, "name")) // nor this page type's field
-                continue;
-
-            foreach ($obj as $_operator => $val) // $_operator = "$contains", $val = "foo" ...
-                if (!strlen($val))
-                    continue;
-
-            $out->{$colPath} = $obj;
-        }
-        return $out;
     }
 }
 
@@ -163,8 +130,8 @@ class SqlGenerator {
     private array $tokensIn = [];
     /** @var int */
     private int $cursor = 0;
-    /** @var mixed[] */
-    private array $paramsIn = [];
+    /** @var object {key: val} */
+    private object $paramsIn;
     /**
      * @var \Closure
      * @psalm-var \Closure(string):bool
@@ -182,15 +149,15 @@ class SqlGenerator {
         $this->validateCol = $validateCol;
     }
     /**
-     * @param array $filters
-     * @psalm-param array{0: string[], 1: array<string, mixed>} $filters
+     * @param object $filters 
+     * @psalm-param object{tokens: string[], paramMap: array<string, mixed>} $filters
      * @return array
      * @psalm-return array{0: string, 1: mixed[]}
      */
-    public function generateBundle(array $filters): array {
-        $this->tokensIn = $filters[0];
+    public function generateBundle(object $filters): array {
+        $this->tokensIn = $filters->tokens;
         $this->cursor = -1;
-        $this->paramsIn = $filters[1];
+        $this->paramsIn = $filters->paramMap;
         $this->sqlOut = [];
         $this->paramsOut = [];
         $this->expressionOrGroup();
@@ -200,6 +167,7 @@ class SqlGenerator {
      */
     private function expressionOrGroup(): void {
         $colOrParen = $this->consume();
+
         if (!is_string($colOrParen))
             throw new \RuntimeException($this->createErrMes("Expected column name or parentheses"));
         if ($colOrParen === "(") {
@@ -220,13 +188,13 @@ class SqlGenerator {
         $bindPlaceholder = $this->consume();
         if (!is_string($bindPlaceholder) || !preg_match("/^:b[0-9]+\$/", $bindPlaceholder))
             throw new \RuntimeException($this->createErrMes("Expected placeholder"));
-        if (!($param = $this->paramsIn[$bindPlaceholder] ?? null))
+        if (!($param = $this->paramsIn->{$bindPlaceholder} ?? null))
             throw new \RuntimeException("Param {$bindPlaceholder} not found from the pool");
 
         $this->sqlOut[] = "{$colOrParen} {$operator} ?";
         $this->paramsOut[] = $param;
 
-        if (in_array($this->peek(), ["and", "or"], true)) {
+        if (in_array($this->peek(), ["AND", "OR"], true)) {
             $this->sqlOut[] = " {$this->consume()} ";
             $this->expressionOrGroup();
         }

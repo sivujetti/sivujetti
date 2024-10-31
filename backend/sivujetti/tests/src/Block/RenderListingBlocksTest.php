@@ -49,7 +49,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
                     "filterLimit" => 0,
                     "filterLimitType" => "all",
                     "filterOrder" => "desc",
-                    "filterAdditional" => new \stdClass,
+                    "filterAdditional" => (object) ["tokens" => [], "paramMap" => (object) []],
                     "rendererSettings" => (object) ["parts" => [
                         (object) ["kind" => "heading", "data" => (object) ["level" => 2]],
                         (object) ["kind" => "link", "data" => (object) ["text" => "Read more"]],
@@ -71,8 +71,10 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
     private function insertTestPages(\TestState $state): void {
         foreach (!is_array($state->testPageData) ? [$state->testPageData] : $state->testPageData as $pageData)
             $this->pageTestUtils->insertPage($pageData, $state->customPageType ?? null);
-        if (isset($state->testCatData))
-            $this->pageTestUtils->insertPage($state->testCatData, "PagesCategories");
+        if (!isset($state->testCatData))
+            return;
+        foreach (is_object($state->testCatData) ? [$state->testCatData] : $state->testCatData as $cat)
+            $this->pageTestUtils->insertPage($cat, "PagesCategories");
     }
 
 
@@ -186,7 +188,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithoutFilter);
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $f = (object) ["p.slug" => ["\$startsWith" => "/hello"]];
+        $f = (object) ["tokens" => ["p.slug", "LIKE", ":b0"], "paramMap" => (object) [":b0" => "/hello%"]];
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f);
         $expectedListItemsWithFilter = [$state->testPageData[0]];
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithFilter);
@@ -208,7 +210,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithoutFilter);
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $f = (object) ["p.categories" => ["\$contains" => "\"{$state->testCatData->id}\""]];
+        $f = (object) ["tokens" => ["p.categories", "LIKE", ":b0"], "paramMap" => (object) [":b0" => "%{$state->testCatData->id}%"]];
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f);
         $expectedListItemsWithLimit = [$state->testPageData[0]];
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithLimit);
@@ -233,18 +235,49 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $this->insertTestPages($state);
         $fn = $state->makeExpectedHtml;
         //
-        $f1v = ["\$contains" => "\"{$state->testCatData->id}\""];
-        $f1 = (object) ["p.categories" => $f1v];
+        $f1 = (object) ["tokens" => ["p.categories", "LIKE", ":b0"], "paramMap" => (object) [":b0" => "%{$state->testCatData->id}%"]];
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f1);
         $expectedListItemsWithSingleFilter = [$state->testPageData[1], $state->testPageData[0]];
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithSingleFilter);
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $f2 = (object) ["p.categories" => $f1v,
-                        "p.slug" => ["\$startsWith" => "/hello"]];
+        $f2 = (object) ["tokens" => [...$f1->tokens, "AND", "p.slug", "LIKE", ":b1"],
+                        "paramMap" => (object) [...(array) $f1->paramMap, ":b1" => "/hello%"]];
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f2);
         $expectedListItemsWithBothFilters = [$state->testPageData[0]];
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithBothFilters);
+        $this->renderAndVerify($state, 0, $expectedHtml);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testListingBlockUsesMultipleFiltersOfSameType(): void {
+        $state = $this->setupRenderListingBlockHavingManyListItemsTest();
+        $cat2 = $this->pageTestUtils->makeTestPageData(null, "PagesCategories", str_replace("pp3", "pp4", $state->testCatData->id));
+        $cat2->slug = "/another-category";
+        $cat2->path = "pages-categories/another-category/";
+        $cat2->title = "Another category";
+        $state->testCatData = [$state->testCatData, $cat2];
+        //
+        $state->testPageData[0]->categories = [$state->testCatData[0]->id, $state->testCatData[1]->id];
+        $state->testPageData[1]->categories = [$state->testCatData[0]->id];
+        $this->makeTestSivujettiApp($state);
+        $this->insertTestPages($state);
+        $fn = $state->makeExpectedHtml;
+        //
+        $f1 = (object) ["tokens" => ["p.categories", "LIKE", ":b0"], "paramMap" => (object) [":b0" => "%{$state->testCatData[0]->id}%"]];
+        $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f1);
+        $expectedListItemsWithSingleCatFilter = [$state->testPageData[1], $state->testPageData[0]];
+        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithSingleCatFilter);
+        $this->renderAndVerify($state, 0, $expectedHtml);
+        //
+        $f2 = (object) ["tokens" => [...$f1->tokens, "AND", "p.categories", "LIKE", ":b1"],
+                        "paramMap" => (object) [...(array) $f1->paramMap, ":b1" => "%{$state->testCatData[1]->id}%"]];
+        $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f2);
+        $expectedListItemsWithManyCatFilters = [$state->testPageData[0]];
+        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithManyCatFilters);
         $this->renderAndVerify($state, 0, $expectedHtml);
     }
 }

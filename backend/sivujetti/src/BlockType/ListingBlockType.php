@@ -194,7 +194,10 @@ class SqlGenerator {
         $this->sqlOut[] = "{$colOrParen} {$operator} ?";
         $this->paramsOut[] = $param;
 
-        if (in_array($this->peek(), ["AND", "OR"], true)) {
+        $next = $this->peek();
+        if ($next) {
+            if (!in_array($next, ["AND", "OR"], true))
+                throw new \RuntimeException($this->createErrMes("Expected `AND` or `OR`, got `{$next}`"));
             $this->sqlOut[] = " {$this->consume()} ";
             $this->expressionOrGroup();
         }

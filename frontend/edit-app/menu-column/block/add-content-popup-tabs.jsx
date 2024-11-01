@@ -9,7 +9,6 @@ import {
     objectUtils,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
-import {getRealTarget} from '../../includes/block/tree-dnd-controller-funcs.js';
 import {createBlockFromBlueprint, createBlockFromType} from '../../includes/block/utils.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import VerticalTabs from '../../includes/VerticalTabs.jsx';

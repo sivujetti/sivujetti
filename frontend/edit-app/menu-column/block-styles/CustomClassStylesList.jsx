@@ -197,10 +197,12 @@ class CustomClassStylesList extends preact.Component {
                     );
                 } else if (link.id === 'edit-settings') {
                     this.setState({idxOfOpenDialogListItem: idx});
+                    const currentDefs = this.state.styleChunksVisible[idx].data?.customizationSettings?.varDefs;
                     floatingDialog.open(CustomClassStyleEditCustomizationsDialog, {
                         title: __('Edit customization settings'),
+                        height: Math.min((currentDefs || []).length * 86 + 468, window.innerHeight - 48),
                     }, {
-                        currentSettings: this.state.styleChunksVisible[idx].data?.customizationSettings?.varDefs,
+                        currentSettings: currentDefs,
                         onSettingsChanged: newSettings => this.emitCustomClassSettingsData(idx, newSettings),
                     });
                 } else if (link.id === 'delete')

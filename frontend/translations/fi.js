@@ -457,4 +457,52 @@ stringBundles.push({
     'Background darker (elements)': 'Tausta tummempi (elementit)',
 
     'You lack permissions to do this action.': 'Käyttöoikeutesi ei riitä tähän toiminnallisuuteen.',
+    // Content templates' visual styles
+    // Header
+    'Background': 'Taustaväri',
+    'Text align': 'Tekstin tasaus',
+    'Left': 'Vasen',
+    'Center': 'Keskellä',
+    'Right': 'Oikea',
+    'Justify': 'Tasattu',
+    'Min height': 'Min. korkeus',
+    // Text and image, 2 cols
+    'Align ⇅': 'Tasaus ⇅',
+    'Top': 'Ylös',
+    'Bottom': 'Alas',
+    'Gap ↔': 'Gäppi ↔',
+    'Gäppi ↕': 'Gäppi ↕',
+    'Image min height': 'Kuva min. korkeus',
+    // Icon buttons
+    'Icons size': 'Ikonit koko',
+    'Icons': 'Ikonit',
+    'Icons stroke width': 'Ikonit reunus paksuus',
+    'Icons background': 'Ikonit tausta',
+    'Icons padding': 'Ikonit täyte',
+    'Icons radius': 'Ikonit pyöristys',
+    // Icon and text list
+    // all dupes
+    // Buttons list
+    'Buttons padding ↑': 'Napit täyte ↑',
+    'Buttons padding →': 'Napit täyte →',
+    'Buttons padding ↓': 'Napit täyte ↓',
+    'Buttons padding ←': 'Napit täyte ←',
+    'Buttons content order': 'Napit sisältö järjestys',
+    'Side by side': 'Vierekkäin',
+    'Side by side reverse': 'Vierekkäin käänteinen',
+    'Stacked': 'Allekkain',
+    'Stacked reverse': 'Allekkain käänteinen',
+    'Buttons content gap ↔': 'Napit sisältö gäppi ↔',
+    'Buttons content gap ↕': 'Napit sisältö gäppi ↕',
+    // Section with bg
+    'Text color': 'Teksti väri',
+    'Text default': 'Tekstit oletus',
+    'Background size': 'Taustakuva koko',
+    'Background position ↔': 'Taustakuva tasaus ↔',
+    'Background position ↕': 'Taustakuva tasaus ↕',
+    'Padding top': 'Padding top',
+    'Padding bottom': 'Padding bottom',
+    // Contact form
+    'Max width': 'Max. leveys',
+    'Align ↔': 'Tasaus ↔',
 }, validationStrings);

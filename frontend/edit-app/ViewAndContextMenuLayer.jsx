@@ -90,6 +90,11 @@ class MainPopper extends preact.Component {
         this.unregistrables = [
             events.on('inspector-panel-closed', closeIfOpen),
             events.on('inspector-panel-opened', closeIfOpen), // Re-opened with different block
+            (() => {
+                const closeOnEsc = e => { if (e.key === 'Escape') closeIfOpen(); };
+                window.addEventListener('keydown', closeOnEsc);
+                return () => { window.removeEventListener('keydown', closeOnEsc); };
+            })(),
         ];
     }
     /**

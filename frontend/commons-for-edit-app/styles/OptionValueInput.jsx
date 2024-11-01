@@ -20,7 +20,7 @@ class OptionValueInput extends preact.Component {
                     onChange={ e => this.props.onValueChanged(e.target.value) }
                     id={ inputId }>
                 { options.map(({label, value}) =>
-                    <option value={ value }>{ label }</option>
+                    <option value={ value }>{ __(label) }</option>
                 ) }
                 </select>
                 { isClearable

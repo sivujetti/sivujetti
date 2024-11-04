@@ -63,12 +63,12 @@ return [
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
     `styleChunkBundlesAll` JSON, -- see backend/sivujetti/src/Theme/Entities/Theme.php
-    `cachedCompiledScreenSizesCssHashes` TEXT, -- 'dffd60...,,,,'
+    `cachedCompiledScreenSizesCssHashes` TEXT, -- 'dffd60...'
     `stylesOrder` JSON,
     `globalStyles` JSON,
     `isActive` INTEGER NOT NULL DEFAULT 0,
     `generatedScopedStylesCss` TEXT,
-    `stylesLastUpdatedAt` TEXT -- '1701932634,0,0,0,0'
+    `stylesLastUpdatedAt` TEXT -- '0'
 )",
 
 "CREATE TABLE `\${p}themeStyles` (

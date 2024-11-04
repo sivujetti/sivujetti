@@ -41,7 +41,7 @@ final class TheWebsiteRepository {
             ->leftJoin("\${p}plugins p ON (1)")
             ->leftJoin("\${p}pageTypes pt ON (1)")
             ->leftJoin("\${p}themes t ON (t.`isActive` = 1)")
-            ->orderBy("p.id ASC")
+            ->orderBy("p.id ASC, pt.id ASC")
             ->mapWith(new class("name") extends NoDupeRowMapper {
                 public function doMapRow(object $row, int $i, array $allRows): object {
                     $row->plugins = self::collectOnce($allRows, fn($row2) => Plugin::fromParentRs($row2), "pluginName");

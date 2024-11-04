@@ -132,7 +132,8 @@ final class PagesController {
         $availableUpdatePackages = $updater->getAndSyncAvailablePackages(
             $theWebsite->pendingUpdatesJson,
             $theWebsite->latestPackagesLastCheckedAt,
-            $theWebsite->plugins
+            $theWebsite->plugins,
+            $appEnv->constants["UPDATE_CHANNEL"] ?? null,
         );
         //
         $firstRunsParsed = json_decode($theWebsite->firstRunsJson, flags: JSON_THROW_ON_ERROR);

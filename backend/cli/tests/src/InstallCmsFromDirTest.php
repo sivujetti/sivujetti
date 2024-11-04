@@ -165,10 +165,11 @@ final class InstallCmsFromDirTest extends DbTestCase {
             "\r\n" .
             "return [\r\n" .
             "    'env' => [\r\n" .
-            "        'BASE_URL'    => '{$expectedBaseUrl}',\r\n" .
-            "        'QUERY_VAR'   => '{$actualConfig['mainQueryVar']}',\r\n" .
-            "        'SITE_SECRET' => '{$actualConfig['secret']}',\r\n" .
-            "        'UPDATE_KEY'  => '{$actualConfig['updateKey']}',\r\n" .
+            "        'BASE_URL'       => '{$expectedBaseUrl}',\r\n" .
+            "        'QUERY_VAR'      => '{$actualConfig['mainQueryVar']}',\r\n" .
+            "        'SITE_SECRET'    => '{$actualConfig['secret']}',\r\n" .
+            "        'UPDATE_KEY'     => '{$actualConfig['updateKey']}',\r\n" .
+            "        'UPDATE_CHANNEL' => 'stable',\r\n" .
             "    ],\r\n" .
             "    'app' => [\r\n" .
             "        'db.driver'      => '{$actualConfig["db.driver"]}',\r\n" .

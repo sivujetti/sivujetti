@@ -18,7 +18,7 @@ use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
 
 /**
- * @psalm-type EnvConstants = array{BASE_URL: string, QUERY_VAR: string, SITE_SECRET: string, UPDATE_KEY: string} & array<string, mixed>
+ * @psalm-type EnvConstants = array{BASE_URL: string, QUERY_VAR: string, SITE_SECRET: string, UPDATE_KEY: string, UPDATE_CHANNEL: string} & array<string, mixed>
  */
 final class App extends PikeApp {
     public const VERSION = "0.16.0-dev";

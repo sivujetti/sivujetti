@@ -104,10 +104,11 @@ final class Commons {
 
 return [
     'env' => [
-        'BASE_URL'    => '{$config["baseUrl"]}',
-        'QUERY_VAR'   => '{$config["mainQueryVar"]}',
-        'SITE_SECRET' => '{$config["secret"]}',
-        'UPDATE_KEY'  => '{$config["updateKey"]}',
+        'BASE_URL'       => '{$config["baseUrl"]}',
+        'QUERY_VAR'      => '{$config["mainQueryVar"]}',
+        'SITE_SECRET'    => '{$config["secret"]}',
+        'UPDATE_KEY'     => '{$config["updateKey"]}',
+        'UPDATE_CHANNEL' => 'stable',
     ],
     'app' => [
 " . ($config["db.driver"] === "sqlite" ?

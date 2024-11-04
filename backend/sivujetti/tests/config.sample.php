@@ -2,10 +2,11 @@
 
 return [
     "env" => [
-        "BASE_URL"    => "/sivujetti/",
-        "QUERY_VAR"   => "q",
-        "SITE_SECRET" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "UPDATE_KEY"  => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "BASE_URL"       => "/sivujetti/",
+        "QUERY_VAR"      => "q",
+        "SITE_SECRET"    => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "UPDATE_KEY"     => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "UPDATE_CHANNEL" => "none",
     ],
     "app" => [
         "db.driver" => "sqlite",

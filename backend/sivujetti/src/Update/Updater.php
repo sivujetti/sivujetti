@@ -73,11 +73,22 @@ final class Updater {
      * @param ?string $currentPackagesJson
      * @param int $lastCheckedAt
      * @param \ArrayObject<int, \Sivujetti\Plugin\Entities\Plugin> $currentPlugins
+     * @param ?string $channel = "stable" "none" or "stable"
      * @return string[] Example ["sivujetti-0.16.0", "JetForms-0.16.0"]
      */
     public function getAndSyncAvailablePackages(?string $currentPackagesJson,
                                                 int $lastCheckedAt,
-                                                \ArrayObject $currentPlugins): array {
+                                                \ArrayObject $currentPlugins,
+                                                ?string $channel = "stable"): array {
+        $channelValidated = match($channel) {
+            "none" => "none",
+            "testing" => "testing",
+            default => "stable",
+        };
+        if ($channelValidated === "none")
+            return []; // Do nothing
+        if ($channelValidated !== "stable")
+            return []; // Not implemented yet
         // New packages already downloaded (but not installed)
         if ($currentPackagesJson)
             return self::onlyNames(JsonUtils::parse($currentPackagesJson));
@@ -86,7 +97,7 @@ final class Updater {
         $secsSinceLast = $now - $lastCheckedAt;
         if ($secsSinceLast > 60 * 60 * 6)
             return self::onlyNames(
-                $this->doGetAndSyncPackagesFromRemoteServer($now, $currentPlugins)
+                $this->doGetAndSyncPackagesFromRemoteServer($channelValidated, $now, $currentPlugins)
             );
         return [];
     }
@@ -423,17 +434,19 @@ final class Updater {
         return [$targetFilePath, $targetFileName, $dirId];
     }
     /**
+     * @param string $channelValidated
      * @param int $now
      * @param \ArrayObject<int, \Sivujetti\Plugin\Entities\Plugin> $currentPlugins
      * @psalm-return Package[]
      */
-    private function doGetAndSyncPackagesFromRemoteServer(int $now,
+    private function doGetAndSyncPackagesFromRemoteServer(string $channelValidated,
+                                                          int $now,
                                                           \ArrayObject $currentPlugins): array {
         if ($this->getUpdateJob()->startedAt)
             return [];
 
         $packages = [];
-        $resp = $this->http->get("https://u1.sivujetti.org/latest-packages.html?no-cache=1");
+        $resp = $this->http->get("https://u1.sivujetti.org/latest-packages-{$channelValidated}.html?no-cache=1");
         if ($resp->status === 200) {
             $packagesAll = self::extractPackages($resp->data);
             $packages = array_values(array_filter($packagesAll, function ($pkg) use ($currentPlugins) {

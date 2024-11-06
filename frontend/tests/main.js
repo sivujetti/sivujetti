@@ -4,6 +4,7 @@ To run these tests, head to <devServerHost>/public/tests/index.html
 
 import {api} from '@sivujetti-commons-for-edit-app';
 import './SaveButton-test.js';
+import './scss-utils-test.js';
 import './short-id-gen-test.js';
 
 api.webPagePreview.reRenderBlock = () => {};

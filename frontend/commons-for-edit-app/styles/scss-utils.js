@@ -42,15 +42,24 @@ const scssUtils = {
                 const temp2 = temp1.endsWith(';') ? temp1.substring(0, temp1.length - 1).trimEnd() : temp1;
                 // '"/public/...?weight=400"' -> '/public/...?weight=400'
                 const urlNoQuotes = temp2.substring(1, temp2.length - 1);
-                insights.push([node, urlNoQuotes]);
+                if (!urlNoQuotes.length)
+                    return;
+                const completedUrl = completeUrlIfLocal(urlNoQuotes, '');
+                if (completedUrl) // is local
+                    insights.push([node, completedUrl]);
+                else if (urlNoQuotes.startsWith('http://') || urlNoQuotes.startsWith('https://') && urlNoQuotes.indexOf('.') > -1) {
+                    try {
+                        const urlobj = new URL(urlNoQuotes);
+                        insights.push([node, urlobj]);
+                    } catch (_e) {
+                        // Don't call insights.push()
+                    }
+                }
             }
         });
-
-        return insights.map(([node, url1]) => {
-            const completedUrl = completeUrlIfLocal(url1, '');
-            //
-            if (completedUrl) {
-                const [path, qtemp] = completedUrl.split('?'); // ['/path/public/uploads/opensans-regular-webfont.woff', 'weight=400&name=Open Sans']
+        return insights.map(([node, url]) => {
+            if (typeof url === 'string') {
+                const [path, qtemp] = url.split('?'); // ['/path/public/uploads/opensans-regular-webfont.woff', 'weight=400&name=Open Sans']
                 const q = qtemp ? qtemp.trim() : '';
                 const fileName = path.split('/').pop();
                 const pcs = fileName.split('.');
@@ -62,18 +71,18 @@ const scssUtils = {
                 return {
                     fontFamily: explicitName || fileNameNoExt.replace(/-|_/g, ' '),
                     node,
-                    completedUrl,
+                    completedUrl: url,
                     fontWeight,
                     ext,
                 };
             }
-            const urlobj = new URL(url1); // "https://api.fonts.coollabs.io/css2?family=Bebas+Neue:wght@400&display=swap"
+            const urlobj = url; // "https://api.fonts.coollabs.io/css2?family=Bebas+Neue:wght@400&display=swap"
             const fontFamilyFull = urlobj.searchParams.get('family'); // Example 'Bebas Neue:wght@400'
-            const family = fontFamilyFull.split(':')[0];
+            const family = fontFamilyFull?.split(':')[0] || '';
             return {
                 fontFamily: family,
                 node,
-                completedUrl,
+                completedUrl: null,
                 fontWeight: null,
                 ext: null,
             };
@@ -89,16 +98,24 @@ const scssUtils = {
  * @returns {string|null} string = completed url, null = wasn't local url
  */
 function completeUrlIfLocal(urlNormalized, s) {
-    const isLocal1 = urlNormalized.startsWith(`${s}/`) && !urlNormalized.startsWith(`${s}//`); // `"/foo`, `'/foo` or `/foo`
-    const isLocal2 = !isLocal1 && urlNormalized.startsWith(`${s}public/`); // `"public/`, `'public/` or `public/`
-    if (!isLocal1 && !isLocal2)
-        return null;
+    const noQuotes = !s ? urlNormalized : urlNormalized.substring(1, urlNormalized.length - 1);
 
-    if (!urlNormalized.startsWith(`${s}${urlUtils.assetBaseUrl}`))
-        return `${s}${urlUtils.assetBaseUrl}${urlNormalized.substring(s.length)}`.replace('//', '/');
+    if (noQuotes.startsWith('public') || noQuotes.startsWith('/public'))
+        // 'public' - > '/foo/public...' or '/public...' or
+        // '/public' -> '/foo//public...' or '//public...' and then '/foo//public...' -> '/foo/public...'
+        return `${s}${urlUtils.assetBaseUrl}${noQuotes}${s}`.replace('//', '/');
 
-    return null;
+    if (noQuotes.startsWith('uploads') || noQuotes.startsWith('/uploads'))
+        // 'uploads'  -> '/foo/public/uploads...' or '/public/uploads...' or
+        // '/uploads' -> '/foo/public//uploads...' or '/public//uploads...' and then '/foo/public//uploads' -> '/foo/public/uploads'
+        return `${s}${urlUtils.assetBaseUrl}public/${noQuotes}${s}`.replace('//', '/');
+
+    const isLocal = noQuotes.startsWith('/') && !noQuotes.startsWith('//');
+    if (isLocal)
+        return urlNormalized;
+
+    return null; // must be external
 }
 
 export default scssUtils;
-export {compile, serialize, stringify};
+export {compile, completeUrlIfLocal, serialize, stringify};

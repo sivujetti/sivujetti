@@ -1,9 +1,21 @@
-import {blockTreeUtils, writeBlockProps} from '@sivujetti-commons-for-edit-app';
+import {api, blockTreeUtils, writeBlockProps} from '@sivujetti-commons-for-edit-app';
 import SaveButton from '../edit-app/menu-column/SaveButton.jsx';
 
-QUnit.module('SaveButton.jsx', () => {
+QUnit.module('SaveButton.jsx', hooks => {
+    let origSaveButton;
+    hooks.before(() => {
+        origSaveButton = api.saveButton;
+    });
+    hooks.after(() => {
+        api.saveButton = origSaveButton;
+    });
     QUnit.test('pushOp strips "is-throttled" items', assert => {
         const saveButton = new SaveButton();
+        api.saveButton = {
+            setInstance(cmp) {   },
+            getInstance() { return saveButton; }
+        };
+        saveButton.initChannel('globalBlockTrees', []);
 
         const initialState = createTestTheBlockTreeState('Lorem ipsum');
         saveButton.initChannel('theBlockTree', initialState);

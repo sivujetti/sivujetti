@@ -1,7 +1,3 @@
-Library: FluentPDO
-License: Apache-2.0 / GPLv2
-Link: https://github.com/envms/fluentpdo#license
-
 Library: PHPMailer
 License: LGPL-2.1
 Link: https://github.com/PHPMailer/PHPMailer/blob/master/LICENSE

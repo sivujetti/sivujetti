@@ -2,8 +2,6 @@
 
 namespace Sivujetti\Tests\Utils;
 
-use Envms\FluentPDO\Queries\Select;
-use Envms\FluentPDO\Query;
 use Pike\{Db, PikeException, Validation};
 
 final class DbDataHelper {
@@ -46,15 +44,6 @@ final class DbDataHelper {
         return $this->db->fetchOne("SELECT * FROM `\${p}{$tableName}` WHERE {$whereExpr}",
                                    $whereVals,
                                    \PDO::FETCH_ASSOC);
-    }
-    /**
-     * @param string $tableName @allow raw sql
-     * @return \Envms\FluentPDO\Queries\Select
-     */
-    public function fetch(string $tableName): Select {
-        return (new Query($this->db->getPdo()))
-            ->from($tableName)
-            ->asObject('stdClass');
     }
     /**
      * @return \Pike\Db

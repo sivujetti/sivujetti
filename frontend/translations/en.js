@@ -173,8 +173,6 @@ stringBundles.push({
     'Edit mode': 'Edit mode',
     'Go to dashboard': 'Go to dashboard',
     'Log out': 'Log out',
-    'You can add content by dragging': 'You can add content by dragging',
-    'Cool!': 'Ok!',
     'Did you know?': 'Did you know?',
     'When you\'re in the edit mode, you still can navigate any website hyperlink by clicking on it holding Ctrl (Windows) or ⌘ (Mac) key.': 'When you\'re in the edit mode, you still can navigate any website hyperlink by clicking on it holding Ctrl (Windows) or ⌘ (Mac) key.',
     'Created new %s': 'Created new %s',

@@ -114,14 +114,6 @@ class EditApp extends preact.Component {
                 editAppOuterEl={ outerEl }
                 ref={ this.props.onSaveButtonRefd }/>
             </header>,
-            !showFirstTimeDragInstructions ? null : <div class="drag-instructions-overlay"><div>
-                <p class="flex-centered">
-                    <Icon iconId="info-circle" className="size-lg mr-2"/>
-                    { __('You can add content by dragging') }
-                </p>
-                <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/drag-right-illustration.png') } alt=""/>
-                <button onClick={ dismissFirstTimeInstructions } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Cool!') }</button>
-            </div></div>,
             <MyRouter history={ historyInstance }>
                 <DefaultState path="/:slug*"/>
                 <PageCreateState path="/pages/create/:pageTypeName?/:layoutId?"/>

@@ -8,9 +8,8 @@
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/coloris.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/tagify.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.css") ?>">
-        <?php if ($isFirstRun): ?>
+        <?php if ($isFirstRun && defined("showQuickIntro")): ?>
         <style>
-        <?php if (defined("showQuickIntro")): ?>
         #quick-intro-outer {
             --bg: #fff;
             color: var(--color-fg-default);
@@ -158,47 +157,7 @@
             left: .4rem;
             opacity: .7;
         }
-        <?php endif; ?>
-        .drag-instructions-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: rgba(255,255,255,.64);
-            height: 100%;
-            backdrop-filter: blur(4px);
-            display: flex;
-            text-align: center;
-            transition: opacity .625s;
-
-            overflow: hidden;
-            opacity: 0;
-            width: var(--menu-column-width-computed);
-        }
-        .dnd-block-spawner-opened .drag-instructions-overlay {
-            overflow: visible;
-            padding-left: 4rem;
-            z-index: 4;
-        }
-        .dnd-block-spawner-opened .drag-instructions-overlay:not(.fade-away) {
-            opacity: 1;
-        }
-        .drag-instructions-overlay > div {
-            position: relative;
-            margin-top: 9rem;
-        }
-        .drag-instructions-overlay > div p {
-            text-shadow: 0px 0px 4px #fff;
-            font-size: .9rem;
-            font-weight: bold;
-            color: var(--color-fg-dimmed2);
-        }
-        .drag-instructions-overlay > div img {
-            margin-left: -54px;
-        }
-        .drag-instructions-overlay > div button {
-            right: 0;
-            top: 4rem;
-        }</style>
+        </style>
         <?php endif; ?>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noindex, nofollow, nosnippet, noarchive">

@@ -51,6 +51,12 @@ interface WebPagePreviewApp {
     onReady(/*fn*/): todo;
 }
 
+interface ReRenderingWebPageMouseState {
+    curHoverBlockBlockId: string|null;
+    curHoverBlockNthOfId: number|null;
+    metaKeyIsPressed: boolean;
+}
+
 type mainPanelSectionName = 'onThisPage'|'baseStyles';
 
 interface MenuPanel {

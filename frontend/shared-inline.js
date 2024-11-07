@@ -75,11 +75,14 @@ function cloneDeep(obj) {
 
 /**
  * @param {string} blockId
+ * @param {number} nthOfId = 1
  * @param {HTMLElement} from = document.body
  * @returns {HTMLElement|null}
  */
-function getBlockEl(blockId, from = document.body) {
-    return from.querySelector(`[data-block="${blockId}"]`);
+function getBlockEl(blockId, nthOfId = 1, from = document.body) {
+    if (nthOfId === 1) return from.querySelector(`[data-block="${blockId}"]`);
+    const all = from.querySelectorAll(`[data-block="${blockId}"]`);
+    return all[nthOfId - 1] || null;
 }
 
 const mediaScopes = [
@@ -91,12 +94,12 @@ const mediaScopes = [
 ];
 
 export {
-    cloneDeep,
-    completeImageSrc,
-    getBlockEl,
-    getMetaKey,
-    getNormalizedInitialHoverCandidate,
-    mediaScopes,
-    placeholderImageSrc,
     traverseRecursively,
+    placeholderImageSrc,
+    mediaScopes,
+    getBlockEl,
+    getNormalizedInitialHoverCandidate,
+    getMetaKey,
+    completeImageSrc,
+    cloneDeep,
 };

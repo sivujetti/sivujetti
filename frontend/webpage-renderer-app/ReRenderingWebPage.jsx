@@ -1,5 +1,5 @@
 import {urlUtils} from '@sivujetti-commons-for-web-pages';
-import {getMetaKey, traverseRecursively} from '../shared-inline.js';
+import {getMetaKey, getBlockEl, traverseRecursively} from '../shared-inline.js';
 import {stringHtmlPropToVNodeArray} from './ReRenderingWebPageFuncs.js';
 import builtInRenderers from './builtin-renderers-all.jsx';
 
@@ -25,10 +25,25 @@ class RenderAll extends preact.Component {
     // isLocalLink;
     /**
      * @param {MessagePort} messagePortToEditApp
+     * @param {ReRenderingWebPageMouseState|null} prevIframeMouseState
      * @access public
      */
-    hookUpEventHandlersAndEmitters(messagePortToEditApp) {
+    hookUpEventHandlersAndEmitters(messagePortToEditApp, prevIframeMouseState) {
         this.messagePortToEditApp = messagePortToEditApp;
+        if (prevIframeMouseState) {
+            this.metaKeyIsPressed = prevIframeMouseState.metaKeyIsPressed;
+            if (prevIframeMouseState.curHoverBlockBlockId) {
+                const el = getBlockEl(
+                    prevIframeMouseState.curHoverBlockBlockId,
+                    prevIframeMouseState.curHoverBlockNthOfId,
+                );
+                if (el) this.curHoveredBlock = {
+                    el,
+                    blockId: prevIframeMouseState.curHoverBlockBlockId,
+                    nthOfId: prevIframeMouseState.curHoverBlockNthOfId,
+                };
+            }
+        }
         this.hookUpEventHandlers();
     }
     /**
@@ -47,6 +62,17 @@ class RenderAll extends preact.Component {
      */
     exchangeSingleBlock(block, allBlocks) {
         this.exchangeBlocks(allBlocks);
+    }
+    /**
+     * @returns {ReRenderingWebPageMouseState}
+     * @access public
+     */
+    getMouseState() {
+        return {
+            curHoverBlockBlockId: this.curHoveredBlock?.blockId,
+            curHoverBlockNthOfId: this.curHoveredBlock?.nthOfId,
+            metaKeyIsPressed: !!this.metaKeyIsPressed,
+        };
     }
     /**
      * @access protected

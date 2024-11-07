@@ -9,7 +9,7 @@ import {
 import {isMetaBlock} from '../includes/block/utils.js';
 import globalData from '../includes/globalData.js';
 import {createTrier} from '../includes/utils.js';
-import {cloneDeep, getBlockEl, getMetaKey, traverseRecursively} from '../../shared-inline.js';
+import {cloneDeep, getMetaKey, getBlockEl, traverseRecursively} from '../../shared-inline.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 
 const broadcastInitialStateToListeners = true;
@@ -171,6 +171,23 @@ class WebPagePreviewApp extends preact.Component {
         this.messageChannel?.port1?.postMessage(args);
     }
     /**
+     * @param {[string, ...any]} args
+     * @returns {Promise<any>} Data returned from the ReRenderer
+     * @access public
+     */
+    sendMessageToReRendererWithReturn(args) {
+        return new Promise(resolve => {
+            const fn = e => {
+                if (e.data[0] === `${args[0]}-return`) {
+                    this.messageChannel?.port1?.removeEventListener('message', fn);
+                    resolve(e.data);
+                }
+            };
+            this.messageChannel?.port1?.addEventListener('message', fn);
+            this.messageChannel?.port1?.postMessage(args);
+        });
+    }
+    /**
      * @access protected
      */
     componentWillMount() {
@@ -185,8 +202,15 @@ class WebPagePreviewApp extends preact.Component {
         // Start listening url changes, load new urls as they come
         historyInstance.listen(path => {
             const newUrl = getFullUrl(path);
-            if (!isMainColumnViewUrl(newUrl) && this.urlFromRouter !== newUrl)
-                this.setOrReplacePreviewIframeUrl(newUrl);
+            if (!isMainColumnViewUrl(newUrl) && this.urlFromRouter !== newUrl) {
+                if (isEditAppNonDefaultStateUrl(newUrl))
+                    this.setOrReplacePreviewIframeUrl(newUrl, null);
+                else
+                    this.sendMessageToReRendererWithReturn(['getMouseState']).then(data => {
+                        const [_, state] = data; // [_, ReRenderingWebPageMouseState]
+                        this.setOrReplacePreviewIframeUrl(newUrl, state);
+                    });
+            }
         });
 
         const metaKey = getMetaKey();
@@ -219,7 +243,7 @@ class WebPagePreviewApp extends preact.Component {
                 iframe.addEventListener('load', () => {
                     // Listen for messages from ReRenderingWebPage
                     // See also https://github.com/mdn/dom-examples/blob/main/channel-messaging-multimessage/index.html
-                    this.messageChannel.port1.onmessage = e => {
+                    this.messageChannel.port1.addEventListener('message', e => {
                         if (e.data[0] === 'hereIsPageDataBundle') {
                             broadcastCurrentPageData(e);
                         } else if (e.data[0] === 'onBlockHoverStarted') {
@@ -242,10 +266,11 @@ class WebPagePreviewApp extends preact.Component {
                             if (blockId)
                                 events.emit('web-page-click-received', blockId, nthOfId);
                         }
-                    };
+                    });
+                    this.messageChannel.port1.start();
                     // Transfer port2 to the iframe (that sends the 'hereIsPageDataBundle')
                     iframe.contentWindow.postMessage(
-                        ['establishLinkAndGetPageDataBundle'],
+                        ['establishLinkAndGetPageDataBundle', this.state.prevIframeMouseState],
                         window.location.origin,
                         [this.messageChannel.port2]
                     );
@@ -271,9 +296,10 @@ class WebPagePreviewApp extends preact.Component {
     }
     /**
      * @param {string} urlFromRouter Examples: '/services', '/services#ref-1'
+     * @param {ReRenderingWebPageMouseState} prevIframeMouseState = null
      * @access private
      */
-    setOrReplacePreviewIframeUrl(urlFromRouter) {
+    setOrReplacePreviewIframeUrl(urlFromRouter, prevIframeMouseState = null) {
         this.urlFromRouter = urlFromRouter;
 
         const url = createUrlForIframe(urlFromRouter);
@@ -281,7 +307,7 @@ class WebPagePreviewApp extends preact.Component {
 
         if (this.messageChannel) this.messageChannel = null;
         this.messageChannel = new MessageChannel;
-        this.setState({url});
+        this.setState({url, prevIframeMouseState});
     }
     /**
      * @param {DOMRect} rect
@@ -324,8 +350,7 @@ class WebPagePreviewApp extends preact.Component {
      */
     getBlockEl(blockId, nthOfId) {
         const from = this.getEl().contentDocument.body;
-        if (nthOfId === 1) return getBlockEl(blockId, from);
-        return getNthBlockEl(blockId, nthOfId, from);
+        return getBlockEl(blockId, nthOfId, from);
     }
     /**
      * @param {HTMLElement} blockEl
@@ -459,6 +484,15 @@ function getFullUrl({pathname, hash}) {
 }
 
 /**
+ * @param {string} url
+ * @returns {boolean}
+ */
+function isEditAppNonDefaultStateUrl(url) {
+    return url.startsWith('/pages/') || // '/pages/create/:pageTypeName?/:layoutId?' or '/pages/:slug/duplicate'
+        url.startsWith('/page-types/create');
+}
+
+/**
  * @param {Array<Block>} blocksMut
  * @returns {Array<GlobalBlockTree>}
  */
@@ -496,17 +530,6 @@ function attachGlobalBlockTreesAndClone(blocks, gbts) {
     return objectUtils.cloneDeepWithChanges(blocks, copy => {
         attachTrees(copy);
     });
-}
-
-/**
- * @param {string} blockId
- * @param {number} nthOfId
- * @param {HTMLElement} from
- * @returns {HTMLElement|null}
- */
-function getNthBlockEl(blockId, nthOfId, from) {
-    const all = from.querySelectorAll(`[data-block="${blockId}"]`);
-    return all[nthOfId - 1] || null;
 }
 
 export default WebPagePreviewApp;

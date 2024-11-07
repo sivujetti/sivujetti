@@ -31,9 +31,10 @@ function mountWebPageRendererApp(dataBundle) {
         if ((Array.isArray(e.data) ? e.data[0] : '') !== 'establishLinkAndGetPageDataBundle') return;
         const messagePortToEditApp = e.ports[0];
         // Start listening for messages from WebPagePreviewApp
-        messagePortToEditApp.onmessage = createMessageChannelController(reRenderingWebPage);
+        messagePortToEditApp.addEventListener('message', createMessageChannelController(reRenderingWebPage, messagePortToEditApp));
+        messagePortToEditApp.start();
         // Pass the port to ReRenderingWebPage, so it too can send messages to WebPagePreviewApp
-        reRenderingWebPage.current.hookUpEventHandlersAndEmitters(messagePortToEditApp);
+        reRenderingWebPage.current.hookUpEventHandlersAndEmitters(messagePortToEditApp, e.data[1]);
         // Pass the data bundle to WebPagePreviewApp & finish up
         messagePortToEditApp.postMessage(['hereIsPageDataBundle', dataBundle]);
         window.removeEventListener('message', receiveInitialDataFromPreviewApp);
@@ -42,9 +43,10 @@ function mountWebPageRendererApp(dataBundle) {
 
 /**
  * @param {ReRenderingWebPage} reRenderingWebPage
+ * @param {MessagePort} messagePortToEditApp
  * @returns {(e: MessageEvent) => void}
  */
-function createMessageChannelController(reRenderingWebPage) {
+function createMessageChannelController(reRenderingWebPage, messagePortToEditApp) {
     return e => {
         if (e.data[0] === 'updateBlocksStyles') {
             const cssCompiled = e.data[1];
@@ -68,6 +70,8 @@ function createMessageChannelController(reRenderingWebPage) {
         } else if (e.data[0] === 'handleMetaKeyPressedOrReleased') {
             const isDown = e.data[1];
             reRenderingWebPage.current.handleEditAppMetaKeyPressedOrReleased(isDown);
+        } else if (e.data[0] === 'getMouseState') {
+            messagePortToEditApp.postMessage(['getMouseState-return', reRenderingWebPage.current.getMouseState()]);
         }
     };
 }

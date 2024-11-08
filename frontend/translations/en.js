@@ -457,6 +457,7 @@ stringBundles.push({
     'You lack permissions to do this action.': 'You lack permissions to do this action.',
     // Content templates' visual styles
     // Header
+    'Header': 'Header',
     'Background': 'Background',
     'Text align': 'Text align',
     'Left': 'Left',
@@ -465,6 +466,7 @@ stringBundles.push({
     'Justify': 'Justify',
     'Min height': 'Min height',
     // Text and image, 2 cols
+    'Text and image, 2 cols': 'Text and image, 2 cols',
     'Align ⇅': 'Align ⇅',
     'Top': 'Top',
     'Bottom': 'Bottom',
@@ -472,6 +474,7 @@ stringBundles.push({
     'Gäppi ↕': 'Gäppi ↕',
     'Image min height': 'Image min height',
     // Icon buttons
+    'Icon buttons': 'Icon buttons',
     'Icons size': 'Icons size',
     'Icons': 'Icons',
     'Icons stroke width': 'Icons stroke width',
@@ -479,8 +482,9 @@ stringBundles.push({
     'Icons padding': 'Icons padding',
     'Icons radius': 'Icons radius',
     // Icon and text list
-    // all dupes
+    'Icon and text list': 'Icon and text list',
     // Buttons list
+    'Buttons list': 'Buttons list',
     'Buttons padding ↑': 'Buttons padding ↑',
     'Buttons padding →': 'Buttons padding →',
     'Buttons padding ↓': 'Buttons padding ↓',
@@ -493,6 +497,7 @@ stringBundles.push({
     'Buttons content gap ↔': 'Buttons content gap ↔',
     'Buttons content gap ↕': 'Buttons content gap ↕',
     // Section with bg
+    'Section with bg': 'Section with bg',
     'Text color': 'Text color',
     'Text default': 'Text default',
     'Background size': 'Background size',
@@ -501,6 +506,7 @@ stringBundles.push({
     'Padding top': 'Padding top',
     'Padding bottom': 'Padding bottom',
     // Contact form
+    'Contact form': 'Contact form',
     'Max width': 'Max width',
     'Align ↔': 'Align ↔',
 }, validationStrings);

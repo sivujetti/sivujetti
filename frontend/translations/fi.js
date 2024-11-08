@@ -457,6 +457,7 @@ stringBundles.push({
     'You lack permissions to do this action.': 'Käyttöoikeutesi ei riitä tähän toiminnallisuuteen.',
     // Content templates' visual styles
     // Header
+    'Header': 'Header',
     'Background': 'Taustaväri',
     'Text align': 'Tekstin tasaus',
     'Left': 'Vasen',
@@ -465,6 +466,7 @@ stringBundles.push({
     'Justify': 'Tasattu',
     'Min height': 'Min. korkeus',
     // Text and image, 2 cols
+    'Text and image, 2 cols': 'Teksti ja kuva, 2 saraketta',
     'Align ⇅': 'Tasaus ⇅',
     'Top': 'Ylös',
     'Bottom': 'Alas',
@@ -472,6 +474,7 @@ stringBundles.push({
     'Gäppi ↕': 'Gäppi ↕',
     'Image min height': 'Kuva min. korkeus',
     // Icon buttons
+    'Icon buttons': 'Kuvake-napit',
     'Icons size': 'Ikonit koko',
     'Icons': 'Ikonit',
     'Icons stroke width': 'Ikonit reunus paksuus',
@@ -479,8 +482,9 @@ stringBundles.push({
     'Icons padding': 'Ikonit täyte',
     'Icons radius': 'Ikonit pyöristys',
     // Icon and text list
-    // all dupes
+    'Icon and text list': 'Kuvake ja teksti -lista',
     // Buttons list
+    'Buttons list': 'Napit-lista',
     'Buttons padding ↑': 'Napit täyte ↑',
     'Buttons padding →': 'Napit täyte →',
     'Buttons padding ↓': 'Napit täyte ↓',
@@ -493,6 +497,7 @@ stringBundles.push({
     'Buttons content gap ↔': 'Napit sisältö gäppi ↔',
     'Buttons content gap ↕': 'Napit sisältö gäppi ↕',
     // Section with bg
+    'Section with bg': 'Osio taustalla',
     'Text color': 'Teksti väri',
     'Text default': 'Tekstit oletus',
     'Background size': 'Taustakuva koko',
@@ -501,6 +506,7 @@ stringBundles.push({
     'Padding top': 'Padding top',
     'Padding bottom': 'Padding bottom',
     // Contact form
+    'Contact form': 'Yhteydenottolomake',
     'Max width': 'Max. leveys',
     'Align ↔': 'Tasaus ↔',
 }, validationStrings);

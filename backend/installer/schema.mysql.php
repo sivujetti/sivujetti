@@ -159,7 +159,10 @@ return [
 
 "CREATE TABLE `\${p}contentTemplates` (
     `id` CHAR(20) NOT NULL,
-    -- todo
+    `blockBlueprints` JSON,
+    `title` VARCHAR(92) NOT NULL,
+    `previewImgSrc` VARCHAR(260) NOT NULL,
+    `category` VARCHAR(92) NOT NULL,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

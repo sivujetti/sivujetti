@@ -4,6 +4,7 @@ namespace Sivujetti\Tests\Utils;
 
 use Pike\TestUtils\MutedSpyingResponse;
 use Sivujetti\BlockType\BlockTypeInterface;
+use Sivujetti\Template;
 use Sivujetti\Tests\Page\RenderPageTestCase;
 use TestState;
 
@@ -12,6 +13,9 @@ abstract class PluginTestCase extends RenderPageTestCase {
     protected \TestState $state;
     protected array $useTheseMocks;
     protected ?\Closure $finalMocksAlterer;
+    public static function createTemplate(): Template {
+        return new Template("dummy", env: (require TEST_CONFIG_FILE_PATH)["env"]);
+    }
     protected function setUp(): void {
         parent::setUp();
         $this->blockTestUtils = new BlockTestUtils;

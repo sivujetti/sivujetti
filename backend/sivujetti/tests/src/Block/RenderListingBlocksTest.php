@@ -4,7 +4,7 @@ namespace Sivujetti\Tests\Block;
 
 use Sivujetti\{SharedAPIContext, Template};
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\Tests\Utils\{TestEnvBootstrapper};
+use Sivujetti\Tests\Utils\{PluginTestCase, TestEnvBootstrapper};
 
 final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
     protected const TEST_RENDERER_NAME = "listing-custom";
@@ -59,7 +59,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $makeExpectedListItem = fn(object $pageData) =>
             "        <article class=\"list-item list-item-{$pageData->slug}\">\r\n" .
             "        <h2>".Template::e($pageData->title)."</h2>" .
-            "                    <div><a href=\"".self::createTemplate()->makeUrl($pageData->slug)."\">Read more</a></div>\r\n" .
+            "                    <div><a href=\"".PluginTestCase::createTemplate()->makeUrl($pageData->slug)."\">Read more</a></div>\r\n" .
             "                    </article>\r\n";
         $state->makeExpectedHtml = fn(object $b, object $page1Data, object $page2Data = null) =>
             "<div class=\"j-Listing page-type-pages\" data-block-type=\"Listing\" data-block=\"{$b->id}\">\r\n" .

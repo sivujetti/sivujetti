@@ -4,6 +4,7 @@ namespace Sivujetti\Tests\Page;
 
 use Pike\Request;
 use Sivujetti\Page\WebPageAwareTemplate;
+use Sivujetti\Tests\Utils\PluginTestCase;
 
 abstract class RenderPageTestCase extends PagesControllerTestCase {
     protected function insertTestPageToDb(\TestState $state): void {
@@ -24,6 +25,6 @@ abstract class RenderPageTestCase extends PagesControllerTestCase {
             ));
     }
     protected static function makeUrl(...$args): string {
-        return (new WebPageAwareTemplate("dummy", env: (require TEST_CONFIG_FILE_PATH)["env"]))->makeUrl(...$args);
+        return PluginTestCase::createTemplate()->makeUrl(...$args);
     }
 }

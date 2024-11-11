@@ -5,14 +5,14 @@ namespace Sivujetti\Tests\Block;
 use Sivujetti\Template;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType, ImageBlockType};
-use Sivujetti\Tests\Utils\{DbDataHelper};
+use Sivujetti\Tests\Utils\{DbDataHelper, PluginTestCase};
 
 final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
     public function testRenderBlockRendersButtons(): void {
         $makeExpectedHtml = fn($b, $lnk, $cls = "") =>
             $this->blockTestUtils->getExpectedButtonBlockOutput($b, $lnk, $cls)
         ;
-        $tmpl = self::createTemplate();
+        $tmpl = PluginTestCase::createTemplate();
         //
         $state = $this->setupRenderButtonBlocksTest();
         $this->makeTestSivujettiApp($state);
@@ -190,7 +190,7 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $state = $this->setupRenderImageBlocksTest();
         $this->makeTestSivujettiApp($state);
         $b = $state->testBlocks;
-        $tmpl = self::createTemplate();
+        $tmpl = PluginTestCase::createTemplate();
         $expectedHtml = $makeExpectedHtml($b[0], $tmpl->makeUrl("public/uploads/{$b[0]->src}", false));
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
@@ -243,7 +243,7 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
     public function testRenderBlockRendersMenus(): void {
         $state = $this->setupRenderMenuBlocksTest();
         $this->makeTestSivujettiApp($state);
-        $tmpl = self::createTemplate();
+        $tmpl = PluginTestCase::createTemplate();
         $this->renderAndVerify($state, 0, "<nav data-block=\"{$state->testBlocks[0]->id}\"" .
             " data-block-type=\"Menu\" class=\"j-Menu\">" .
             "<ul class=\"level-0\">" .
@@ -272,7 +272,7 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
             "<section class=\"j-Section{$cls}\"{$style} data-block-type=\"Section\" data-block=\"{$b->id}\">" .
                 "<div data-block-root></div>" .
             "</section>";
-        $tmpl = self::createTemplate();
+        $tmpl = PluginTestCase::createTemplate();
         $state = $this->setupRenderSectionBlocksTest();
         $this->makeTestSivujettiApp($state);
         $b = $state->testBlocks;

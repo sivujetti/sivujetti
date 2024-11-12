@@ -183,12 +183,13 @@ class BlockEditForm extends preact.Component {
                             blockId={ blockId }
                             blockTypeName={ this.blockType.name }
                             checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
+                            createUpdateBlockPropOp={ createUpdateBlockPropOp }
                             stylesStateId={ this.state.stylesStateId }
                             styleClasses={ blockCopyForEditForm.styleClasses }/>,
                         <StyleClassesPicker
                             currentClasses={ blockCopyForEditForm.styleClasses }
                             onClassesChanged={ newClasses => {
-                                this.pushBlockChanges(blockId, {styleClasses: newClasses});
+                                pushBlockChanges(blockId, {styleClasses: newClasses});
                             } }/>
                     ];
                 }
@@ -217,49 +218,7 @@ class BlockEditForm extends preact.Component {
     handleValuesChanged(changes, hasErrors = false, flags = null) {
         if (this.state.currentTabKind.indexOf('content') < 0) return;
 
-        this.pushBlockChanges(this.props.block.id, changes, flags);
-    }
-    /**
-     * @param {string} blockId
-     * @param {{[key: string]: any;}} changes
-     * @param {blockPropValueChangeFlags} flags = null
-     * @access private
-     */
-    pushBlockChanges(blockId, changes, flags = null) {
-        const saveButton = api.saveButton.getInstance();
-        const root1 = blockTreeUtils.findBlockMultiTree(blockId, saveButton.getChannelState('theBlockTree'))[3];
-        const trid = blockTreeUtils.getIdFor(root1);
-        if (trid === 'main')
-            saveButton.pushOp(
-                'theBlockTree',
-                blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                    const [blockRef] = blockTreeUtils.findBlockMultiTree(blockId, newTreeCopy);
-                    /*
-                    mutates block from main/root tree
-                    [
-                        <mainTreeBlock1>,
-                        <mainTreeBlock2> <------------------- here (main/root tree)
-                    ]*/
-                    writeBlockProps(blockRef, changes);
-                    return newTreeCopy;
-                }),
-                {event: 'update-single-block-prop', blockId},
-                flags
-            );
-        else
-            saveButton.pushOp(
-                'globalBlockTrees',
-                saveButton.getChannelState('globalBlockTrees').map(gbt =>
-                    gbt.id !== trid
-                        ? gbt
-                        : {...gbt, blocks: blockTreeUtils.createMutation(gbt.blocks, copy => {
-                            const [blockMut] = blockTreeUtils.findBlock(blockId, copy);
-                            writeBlockProps(blockMut, changes);
-                        })}
-                ),
-                {event: 'update-block-in', blockId},
-                flags,
-            );
+        pushBlockChanges(this.props.block.id, changes, flags);
     }
     /**
      * @returns {[Array<TabInfo>, boolean]}
@@ -372,6 +331,54 @@ function getUserStyleTabHasContent({styleClasses}, tabsInfo) {
         return varList.length > 0;
     }
     return false;
+}
+
+/**
+ * @param {string} blockId
+ * @param {{[key: string]: any;}} changes
+ * @param {blockPropValueChangeFlags} flags = null
+ * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
+ */
+function pushBlockChanges(blockId, changes, flags = null) {
+    const saveButton = api.saveButton.getInstance();
+    saveButton.pushOp(...createUpdateBlockPropOp(blockId, () => changes, flags, saveButton));
+}
+
+/**
+ * @param {string} blockId
+ * @param {(blockRefMut: Block) => {[key: string]: any;}} getChanges
+ * @param {blockPropValueChangeFlags} flags = null
+ * @param {SaveButton} saveButton = api.saveButton.getInstance()
+ * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]|['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext]}
+ */
+function createUpdateBlockPropOp(blockId, getChanges, flags = null, saveButton = api.saveButton.getInstance()) {
+    const root1 = blockTreeUtils.findBlockMultiTree(blockId, saveButton.getChannelState('theBlockTree'))[3];
+    const trid = blockTreeUtils.getIdFor(root1);
+    if (trid === 'main')
+        return [
+            'theBlockTree',
+            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+                const [blockRefMut] = blockTreeUtils.findBlock(blockId, newTreeCopy);
+                writeBlockProps(blockRefMut, getChanges(blockRefMut));
+                return newTreeCopy;
+            }),
+            {event: 'update-single-block-prop', blockId},
+            flags
+        ];
+    else
+        return [
+            'globalBlockTrees',
+            saveButton.getChannelState('globalBlockTrees').map(gbt =>
+                gbt.id !== trid
+                    ? gbt
+                    : {...gbt, blocks: blockTreeUtils.createMutation(gbt.blocks, copy => {
+                        const [blockRefMut] = blockTreeUtils.findBlock(blockId, copy);
+                        writeBlockProps(blockRefMut, getChanges(blockRefMut));
+                    })}
+            ),
+            {event: 'update-block-in', blockId},
+            flags,
+        ];
 }
 
 export default BlockEditForm;

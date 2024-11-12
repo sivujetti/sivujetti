@@ -1,7 +1,6 @@
 import {
     __,
     api,
-    blockTreeUtils,
     env,
     floatingDialog,
     getAllCustomClassChunks,
@@ -130,7 +129,7 @@ class CustomClassStylesList extends preact.Component {
         );
         saveButtonInstance.pushOpGroup(
             ['stylesBundle', newAll],
-            createAddOrRemoveBlockClassOpArgs('add', newChunkClass, this.props.blockId),
+            this.createAddOrRemoveBlockClassOp('add', newChunkClass),
         );
     }
     /**
@@ -157,9 +156,9 @@ class CustomClassStylesList extends preact.Component {
      */
     toggleStyleIsActivated(newIsActive, curIsActive, chunkClass) {
         if (newIsActive && !curIsActive)
-            saveButtonInstance.pushOp(...createAddOrRemoveBlockClassOpArgs('add', chunkClass, this.props.blockId));
+            saveButtonInstance.pushOp(...this.createAddOrRemoveBlockClassOp('add', chunkClass));
         else if (curIsActive && !newIsActive)
-            saveButtonInstance.pushOp(...createAddOrRemoveBlockClassOpArgs('remove', chunkClass, this.props.blockId));
+            saveButtonInstance.pushOp(...this.createAddOrRemoveBlockClassOp('remove', chunkClass));
     }
     /**
      * @param {number} i
@@ -266,6 +265,22 @@ class CustomClassStylesList extends preact.Component {
         )[0];
         saveButtonInstance.pushOp('stylesBundle', newAll);
     }
+    /**
+     * @param {'add'|'remove'} type
+     * @param {string} chunkClass
+     * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]|['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext]}
+     * @access private
+     */
+    createAddOrRemoveBlockClassOp(type, chunkClass) {
+        return this.props.createUpdateBlockPropOp(this.props.blockId, blockRefMut => {
+            const newClasses = addOrRemoveStyleClass(type, chunkClass, blockRefMut.styleClasses);
+            if (newClasses.startsWith(' ') || newClasses.endsWith(' ') || newClasses.indexOf('  ') > -1) {
+                env.window.console.error('Bad white space', newClasses);
+                return {};
+            }
+            return {styleClasses: newClasses};
+        });
+    }
 }
 
 /**
@@ -340,25 +355,6 @@ function createIsDuplicateCustomClassChunkChecker(curCustomClassChunks = null) {
 /**
  * @param {'add'|'remove'} type
  * @param {string} chunkClass
- * @param {string} blockId
- * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
- */
-function createAddOrRemoveBlockClassOpArgs(type, chunkClass, blockId) {
-    return [
-        'theBlockTree',
-        blockTreeUtils.createMutation(saveButtonInstance.getChannelState('theBlockTree'), newTreeCopy => {
-            const [blockRef] = blockTreeUtils.findBlockMultiTree(blockId, newTreeCopy);
-            blockRef.styleClasses = addOrRemoveStyleClass(type, chunkClass, blockRef.styleClasses);
-            if (blockRef.styleClasses.startsWith(' ') || blockRef.styleClasses.endsWith(' ') || blockRef.styleClasses.indexOf('  ') > -1) throw new Error('Bad white space');
-            return newTreeCopy;
-        }),
-        {event: 'update-single-block-prop', blockId}
-    ];
-}
-
-/**
- * @param {'add'|'remove'} type
- * @param {string} chunkClass
  * @param {string} to
  * @returns {string}
  */
@@ -378,6 +374,7 @@ function addOrRemoveStyleClass(type, chunkClass, to) {
  *   blockTypeName: string;
  *   stylesStateId: number;
  *   checkIsChunkActive: (chunk: StyleChunk) => boolean;
+ *   createUpdateBlockPropOp: (blockId: string, getChanges: (blockRefMut: Block) => {[key: string]: any;}) => ['theBlockTree', Array<Block>, StateChangeUserContext]|['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext];
  *   styleClasses: string;
  * }} CustomClassStylesListProps
  */

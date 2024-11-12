@@ -6,6 +6,7 @@ import {
 import {
     createBlockTreeInsertOrReplaceAtOp,
     createBlockTreeMoveToOps,
+    getRealTarget,
 } from './tree-dnd-controller-funcs.js';
 
 /**
@@ -40,7 +41,8 @@ function createDndController(saveButton) {
                     saveButton.pushOpGroup(...ops);
             } else {
                 const targetInf = createBlockDescriptorFromLi(cand.li);
-                const insertBlockAtOp = createBlockTreeInsertOrReplaceAtOp(extDragData.block, targetInf, cand.pos);
+                const [targetTrid, targetBlockId] = getRealTarget(targetInf, cand.pos);
+                const insertBlockAtOp = createBlockTreeInsertOrReplaceAtOp(extDragData.block, targetTrid, targetBlockId, cand.pos);
                 if (!extDragData.isReusable) // Plain block -> add block but no styles
                     saveButton.pushOp(...insertBlockAtOp);
                 else { // Reusable -> add block and copies of all of its styles recursively

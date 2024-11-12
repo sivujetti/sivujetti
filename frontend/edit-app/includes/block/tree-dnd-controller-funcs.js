@@ -6,14 +6,14 @@ import {
 
 /**
  * @param {Block} blockOrBranch
- * @param {BlockDescriptor} target
+ * @param {string} targetTrid
+ * @param {string} targetBlockId
  * @param {dropPosition} insertPos
  * @param {boolean} isReplace = false
  * @param {wasCurrentlySelectedBlock} wasCurrentlySelectedBlock = false
  * @returns {[['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree, StateChangeUserContext], (() => void)|null]}
  */
-function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, target, insertPos, isReplace = false, wasCurrentlySelectedBlock = false) {
-    const [targetTrid, targetBlockId] = getRealTarget(target, insertPos);
+function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, targetTrid, targetBlockId, insertPos, isReplace = false, wasCurrentlySelectedBlock = false) {
     const eventName = !isReplace ? 'insert-block-at' : 'replace-block';
 
     const newGbts = new Map;

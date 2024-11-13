@@ -24,11 +24,10 @@ function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, targetTrid, targetBlo
     const patchedGbtStates = !newGbts.size ? null : (() => {
     // Note: this call mutates SaveButton's internal state
         return api.saveButton.getInstance().mutateActiveStates('globalBlockTrees', stateArrMut => {
+            const headStateGbtsMut = stateArrMut.at(-1);
             for (const [newTrid, gbtFromBackend] of newGbts) {
-                for (const gbts of stateArrMut) {
-                    if (!findGbt(newTrid, gbts))
-                        gbts.push(gbtFromBackend);
-                }
+                if (!findGbt(newTrid, headStateGbtsMut))
+                    headStateGbtsMut.push(gbtFromBackend);
             }
         });
     })();

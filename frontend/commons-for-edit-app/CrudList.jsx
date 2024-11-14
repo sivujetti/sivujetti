@@ -35,10 +35,11 @@ class CrudList extends preact.Component {
             if (!this.state.editItem)
                 this.setState({items});
             else {
-                const editItemIdx = this.state.items.indexOf(this.state.editItem);
-                this.setState({items, editItem: items[editItemIdx]});
+                const editItemIdx = this.state.items.findIndex(({key}) => key === this.state.editItem.key);
+                const editItem = items[editItemIdx];
+                this.setState({items, editItem: editItem || null, editItemIdx: editItemIdx > -1 ? editItemIdx : null});
                 const fn = this.editFormRef.current.overrideValues;
-                if (fn) this.editFormRef.current.overrideValues(items[editItemIdx]);
+                if (fn) this.editFormRef.current.overrideValues(editItem || null);
             }
         }
     }
@@ -49,7 +50,7 @@ class CrudList extends preact.Component {
         if (!items)
             return;
         if (tab === 'default') return [
-            <ul class="list table-list container px-0" ref={ this.activateSorting.bind(this) }>{ items.length ? items.map(item =>
+            <ul class="list table-list container px-0" ref={ this.activateSorting.bind(this) }>{ items.length ? items.map((item, i) =>
                 <li data-id={ item.key } key={ item.key } class="columns py-1">
                     <div class="col-2">
                         <button class="drag-handle with-icon" title={ __('Drag') } type="button">
@@ -60,7 +61,7 @@ class CrudList extends preact.Component {
                         { this.getTitle(item) }
                     </div>
                     <div class="col-2">
-                        <button onClick={ e => this.openMoreMenu(item, e) } class="btn btn-sm btn-link col-ml-auto flex-centered" type="button">
+                        <button onClick={ e => this.openMoreMenu(item, i, e) } class="btn btn-sm btn-link col-ml-auto flex-centered" type="button">
                             <Icon iconId="dots" className="size-sm"/>
                         </button>
                     </div>
@@ -82,30 +83,30 @@ class CrudList extends preact.Component {
                 { ...(editFormProps || {}) }
                 item={ this.state.editItem }
                 onValueChanged={ (value, key, subKey = null) => {
-                    // eslint-disable-next-line react/no-direct-mutation-state
-                    this.state.editItem[key] = value;
-                    this.setState({items: this.state.items,
-                                    editItem: this.state.editItem});
-                    this.emitListMutated(this.state.items, key, subKey);
+                    const updatedItems = this.state.items.map((itm, i) => i !== this.state.editItemIdx ? itm : {...itm, [key]: value});
+                    this.setState({item: updatedItems, editItem: updatedItems[this.state.editItemIdx]});
+                    this.emitListMutated(updatedItems, key, subKey);
                 } }
-                done={ () => this.setState({tab: 'default', editItem: null}) }
+                done={ () => this.setState({tab: 'default', editItem: null, editItemIdx: null}) }
                 ref={ this.editFormRef }/>;
         }
     }
     /**
      * @param {T} item
+     * @param {number} i
      * @param {Event} e
      * @access private
      */
-    openMoreMenu(item, e) {
+    openMoreMenu(item, i, e) {
         this.itemWithNavOpened = item;
+        this.itemWithNavOpenedIdx = i;
         const ctrl = {
             getLinks: () => [
                 {text: __('Edit'), title: __('Edit'), id: 'edit-option'},
                 {text: __('Delete'), title: __('Delete'), id: 'delete-option'},
             ],
             onItemClicked: this.handleContextMenuLinkClicked.bind(this),
-            onMenuClosed: () => { this.itemWithNavOpened = null; },
+            onMenuClosed: () => { this.itemWithNavOpened = null; this.itemWithNavOpenedIdx = null; },
             placement: this.props.contextMenuPos || 'right',
             zIndex: this.props.contextMenuZIndex || undefined,
         };
@@ -119,10 +120,16 @@ class CrudList extends preact.Component {
      */
     handleContextMenuLinkClicked(link) {
         if (link.id === 'edit-option') {
-            this.setState({tab: 'edit', editItem: this.itemWithNavOpened});
+            this.setState({tab: 'edit', editItem: this.itemWithNavOpened, editItemIdx: this.itemWithNavOpenedIdx});
         } else if (link.id === 'delete-option') {
-            const items = this.state.items.filter(item => item !== this.itemWithNavOpened);
-            this.setState({items});
+            const items = this.state.items.filter((_, i) => i !== this.itemWithNavOpenedIdx);
+            if (!this.state.editItem)
+                this.setState({items});
+            else {
+                const idxNew = items.findIndex(({key}) => key === this.state.editItem.key);
+                const editItem = idxNew > -1 ? items[idxNew] : null;
+                this.setState({items, editItem, editItemIdx: editItem ? idxNew : null});
+            }
             this.emitListMutated(items);
         }
     }
@@ -142,9 +149,7 @@ class CrudList extends preact.Component {
         this.sortable.register(tbodyEl, {
             handle: '.drag-handle',
             onReorder: orderedIds => {
-                const ordered = orderedIds.map(key =>
-                    this.state.items.find(f => f.key === key)
-                );
+                const ordered = orderedIds.map(key => this.state.items.find(f => f.key === key));
                 this.setState({items: ordered});
                 this.emitListMutated(ordered);
             },

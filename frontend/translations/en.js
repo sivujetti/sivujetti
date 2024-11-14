@@ -466,13 +466,17 @@ stringBundles.push({
     'Justify': 'Justify',
     'Min height': 'Min height',
     // Text and image, 2 cols
-    'Text and image, 2 cols': 'Text and image, 2 cols',
+    'Text and image, 2 cols': 'Text and image, 2 columns',
     'Align ⇅': 'Align ⇅',
     'Top': 'Top',
     'Bottom': 'Bottom',
     'Gap ↔': 'Gap ↔',
     'Gäppi ↕': 'Gäppi ↕',
     'Image min height': 'Image min height',
+    // Content 3 cols
+    'Content 3 cols': 'Content 3 columns',
+    // Content 4 cols
+    'Content 4 cols': 'Content 4 columns',
     // Icon buttons
     'Icon buttons': 'Icon buttons',
     'Icons size': 'Icons size',

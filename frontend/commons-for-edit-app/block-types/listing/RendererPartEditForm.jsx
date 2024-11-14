@@ -16,7 +16,7 @@ import ImagePicker from '../../ImagePicker.jsx';
 class RendererPartEditForm extends preact.Component {
     // crudListRef;
     /**
-     * @param {{item: RendererPart; onValueChanged: (value: string, key: keyof RendererPart, key2: keyof HeadingPartData | keyof ImagePartData | keyof LinkPartData | keyof ExcerptPartData) => void; done: () => void;}} props
+     * @param {{item: RendererPart|null; onValueChanged: (value: string, key: keyof RendererPart, key2: keyof HeadingPartData | keyof ImagePartData | keyof LinkPartData | keyof ExcerptPartData) => void; done: () => void;}} props
      */
     componentWillMount() {
         this.crudListRef = preact.createRef();
@@ -26,6 +26,10 @@ class RendererPartEditForm extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
+        if (!props.item) {
+            this.props.done();
+            return;
+        }
         const maybeNext = this.createHookFormArgs(props.item.kind, props.item.data);
         if (JSON.stringify(this.state.data) !== JSON.stringify(maybeNext[1].data))
             this.setState(reHookValues(this, ...maybeNext));

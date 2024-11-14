@@ -12,11 +12,12 @@ import {
     unhookForm,
 } from '../../Form.jsx';
 import {Icon} from '../../Icon.jsx';
+import {objectUtils} from '../../utils.js';
 
 class EditItemPanel extends preact.Component {
     // crudListRef;
     /**
-     * @param {{item: MenuLink; onValueChanged: (value: string, key: keyof MenuLink) => void; done: () => void; menuForm?: MenuBlockEditForm;}} props
+     * @param {{item: MenuLink|null; onValueChanged: (value: string, key: keyof MenuLink) => void; done: () => void; menuForm?: MenuBlockEditForm;}} props
      */
     componentWillMount() {
         this.crudListRef = preact.createRef();
@@ -25,14 +26,22 @@ class EditItemPanel extends preact.Component {
             onAfterValueChanged: (value, hasErrors, _source) => {
                 if (!hasErrors) this.props.onValueChanged(value, 'text');
             }},
-        ]));
+        ], {
+            linkChildren: objectUtils.cloneDeep(this.props.item.children),
+        }));
     }
     /**
      * @access protected
      */
     componentWillReceiveProps(props) {
+        if (this.state.values && !props.item) {
+            this.props.done();
+            return;
+        }
         if (props.item.text !== this.state.values.linkText)
             reHookValues(this, [{name: 'linkText', value: props.item.text}]);
+        if (JSON.stringify(props.item.children) !== JSON.stringify(this.state.linkChildren))
+            this.setState({linkChildren: objectUtils.cloneDeep(props.item.children)});
     }
     /**
      * @access protected
@@ -43,8 +52,8 @@ class EditItemPanel extends preact.Component {
     /**
      * @access protected
      */
-    render({item, done, menuForm}) {
-        const linkChildren = item.children;
+    render({item, done, menuForm}, {linkChildren}) {
+        if (!item) return;
         return <div class="form-horizontal">
             <button
                 onClick={ () => done() }

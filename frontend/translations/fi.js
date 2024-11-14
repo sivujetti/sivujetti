@@ -473,6 +473,10 @@ stringBundles.push({
     'Gap ↔': 'Gäppi ↔',
     'Gäppi ↕': 'Gäppi ↕',
     'Image min height': 'Kuva min. korkeus',
+    // Content 3 cols
+    'Content 3 cols': 'Sisältö 3 saraketta',
+    // Content 4 cols
+    'Content 4 cols': 'Sisältö 4 saraketta',
     // Icon buttons
     'Icon buttons': 'Kuvake-napit',
     'Icons size': 'Ikonit koko',

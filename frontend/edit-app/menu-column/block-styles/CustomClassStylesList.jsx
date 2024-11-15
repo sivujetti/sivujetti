@@ -18,7 +18,7 @@ const ccPlaceholder = '@customClass[0]';
 
 let saveButtonInstance;
 
-/** @extends {preact.Component<CustomClassStylesListProps, any>} */
+/** @extends {preact.Component<CustomClassStylesListProps, ({styleChunksVisible: Array<StyleChunk>} && {[key: string]: any;})>} */
 class CustomClassStylesList extends preact.Component {
     // emitChunksChangesThrottled;
     // listElRef;
@@ -48,11 +48,9 @@ class CustomClassStylesList extends preact.Component {
         if (props.stylesStateId !== this.props.stylesStateId ||
             props.styleClasses !== this.props.styleClasses) {
             const next = createChunksState();
-            const {styleChunksVisible, listItemIsOpens} = this.state;
-            const end = styleChunksVisible.length;
             this.setState({
                 styleChunksVisible: next,
-                listItemIsOpens: next.map((v, i) => i < end ? listItemIsOpens[i] : true),
+                // listItemIsOpens already updated in this.addStyle()
             });
             if (floatingDialog.isOpen())
                 floatingDialog.updateRendererProps({
@@ -111,22 +109,46 @@ class CustomClassStylesList extends preact.Component {
                 : <div class="mt-2">{ __('No styles') }</div>
             }</ul>,
             <button
-                onClick={ this.addStyle.bind(this) }
+                onClick={ () => this.addStyle() }
                 class="btn btn-primary btn-sm mr-1"
                 type="button">{ __('Add style') }</button>,
         ];
     }
     /**
+     * @param {number} toCloneIdx = null
      * @access private
      */
-    addStyle() {
-        const initialScss = `\n  color: red;\n`;
+    addStyle(toCloneIdx = null) {
+        this.setState({listItemIsOpens: toCloneIdx === null
+            ? [...this.state.listItemIsOpens, true]
+            : this.state.listItemIsOpens.map((v, i) => i !== toCloneIdx ? v : [false, false]).flat()
+        });
+        //
         const newChunkClass = createCustomClassChunkClassNameCreator()();
-        const newAll = scssWizard.addNewDevsScssChunkAndReturnAllRecompiled(
-            `.${newChunkClass} {${initialScss}}`,
-            'custom-class',
-            {associatedBlockTypes: [this.props.blockTypeName]},
-        );
+        const newAll = scssWizard.addNewDevsScssChunkAndReturnAllRecompiled(...(
+            toCloneIdx === null ? [
+                `.${newChunkClass} {\n  color: red;\n}`,
+                'custom-class',
+                {associatedBlockTypes: [this.props.blockTypeName]},
+            ] : (() => {
+                const toClone = this.state.styleChunksVisible[toCloneIdx];
+                const oldI = extractClassName(toClone).split('-')[1]; // '.cc-<n>' -> '<n>'
+                const newI = newChunkClass.split('-')[1];
+                const patchedString = JSON.stringify(toClone)
+                    // .scss '.cc-<oldI> {\n' -> '.cc-<newI> {\n'
+                    .replace(new RegExp(`"\\.cc-${oldI} `, 'g'), `".cc-${newI} `)
+                    // .data.customizationSettings.varDefs[*].varNames 'cc<oldI>_1' -> 'cc<newI>_1'
+                    .replace(new RegExp(`"cc${oldI}_`, 'g'), `"cc${newI}_`);
+                const patched = JSON.parse(patchedString);
+                patched.data.title += `_${__('Copy').toLowerCase()}`;
+                return [
+                    patched.scss,
+                    'custom-class',
+                    patched.data,
+                    toClone,
+                ];
+            })()
+        ));
         saveButtonInstance.pushOpGroup(
             ['stylesBundle', newAll],
             this.createAddOrRemoveBlockClassOp('add', newChunkClass),
@@ -178,6 +200,7 @@ class CustomClassStylesList extends preact.Component {
             getLinks: () => ([
                 {text: __('Edit name'), title: __('Edit style name'), id: 'edit-title'},
                 {text: __('Edit customization settings'), title: __('Edit customization settings'), id: 'edit-settings'},
+                {text: __('Duplicate'), title: __('Duplicate style'), id: 'duplicate'},
                 {text: __('Delete'), title: __('Delete style'), id: 'delete'},
             ]),
             /**
@@ -204,6 +227,8 @@ class CustomClassStylesList extends preact.Component {
                         currentSettings: currentDefs,
                         onSettingsChanged: newSettings => this.emitCustomClassSettingsData(idx, newSettings),
                     });
+                } else if (link.id === 'duplicate') {
+                    this.addStyle(idx);
                 } else if (link.id === 'delete')
                     api.saveButton.getInstance().pushOp(
                         'stylesBundle',

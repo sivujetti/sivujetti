@@ -203,7 +203,7 @@ class WebPagePreviewApp extends preact.Component {
         historyInstance.listen(path => {
             const newUrl = getFullUrl(path);
             if (!isMainColumnViewUrl(newUrl) && this.urlFromRouter !== newUrl) {
-                if (isEditAppNonDefaultStateUrl(newUrl))
+                if (isEditAppNonDefaultStateUrl(newUrl) || !isEditAppNonDefaultStateUrl(this.urlFromRouter))
                     this.setOrReplacePreviewIframeUrl(newUrl, null);
                 else
                     this.sendMessageToReRendererWithReturn(['getMouseState']).then(data => {

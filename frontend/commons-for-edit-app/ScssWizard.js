@@ -162,20 +162,20 @@ class ScssWizard {
      * @param {string} initialScssCode Example: '  // Your code here ...\n  color: red;'
      * @param {styleScopeKind} scopeKind
      * @param {CustomClassStyleChunkData} data
+     * @param {StyleChunk} after = null
      * @returns {StylesBundleWithId}
      * @access public
      */
-    addNewDevsScssChunkAndReturnAllRecompiled(initialScssCode, scopeKind, data) {
-        const updated = [
-            ...this.styles,
-            {
-                scope: scopeKind === 'custom-class'
-                    ? {kind: 'custom-class', layer: 'dev-styles'}
-                    : {kind: 'base-freeform', layer: 'base-styles'},
-                scss: initialScssCode,
-                data,
-            }
-        ];
+    addNewDevsScssChunkAndReturnAllRecompiled(initialScssCode, scopeKind, data, after = null) {
+        const newStyle = {
+            scope: scopeKind === 'custom-class'
+                ? {kind: 'custom-class', layer: 'dev-styles'}
+                : {kind: 'base-freeform', layer: 'base-styles'},
+            scss: initialScssCode,
+            data,
+        };
+        const updated = [...this.styles];
+        updated.splice(!after ? updated.length : this.styles.indexOf(after) + 1, 0, newStyle);
         return this.tryToCommitAll(updated)[0];
     }
     /**

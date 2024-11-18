@@ -1301,8 +1301,11 @@ a.popup-close-area {
 .panel-section:not(:last-of-type) {
     border-bottom: 1px solid var(--color-section-separator);
 }
-.panel-section.open:not(:last-of-type):not(.on-this-page) {
+.panel-section.open:not(:last-of-type):not(.on-this-page):not(.base-styles) {
     padding-bottom: 1rem;
+}
+.panel-section.open.base-styles {
+    padding-bottom: .2rem;
 }
 .panel-section h1 {
     font-weight: 800;

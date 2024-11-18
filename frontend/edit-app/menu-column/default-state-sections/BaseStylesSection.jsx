@@ -89,7 +89,7 @@ class BaseAndCustomClassStylesSection extends preact.Component {
             iconId="palette"
             colorClass="color-pink"
             onIsCollapsedChanged={ this.onIsCollapsedChanged.bind(this) }
-            outerClass="base-styles pb-1"
+            outerClass="base-styles"
             ref={ this.menuSection }>
             { !isCollapsed ? <div>
             { hasMoreThat1Tab ? <Tabs

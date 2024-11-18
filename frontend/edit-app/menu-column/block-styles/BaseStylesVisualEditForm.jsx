@@ -73,7 +73,11 @@ class BaseStylesVisualEditForm extends BlockVisualStylesEditForm {
  * @returns {Array<string>}
  */
 function getDevDefinedFontNames(scss) {
-    const maybeDuplicates = scssUtils.extractImports(scss).map(({fontFamily}) => fontFamily);
+    const {locals, externals} = scssUtils.extractImports(scss);
+    const maybeDuplicates = [
+        ...externals.map(({fontFamily}) => fontFamily),
+        ...locals.map(({fontFamily}) => fontFamily),
+    ];
     const unique = [...new Set(maybeDuplicates)];
     return unique;
 }

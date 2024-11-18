@@ -25,70 +25,88 @@ const scssUtils = {
     },
     /**
      * @param {string} scss
-     * @returns {Array<{fontFamily: string; node: StylisAstNode; completedUrl: string|null; fontWeight: string|null; ext: string|null;}>}
+     * @returns {{externals: Array<ImportInfo>; locals: Array<ImportInfo>;}}
      */
     extractImports(scss) {
         const ast = compile(scss);
-        const insights = [];
-
+        const insightsExternals = [];
+        const insightsLocals = [];
         ast.forEach(node => {
             // {type: '@import', value: '@import "/public/uploads/OpenSans-Regular.woff?weight=400";' or
-            //                          '@import "https://api.fonts.coollabs.io/css2?family=Poppins:wght@400;800&display=swap";'}
+            //                          '@import "https://external.io/css2?family=Poppins:smthng";' or
+            //                          '@import "https://external.io/css2?family=Poppins:smthng&family=Another+Font:smthng";'}
             if (node.type === '@import') {
                 // '@import "/public/uploads/OpenSans-Regular.woff?weight=400";' -> '"/public/uploads/OpenSans-Regular.woff?weight=400";'
-                const temp1 = node.value.substring('@import '.length).trimEnd();
-                if (!temp1.startsWith('"') && !temp1.startsWith('\''))
+                const temp0 = node.value.substring('@import '.length).trimEnd();
+                const temp1 = temp0.endsWith(';') ? temp0.slice(0, -1).trimEnd() : temp0;
+                const temp2 = temp1.startsWith('url(') && temp1.endsWith(')') ? temp1.slice(4, -1) : temp1;
+                if (!temp2.startsWith('"') && !temp2.startsWith('\''))
                     return;
-                const temp2 = temp1.endsWith(';') ? temp1.substring(0, temp1.length - 1).trimEnd() : temp1;
-                // '"/public/...?weight=400"' -> '/public/...?weight=400'
-                const urlNoQuotes = temp2.substring(1, temp2.length - 1);
+                const urlNoQuotes = temp2.slice(1, -1);
                 if (!urlNoQuotes.length)
                     return;
                 const completedUrl = completeUrlIfLocal(urlNoQuotes, '');
                 if (completedUrl) // is local
-                    insights.push([node, completedUrl]);
-                else if (urlNoQuotes.startsWith('http://') || urlNoQuotes.startsWith('https://') && urlNoQuotes.indexOf('.') > -1) {
-                    try {
-                        const urlobj = new URL(urlNoQuotes);
-                        insights.push([node, urlobj]);
-                    } catch (_e) {
-                        // Don't call insights.push()
-                    }
-                }
+                    insightsLocals.push([node, completedUrl]);
+                else if (urlNoQuotes.startsWith('http://') || urlNoQuotes.startsWith('https://') && urlNoQuotes.indexOf('.') > -1)
+                    insightsExternals.push([node, urlNoQuotes]);
             }
         });
-        return insights.map(([node, url]) => {
-            if (typeof url === 'string') {
-                const [path, qtemp] = url.split('?'); // ['/path/public/uploads/opensans-regular-webfont.woff', 'weight=400&name=Open Sans']
-                const q = qtemp ? qtemp.trim() : '';
-                const fileName = path.split('/').pop();
-                const pcs = fileName.split('.');
-                const ext = pcs.pop();
-                const fileNameNoExt = pcs.join('.');
-                const urlobj = q ? new URL(`http://dum.my?${q}`) : null;
-                const explicitName = q ? (urlobj.searchParams.get('name') || null) : null;
-                const fontWeight = q ? (urlobj.searchParams.get('weight') || null) : null;
-                return {
-                    fontFamily: explicitName || fileNameNoExt.replace(/-|_/g, ' '),
-                    node,
-                    completedUrl: url,
-                    fontWeight,
-                    ext,
-                };
-            }
-            const urlobj = url; // "https://api.fonts.coollabs.io/css2?family=Bebas+Neue:wght@400&display=swap"
-            const fontFamilyFull = urlobj.searchParams.get('family'); // Example 'Bebas Neue:wght@400'
-            const family = fontFamilyFull?.split(':')[0] || '';
-            return {
-                fontFamily: family,
+
+        const out = {
+            externals: [],
+            locals: [],
+        };
+        insightsLocals.forEach(([node, url]) => {
+            const [path, qtemp] = url.split('?'); // ['/path/public/uploads/opensans-regular-webfont.woff', 'weight=400&name=Open Sans']
+            const q = qtemp ? qtemp.trim() : '';
+            const fileName = path.split('/').pop();
+            const pcs = fileName.split('.');
+            const ext = pcs.pop();
+            const fileNameNoExt = pcs.join('.');
+            const urlobj = q ? new URL(`http://dum.my?${q}`) : null;
+            const explicitName = urlobj?.searchParams.get('name') || null;
+            const fontWeight = urlobj?.searchParams.get('weight') || null;
+            out.locals.push({
+                fontFamily: explicitName || fileNameNoExt.replace(/-|_/g, ' '),
                 node,
-                completedUrl: null,
-                fontWeight: null,
-                ext: null,
-            };
+                completedUrl: url,
+                fontWeight,
+                ext,
+            });
         });
+        insightsExternals.forEach(([node, url]) => {
+            const urlobj = tryToCreateURL(url);
+            for (const [pname, pval] of urlobj.searchParams) {
+                if (pname !== 'family') continue;
+                const fontFamilyFull = pval; // Examples 'Bebas Neue:wght@400'
+                                             //          'Josefin Sans:ital,wght@0,100..700;1,100..700'
+                                             //          'Montserrat:ital@0;1'
+                const family = fontFamilyFull.split(':')[0] || '';
+                if (family) out.externals.push({
+                    fontFamily: family,
+                    node,
+                    completedUrl: null,
+                    fontWeight: null,
+                    ext: null,
+                });
+            }
+        });
+        return out;
     }
 };
+
+/**
+ * @param {string} url
+ * @returns {URL|null}
+ */
+function tryToCreateURL(url) {
+    try {
+        return new URL(url);
+    } catch (_e) {
+        return null;
+    }
+}
 
 /**
  * Example: `public/uploads/foo.png` -> `/my-dir/public/uploads/foo.png`
@@ -116,6 +134,10 @@ function completeUrlIfLocal(urlNormalized, s) {
 
     return null; // must be external
 }
+
+/**
+ * @typedef {{fontFamily: string; node: StylisAstNode; completedUrl: string|null; fontWeight: string|null; ext: string|null;}} ImportInfo
+ */
 
 export default scssUtils;
 export {compile, completeUrlIfLocal, serialize, stringify};

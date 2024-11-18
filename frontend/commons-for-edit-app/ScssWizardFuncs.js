@@ -465,26 +465,31 @@ function extractBlockId(uniqChunkScss) {
  * @returns {[Array<string>, Array<number>]}
  */
 function hoistImportsIfAny(scss) {
-    const insights = scssUtils.extractImports(scss);
+    const {locals, externals} = scssUtils.extractImports(scss);
 
-    const hoistedLines = insights.reduce((out, insi) =>
-        !insi.completedUrl
-            // External (@import ...) -> insert at the start
-            ? [insi.node.value, ...out]
-            // Local (@font-face ...) -> append to the end
-            : [...out, [
-                '@font-face{',
-                    'font-family:"', insi.fontFamily, '";',
-                    'src:url("', insi.completedUrl, '") format("', insi.ext, '");',
-                    'font-weight:', insi.fontWeight || '400', ';',
-                    'font-style:normal;',
-                '}',
-            ].join('')]
-    , []);
+    const hoistedLines = [];
+    const lineIndices = [];
+    // @imports first
+    for (const {node} of externals) {
+        hoistedLines.push(node.value);
+        lineIndices.push(node.line - 1);
+    }
+    // @font-faces second
+    for (const {fontFamily, completedUrl, ext, fontWeight, node} of locals) {
+        hoistedLines.push([
+            '@font-face{',
+                'font-family:"', fontFamily, '";',
+                'src:url("', completedUrl, '") format("', ext, '");',
+                'font-weight:', fontWeight || '400', ';',
+                'font-style:normal;',
+            '}',
+        ].join(''));
+        lineIndices.push(node.line - 1);
+    }
 
     return [
         hoistedLines,
-        insights.map(({node}) => node.line - 1)
+        lineIndices,
     ];
 }
 

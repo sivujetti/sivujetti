@@ -52,9 +52,9 @@ interface WebPagePreviewApp {
 }
 
 interface ReRenderingWebPageMouseState {
-    curHoverBlockBlockId: string|null;
-    curHoverBlockNthOfId: number|null;
     metaKeyIsPressed: boolean;
+    curHoverBlockBlockId?: string;
+    curHoverBlockNthOfId?: number;
 }
 
 type mainPanelSectionName = 'onThisPage'|'baseStyles';

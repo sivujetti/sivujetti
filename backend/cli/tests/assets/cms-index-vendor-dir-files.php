@@ -14,5 +14,5 @@ return [
     "\$index/public/sivujetti/vendor/tagify.css",
     "\$index/public/sivujetti/vendor/tagify.min.js",
     "\$index/public/sivujetti/vendor/vendor.bundle.min.css",
-    "\$index/public/sivujetti/vendor/vendor.bundle.min.js"
+    "\$index/public/sivujetti/vendor/vendor.bundle.min.js",
 ];

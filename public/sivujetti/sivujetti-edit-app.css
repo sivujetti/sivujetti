@@ -2000,6 +2000,12 @@ ul.table-list > li {
 ul.table-list > li:last-child {
     border-bottom: none;
 }
+.drag-handle {
+    background: transparent;
+    border: none;
+    cursor: grab;
+    color: var(--color-fg-dimmed);
+}
 @keyframes show {
     0% { visibility: hidden; }
     100% { visibility: visible; }

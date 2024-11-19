@@ -204,7 +204,7 @@ function hideOrShowChildren(setAsHidden, entryMut, recursive = true) {
  */
 function getShortFriendlyName(block, type) {
     if (block.title)
-        return block.title;
+        return __(block.title);
     const translated = __(type.friendlyName);
     const pcs = translated.split(' ('); // ['Name', 'PluginName)'] or ['Name']
     return pcs.length < 2 ? translated : pcs[0];

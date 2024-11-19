@@ -241,7 +241,7 @@ final class Bundler {
         ];
         // cli
         $cliPaths = $this->fs->readDirRecursive("{$base1}cli/src", "/^.*\.php$/");
-        $out = array_merge($out, array_map($prefixyAndRelatifyPath, $cliPaths));
+        $out = [...$out, ...array_map($prefixyAndRelatifyPath, $cliPaths)];
         // installer
         $flags = \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS;
         $instPaths = $this->fs->readDirRecursive("{$base1}installer",
@@ -255,7 +255,7 @@ final class Bundler {
         }
         // sivujetti
         $sjetPaths = $this->fs->readDirRecursive("{$base1}sivujetti/src", "/^.*\.php$/");
-        $out = array_merge($out, array_map($prefixyAndRelatifyPath, $sjetPaths));
+        $out = [...$out, ...array_map($prefixyAndRelatifyPath, $sjetPaths)];
         // vendor
         $base2 = "{$this->tempDirForComposerInstall}/";
         $vendorFilePaths = $this->fs->readDirRecursive("{$base2}vendor", "/.*/");
@@ -281,16 +281,17 @@ final class Bundler {
         $relatifyPath = Updater::makeRelatifier($base1);
         $prefix = PackageStreamInterface::FILE_NS_INDEX;
         $prefixyAndRelatifyPath = fn($p) => "{$prefix}{$relatifyPath($p)}";
-        // $indexPath/public/sivujetti/assets/*.*
-        $assetFilePaths = $this->fs->readDir("{$base1}public/sivujetti/assets");
+        // $indexPath/public/sivujetti/assets|content-template-previews/*.*
+        $assetFilePaths = [...$this->fs->readDir("{$base1}public/sivujetti/assets"),
+                           ...$this->fs->readDir("{$base1}public/sivujetti/content-template-previews")];
         $out = array_map($prefixyAndRelatifyPath, $assetFilePaths);
         // $indexPath/public/sivujetti/vendor/*.*
         $vendorFilePaths = $this->fs->readDir("{$base1}public/sivujetti/vendor");
-        $out = array_merge($out, array_map($prefixyAndRelatifyPath, $vendorFilePaths));
+        $out = [...$out, ...array_map($prefixyAndRelatifyPath, $vendorFilePaths)];
         // $indexPath/public/sivujetti/*.css
         $out[] = "{$prefix}public/sivujetti/sivujetti-edit-app.css";
         // $indexPath/*.*
-        $out = array_merge($out, ["{$prefix}index.php", "{$prefix}install.php", "{$prefix}LICENSE"]);
+        $out = [...$out, "{$prefix}index.php", "{$prefix}install.php", "{$prefix}LICENSE"];
         // $indexPath/public/sivujetti/*.js
         $bundledFilePaths = $this->fs->readDir("$this->tempDirForNpmBuild");
         $relatify2 = Updater::makeRelatifier($base2); // ../public/bundler-temp/public/sivujetti/*.js
@@ -311,7 +312,7 @@ final class Bundler {
         $this->doPrint->__invoke("Writing {$dirName} files to output stream...");
         //
         $filesList = [];
-        foreach ($fileGroups as $group) $filesList = array_merge($filesList, $group->nsdRelFilePaths);
+        foreach ($fileGroups as $group) $filesList = [...$filesList, ...$group->nsdRelFilePaths];
         $out->addFileMap("\${$dirName}-files-list.php", $filesList);
         //
         foreach ($fileGroups as $group) {

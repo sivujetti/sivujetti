@@ -65,6 +65,7 @@ final class Exporter {
             );
             //
             $entities = $this->getEachRowFrom($tableName, $columnInfos);
+            if (!$entities) continue;
             //
             $cleaned = $this->cleanEachRowOf($tableName, $entities);
             //
@@ -113,8 +114,12 @@ final class Exporter {
      */
     private function cleanEachRowOf(string $tableName, array $entities): array {
         if ($tableName === "theWebsite") {
-            for ($i = 0; $i < count($entities); ++$i)
+            for ($i = 0; $i < count($entities); ++$i) {
                 $entities[$i]->firstRuns = "{}";
+                $entities[$i]->pendingUpdates = null;
+                $entities[$i]->headHtml = "";
+                $entities[$i]->footHtml = "";
+            }
         }
         return $entities;
     }

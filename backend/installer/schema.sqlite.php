@@ -54,7 +54,7 @@ return [
     `versionId` TEXT NOT NULL,
     `lastUpdatedAt` {$dataTypeForTimestamps},
     `latestPackagesLastCheckedAt` {$dataTypeForTimestamps},
-    `pendingUpdates` JSON, -- [{name: 'sivujetti-0.16.0', sig: '<128-chars-long-string>'} ...]
+    `pendingUpdates` JSON, -- null or [{name: 'sivujetti-0.16.0', sig: '<128-chars-long-string>'} ...]
     `headHtml` TEXT,
     `footHtml` TEXT
 )",

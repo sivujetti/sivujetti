@@ -87,7 +87,7 @@ class CodeBlockEditForm extends preact.Component {
 
             if (newIs) {
                 btnEl.style.top = `calc(${Math.max(textAreaTop, inspElTop)}px + .3rem)`;
-                btnEl.style.left = 'calc(var(--menu-column-width-computed) - 2.8rem)';
+                btnEl.style.left = 'calc(var(--menu-column-width-computed) - 3.36rem)';
             }
         };
         const fn = () => this.adjustSaveChangesBtnEl();
@@ -130,6 +130,7 @@ class CodeBlockEditForm extends preact.Component {
                         style={ `right: ${saveBtnEdgeCssStr};top: ${saveBtnEdgeCssStr};opacity: .5;` }
                         ref={ this.saveBtnEl }>
                         <Icon iconId="check" className="size-xs"/>
+                        <span class="ml-1">*</span>
                     </button>
                 </div>,
                 <InputErrors vm={ this } prop="code"/>

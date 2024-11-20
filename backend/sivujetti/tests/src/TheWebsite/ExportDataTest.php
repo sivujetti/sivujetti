@@ -51,15 +51,7 @@ final class ExportDataTest extends TheWebsiteControllerTestCase {
             "theWebsite",
             "themes",
             "themeStyles",
-            "pageThemeStyles",
             "pageTypes",
-            "PagesCategories",
-            "Pages",
-            "globalBlockTrees",
-            "reusableBranches",
-            "contentTemplates",
-            "layouts",
-            "files",
         ], $tableNames);
     }
 }

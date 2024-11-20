@@ -3,6 +3,7 @@
 namespace Sivujetti\UserPlugin;
 
 use Pike\{Injector, PikeException, Router};
+use SitePlugins\JetForms\Captcha\CaptchaSettingsDataFetcher;
 use Sivujetti\BlockType\{BlockTypeInterface, JsxLikeRenderingBlockTypeInterface};
 use Sivujetti\SharedAPIContext;
 use Sivujetti\StoredObjects\StoredObjectsRepository;
@@ -138,7 +139,7 @@ final class UserPluginAPI extends UserSiteAPI {
      * @psalm-return Cls
      */
     public function createService(string $name, array $args = []) {
-        if ($name === StoredObjectsRepository::class)
+        if (in_array($name, [CaptchaSettingsDataFetcher::class, StoredObjectsRepository::class], true))
             return $this->di->make($name, $args);
         throw new PikeException("Unkown service `{$name}`",
                                 PikeException::BAD_INPUT);

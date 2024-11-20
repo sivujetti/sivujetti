@@ -176,9 +176,14 @@ final class Updater {
             return self::RESULT_BAD_INPUT;
         }
         [$filePath, $fileName, $dirId] = $this->createTargetFilePath($package->name);
+        $fileContents = $this->fs->isFile($filePath) ? $this->fs->read($filePath) : false;
+        if (!$fileContents) {
+            $this->lastErrorDetails = ["Update not downloaded"];
+            return self::RESULT_BAD_INPUT;
+        }
         $sigLenFail = strlen($package->sig) !== 128;
         if ($sigLenFail ||
-            !$this->signer->verify($package->sig, $this->fs->read($filePath), $this->appEnv->constants["UPDATE_KEY"])) {
+            !$this->signer->verify($package->sig, $fileContents, $this->appEnv->constants["UPDATE_KEY"])) {
             $this->lastErrorDetails = ["Checksum verification failed"];
             return $sigLenFail ? self::RESULT_BAD_INPUT : self::RESULT_VERIFICATION_FAILED;
         }

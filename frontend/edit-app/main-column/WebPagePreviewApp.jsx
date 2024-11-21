@@ -115,17 +115,22 @@ class WebPagePreviewApp extends preact.Component {
     /**
      * @param {number} childElemIdx
      * @param {string} textBlockId
+     * @param {boolean} center = true
      * @access public
      */
-    scrollToTextBlockChildEl(childElemIdx, textBlockBlockId) {
+    scrollToTextBlockChildEl(childElemIdx, textBlockBlockId, center = true) {
         const blockEl = this.getBlockEl(textBlockBlockId, 1);
         const child = blockEl.children[childElemIdx];
         const rect = child.getBoundingClientRect();
         const win = this.getEl().contentWindow;
-        win.scrollTo({
-            top: rect.top + win.scrollY - 30,
-            behavior: 'auto',
-        });
+        if (center) {
+            scrollToCenterOfIfNeeded(rect, win, 'auto');
+        } else {
+            win.scrollTo({
+                top: rect.top + win.scrollY - 30,
+                behavior: 'auto',
+            });
+        }
     }
     /**
      * @param {string} compiledCss
@@ -356,11 +361,14 @@ class WebPagePreviewApp extends preact.Component {
      * @param {HTMLElement} blockEl
      * @param {Window} win
      * @param {ScrollBehavior} behavior
+     * @param {boolean} center = true
      * @returns {boolean} didScroll
      * @access private
      */
-    scrollToBlockEl(blockEl, win, behavior) {
+    scrollToBlockEl(blockEl, win, behavior, center = true) {
         const inPageElRect = blockEl.getBoundingClientRect();
+        if (center)
+            return scrollToCenterOfIfNeeded(inPageElRect, win, behavior);
         const inPageElTop = inPageElRect.top;
         const elBottom = inPageElRect.bottom;
         const quarterVisible = win.innerHeight / 4;
@@ -375,6 +383,29 @@ class WebPagePreviewApp extends preact.Component {
         }
         return false;
     }
+}
+
+/**
+ * @param {DOMRect} elRect
+ * @param {Window} win
+ * @param {ScrollBehavior} behavior
+ * @returns {boolean} didScroll
+ */
+function scrollToCenterOfIfNeeded(elRect, win, behavior) {
+    const {top} = elRect;
+    const winQuarter = win.innerHeight / 4;
+    const winCenterRectTop = winQuarter;
+    const winCenterRectBottom = win.innerHeight - winQuarter * 2;
+    const isInsideHalfCenter = top > winCenterRectTop && top < winCenterRectBottom;
+    if (!isInsideHalfCenter) {
+        const absTop = top + win.scrollY;
+        win.scrollTo({
+            top: absTop - window.innerHeight / 2 + 40,
+            behavior,
+        });
+        return true;
+    }
+    return false;
 }
 
 /**

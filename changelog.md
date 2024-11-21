@@ -2,17 +2,84 @@
 
 ...
 
-# 0.16.0 (not yet released)
+# 0.16.0 (2024-11-25)
+
+_Translated by ChatGPT._
 
 ## Added
-- .
-
-## Fixed
-- .
+- Content Templates Concept
+    - Pages can now include pre-built content types, such as headers, content blocks, and footers.
+    - Templates have preview images and are organized into separate tabs.
+- Automatic Updater
+    - All Sivujetti sites now periodically check for updates from the central server at sivujetti.org when logging into edit mode.
+    - If updates are available, they can be installed with a single click.
+    - The installation process first verifies that the server has everything needed for the update.
+- Redo Support
+    - All actions that could previously be undone (Undo) can now also be redone.
+- External Image Support
+    - Images for content, section backgrounds, and metadata social images can now be linked from external sources (e.g., `https://example-cdn.com/pic.jpg`).
+- Image Captions
+    - Captions (`<figcaption>`) can now be added to image content.
+    - By default, captions appear below the image but can be repositioned using styles.
+- Custom HTML Injection
+    - Admin users can now define custom HTML code to be added to the `<head>` tag or at the end of the `<body>` tag of the final site.
+    - This code is executed only in non-editing mode, making it suitable for analytics scripts and similar use cases.
+- Improved Page Selection Filtering
+    - Pages can now be filtered in the page selection widget.
+- Wrapper Block Type
+    - A new "Wrapper" block type has been added for grouping content.
+- [JetForms plugin] Form submissions now support CAPTCHA methods (JetCaptcha, Google reCAPTCHA).
+- [JetForms plugin] Admin users can configure site-wide CAPTCHA settings directly in editing mode.
 
 ## Changed
-- .
+- Reverted Style System
+    - Simplified to a system similar to version 0.14.0.
+    - Content no longer has default styles by default; developers can create styles in code and configure widgets for customization by non-developers.
+    - All content templates come with preconfigured widgets.
+- Content Added via Popups
+    - Content is now added through popups accessed from context menus in the content tree, replacing the previous drag-and-drop mechanism.
+- Reusable Content
+    - Any content can now be saved as reusable, not just sections or columns.
+- Page Visibility
+    - Pages can now be set as hidden or published.
+    - Hidden pages are visible only to logged-in admin users.
+- Enhanced Listing Block
+    - The default template for listing blocks now allows customization of displayed sections (e.g., title, link, article image).
+- Nested Global Reusable Content
+    - Global reusable blocks can now be nested within other content, such as using the same contact information block in both a page and a footer.
+- Updated Visual Style Tools
+    - The color picker now uses the [Coloris](https://github.com/mdbassit/Coloris) library instead of [pickr](https://github.com/Simonwep/pickr).
+- Quill Editor Improvements
+    - Clicking on text content now focuses directly on the clicked position instead of defaulting to the beginning.
+    - Hovering over text content now highlights elements such as paragraphs and headers, not just the outermost element.
+- Improved Image Listings
+    - Image listings now support both grid and list views.
+- Enhanced Links
+    - Links can now point to the current page or be empty (e.g., only an anchor #anchor).
+    - This allows anchor-only links without a path (`/path`).
+- Menus
+    - Submenus can now be added to menu links.
+    - Menu links can now be reordered via drag-and-drop and duplicated.
+- Improved Anchors
+    - Anchors are now applied to individual words instead of entire paragraphs or header elements in the Quill editor.
+- Drag-and-Drop Updates
+    - Page previews are now updated only when content is dropped (onDrop), not continuously during dragging (onSwap).
+- CSS Class Autocompletion
+    - The text field for CSS classes now supports autocomplete using the [Tagify](https://yaireo.github.io/tagify/) library.
 
+## Fixed
+- Resolved issues where the save button appeared unnecessarily when no changes were made.
+- Fixed a bug where the image upload animation would get stuck if a server error occurred.
+- Eliminated various `Incorrect use of <label for=FORM_ELEMENT>` warnings.
+- Several other 🐛s
+
+## Other
+- Virtual DOM Rendering
+    - Sivujetti now uses a virtual DOM-based rendering system (Preact), replacing the custom system.
+    - This makes it easier for developers to add custom content block types, as they are now standard Preact components.
+    - The backend still supports the older string/template-file-based system alongside the new one.
+- Added an experimental ShortIdGenerator, which can generate block IDs that are 55–60% shorter than before.
+    - Example before/after `-NrLtInpvP0ZfQcbylf-` -> `u585XQVD`
 
 # 0.15.0 (2023-09-13)
 

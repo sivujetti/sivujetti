@@ -27,7 +27,7 @@
         "psr-4": {"Sivujetti\\": "sivujetti/src/"}
     },
     "scripts": {
-        "test": "\"vendor/bin/phpunit\" --bootstrap ./sivujetti/tests/bootstrap.php --display-warnings",
+        "test": "\"vendor/bin/phpunit\" --bootstrap ./sivujetti/tests/bootstrap.php --display-warnings --exclude-group intensives",
         "lint": "\"./vendor/bin/psalm\""
     }
 }

@@ -42,10 +42,8 @@ Same as above, but replace `npm start` with `npm run-script build`
 
 ## Running backend tests
 
-> **Important**: remeber to add `--exclude-group intensives` when running multiple tests.
-
 1. `cd backend`
-1. `composer test -- ./sivujetti/tests --exclude-group intensives`
+1. `composer test -- ./sivujetti/tests`
 1. `composer test -- ./sivujetti/tests/src/dir`
 1. `composer test -- ./cli/tests/src/dir`
 
@@ -66,5 +64,4 @@ npm test -- e2e-tests/tests/block-styles-edit-test.js
 
 ### Alpine + php-fpm
 
-- `apk add php82 php82-fpm php82-curl php82-mbstring php82-pdo_sqlite php82-zip php82-session php82-ctype php82-pdo php82-openssl php82-sodium php82-fileinfo
-`
+- `apk add php83 php83-fpm php83-curl php83-mbstring php83-pdo_sqlite php83-zip php83-session php83-ctype php83-pdo php83-openssl php83-sodium php83-fileinfo`

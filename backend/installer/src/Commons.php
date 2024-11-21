@@ -213,8 +213,8 @@ return [
     /**
      */
     private static function checkEnvRequirementsAreMetOrDie(): void {
-        if (version_compare(phpversion(), "8.0.0", "<"))
-            die("Sivujetti requires PHP 8.0.0 or later.");
+        if (version_compare(phpversion(), "8.1.0", "<"))
+            die("Sivujetti requires PHP 8.1.0 or later.");
         if (!defined("SODIUM_LIBRARY_VERSION") || !function_exists("sodium_bin2hex"))
             die("Sivujetti requires sodium.");
         if (!function_exists("session_id"))

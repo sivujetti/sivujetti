@@ -1,4 +1,5 @@
-import {__, api} from './edit-app-singletons.js';
+import {env} from '@sivujetti-commons-for-web-pages';
+import {__, api, events} from './edit-app-singletons.js';
 import {Icon} from './Icon.jsx';
 import Sortable from './Sortable.js';
 
@@ -164,8 +165,8 @@ class CrudList extends preact.Component {
         for (const item of items) {
             if (item.key)
                 throw new Error('Expected item.key not to exist');
-            if (!item[this.props.itemTitleKey])
-                throw new Error('item[props.itemTitleKey] not defined');
+            if (!Object.hasOwn(item, this.props.itemTitleKey))
+                env.window.console.warn('item', item, ' has no property ', this.props.itemTitleKey, ' (props.titleKey)');
         }
         return items.map(item => ({...item, ...{
             key: (++counter).toString(),

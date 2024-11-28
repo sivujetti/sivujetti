@@ -127,7 +127,9 @@ class QuillEditor extends preact.Component {
      */
     render() {
         return <div>
-            <div id={ `editor-${this.props.name}` } dangerouslySetInnerHTML={ {__html: this.props.value} }></div>
+            <div
+                id={ `editor-${this.props.name}` }
+                dangerouslySetInnerHTML={ {__html: htmlFromLocalToQuill(this.props.value)} }></div>
         </div>;
     }
     /**
@@ -146,6 +148,14 @@ class QuillEditor extends preact.Component {
         });
         return copy.innerHTML;
     }
+}
+
+/**
+ * @param {string} html
+ * @returns {string}
+ */
+function htmlFromLocalToQuill(html) {
+    return html.replace(/href=""/g, 'href="-"');
 }
 
 export default QuillEditor;

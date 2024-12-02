@@ -1,5 +1,6 @@
 import {
     addOrUpdateCodeTo,
+    createChunkIdGenerator,
     createScssBlock,
     createSelector,
     deleteCodeFrom,
@@ -12,6 +13,7 @@ import {generatePushID} from './utils.js';
 class ScssWizard {
     // styles;
     // cachedCompiledCss;
+    // createChunkId;
     // stateId;
     // currentPageIdPair;
     /**
@@ -27,6 +29,7 @@ class ScssWizard {
      */
     replaceStylesState(bundle) {
         this.styles = [...bundle.styleChunks];
+        this.createChunkId = createChunkIdGenerator(this.styles);
         this.cachedCompiledCss = bundle.cachedCompiledCss;
         this.stateId = bundle.id;
     }
@@ -85,7 +88,7 @@ class ScssWizard {
         return this.tryToCommitAll(updated)[0];
     }
     /**
-     * @param {Array<StyleChunk>} chunksToAdd
+     * @param {Array<StyleChunkWithoutId>} chunksToAdd
      * @returns {StylesBundleWithId}
      * @access public
      */
@@ -99,7 +102,7 @@ class ScssWizard {
         }
         const updated = [
             ...this.styles,
-            ...chunksToAdd,
+            ...chunksToAdd.map(c => ({...c, id: this.createChunkId()})),
         ];
         return this.tryToCommitAll(updated)[0];
     }
@@ -173,6 +176,7 @@ class ScssWizard {
                 : {kind: 'base-freeform', layer: 'base-styles'},
             scss: initialScssCode,
             data,
+            id: this.createChunkId(),
         };
         const updated = [...this.styles];
         updated.splice(!after ? updated.length : this.styles.indexOf(after) + 1, 0, newStyle);
@@ -197,6 +201,8 @@ class ScssWizard {
      * @access public
      */
     convertManyUniqueScopeChunksToClassScopeChunksAndReturnAllRecompiled(uniqueScopeChunks, onConverted) {
+        throw new Error('deprecated');
+        // eslint-disable-next-line no-unreachable
         const affectedMediaScopeIds = {};
         const styles = [];
         const styleBlockIds = [];
@@ -262,6 +268,7 @@ class ScssWizard {
             }
         }, {});
 
+        // eslint-disable-next-line no-unreachable
         const mappedArr = Object.keys(mapped).map(key => mapped[key]);
         if (!mappedArr.length)
             return null;
@@ -277,6 +284,7 @@ class ScssWizard {
             return out;
         }, []);
 
+        // eslint-disable-next-line no-unreachable
         return this.tryToCommitAll(optimized, affectedMediaScopeIds)[0];
     }
     /**
@@ -446,6 +454,7 @@ class ScssWizard {
                 ...(blockTreeId === 'main' ? {page: this.currentPageIdPair} : {}),
             },
             scss,
+            id: this.createChunkId(),
         };
     }
 }

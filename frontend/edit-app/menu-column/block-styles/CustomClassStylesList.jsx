@@ -18,6 +18,9 @@ const ccPlaceholder = '@customClass[0]';
 
 let saveButtonInstance;
 
+/** @type {{kind: 'add-style';}|{kind: 'duplicate-style'; chunkIdx: number;}|null} */
+let prevAction = null;
+
 /** @extends {preact.Component<CustomClassStylesListProps, ({styleChunksVisible: Array<StyleChunk>} && {[key: string]: any;})>} */
 class CustomClassStylesList extends preact.Component {
     // emitChunksChangesThrottled;
@@ -37,7 +40,7 @@ class CustomClassStylesList extends preact.Component {
         //
         this.setState({
             styleChunksVisible,
-            listItemIsOpens: styleChunksVisible.map(() => false),
+            listItemIsOpens: styleChunksVisible.reduce((out, sc) => ({...out, [sc.id]: false}), {}),
         });
     }
     /**
@@ -50,7 +53,20 @@ class CustomClassStylesList extends preact.Component {
             const next = createChunksState();
             this.setState({
                 styleChunksVisible: next,
-                // listItemIsOpens already updated in this.addStyle()
+                listItemIsOpens: (() => {
+                    if (!prevAction)
+                        return next.reduce((out, sc) => ({...out, [sc.id]: this.state.listItemIsOpens[sc.id] || false}), {});
+                    if (prevAction.kind === 'add-style') {
+                        prevAction = null;
+                        return {[next.at(-1).id]: true, ...this.state.listItemIsOpens};
+                    } else if (prevAction.kind === 'duplicate-style') {
+                        const {chunkIdx} = prevAction;
+                        prevAction = null;
+                        const orig = next[chunkIdx];
+                        const cloned = next[chunkIdx + 1];
+                        return {[orig.id]: false, [cloned.id]: false, ...this.state.listItemIsOpens};
+                    }
+                })(),
             });
             if (floatingDialog.isOpen())
                 floatingDialog.updateRendererProps({
@@ -71,11 +87,11 @@ class CustomClassStylesList extends preact.Component {
                     const title = titleUncommitted && i === idxOfOpenPopupListItem
                         ? titleUncommitted
                         : (chunk.data?.title || cls);
-                    return <li class={ `mt-1 py-1${!listItemIsOpens[i] ? '' : ' open'}` }>
+                    return <li class={ `mt-1 py-1${!listItemIsOpens[chunk.id] ? '' : ' open'}` }>
                         <header class="p-relative">
                             <div>
                                 <button onClick={ () => {
-                                    this.setState({listItemIsOpens: listItemIsOpens.map((v, i2) => i2 !== i ? v : !v)});
+                                    this.setState({listItemIsOpens: {...listItemIsOpens, [chunk.id]: !listItemIsOpens[chunk.id]}});
                                 } } class="row-item btn no-color d-flex p-1" title={ title + (title !== cls ? ` / ${cls}` : '') }>
                                     <Icon iconId="chevron-down" className="size-xs"/>
                                     <span class="ͼ1 text-ellipsis"><span class="ͼj cm-scroller text-ellipsis">{ title }</span></span>
@@ -95,7 +111,7 @@ class CustomClassStylesList extends preact.Component {
                                 : null
                             }
                         </header>
-                        { !listItemIsOpens[i]
+                        { !listItemIsOpens[chunk.id]
                             ? <div></div>
                             : <ScssEditor
                                 editorId="dev-class-styles"
@@ -119,11 +135,6 @@ class CustomClassStylesList extends preact.Component {
      * @access private
      */
     addStyle(toCloneIdx = null) {
-        this.setState({listItemIsOpens: toCloneIdx === null
-            ? [...this.state.listItemIsOpens, true]
-            : this.state.listItemIsOpens.map((v, i) => i !== toCloneIdx ? v : [false, false]).flat()
-        });
-        //
         const newChunkClass = createCustomClassChunkClassNameCreator()();
         const newAll = scssWizard.addNewDevsScssChunkAndReturnAllRecompiled(...(
             toCloneIdx === null ? [
@@ -149,6 +160,12 @@ class CustomClassStylesList extends preact.Component {
                 ];
             })()
         ));
+        prevAction = !toCloneIdx ? {
+            kind: 'add-style'
+        } : {
+            kind: 'duplicate-style',
+            chunkIdx: toCloneIdx,
+        };
         saveButtonInstance.pushOpGroup(
             ['stylesBundle', newAll],
             this.createAddOrRemoveBlockClassOp('add', newChunkClass),

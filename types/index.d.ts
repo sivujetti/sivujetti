@@ -112,7 +112,7 @@ interface BlockBlueprint {
         renderer: string;
         styleClasses: string;
     };
-    initialStyles: Array<StyleChunk>;
+    initialStyles: Array<StyleChunkWithoutId>;
     initialChildren: Array<BlockBlueprint>;
 }
 
@@ -154,7 +154,7 @@ interface Theme {
 
 interface CurrentPageData {
     page: Page;
-    initialPageBlocksStyles: Array<StyleChunk>;
+    initialPageBlocksStyles: Array<StyleChunkWithoutId>;
     layout: {
         friendlyName: string;
         structure: Array<LayoutPart>;
@@ -165,13 +165,14 @@ interface CurrentPageData {
 }
 
 interface StylesBundle {
-    styleChunks: Array<StyleChunk>;
+    styleChunks: Array<StyleChunkWithoutId>;
     cachedCompiledCss: string;
     cachedCompiledScreenSizesCssHashes?: Array<string>;
 }
 
 interface StylesBundleWithId extends StylesBundle {
     id: number;
+    styleChunks: Array<StyleChunk>;
 }
 
 interface LayoutPart {
@@ -433,7 +434,7 @@ interface BlockDescriptor {
 interface SpawnDescriptor {
     block: Block;
     isReusable: boolean|null;
-    styles?: Array<StyleChunk>;
+    styles?: Array<StyleChunkWithoutId>;
 }
 
 interface PartialMenuLink {
@@ -532,7 +533,7 @@ interface ColorValueInputPropsData {
     supportingCss?: string;
 }
 
-interface StyleChunk {
+interface StyleChunkWithoutId {
     scss: string;
     scope: {
         kind: styleScopeKind;
@@ -540,6 +541,10 @@ interface StyleChunk {
         page?: string; // Example '-NGLsmQwm7aOSH-lS1-J:Pages'
     };
     data?: CustomClassStyleChunkData;
+}
+
+interface StyleChunk extends StyleChunkWithoutId {
+    id: number;
 }
 
 interface CustomClassStyleChunkData {

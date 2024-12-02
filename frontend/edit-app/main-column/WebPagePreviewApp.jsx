@@ -457,8 +457,11 @@ function broadcastCurrentPageData(e) {
 
     /** @type {StylesBundle} */
     const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');
-    const withId = {...stylesBundle, id: counter + 1};
-    saveButton.initChannel('stylesBundle', withId, broadcastInitialStateToListeners);
+    saveButton.initChannel('stylesBundle', {
+        ...stylesBundle,
+        styleChunks: addIds(stylesBundle.styleChunks),
+        id: counter + 1,
+    }, broadcastInitialStateToListeners);
 
     saveButton.initChannel('theBlockTree', blocks, broadcastInitialStateToListeners);
 
@@ -561,6 +564,14 @@ function attachGlobalBlockTreesAndClone(blocks, gbts) {
     return objectUtils.cloneDeepWithChanges(blocks, copy => {
         attachTrees(copy);
     });
+}
+
+/**
+ * @param {Array<StyleChunkWithoutId>} bundle
+ * @returns {Array<StyleChunk>}
+ */
+function addIds(styleChunks) {
+    return styleChunks.map((c, i) => ({id: i + 1, ...c}));
 }
 
 export default WebPagePreviewApp;

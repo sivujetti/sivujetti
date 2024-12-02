@@ -41,7 +41,7 @@ function createStylesBundleChannelHandler() {
             const toTransferable = bundle => {
                 const {id, type} = api.saveButton.getInstance().getChannelState('currentPageData');
                 return {
-                    styleChunks: bundle.styleChunks,
+                    styleChunks: bundle.styleChunks.map(({id, ...rest}) => rest),
                     cachedCompiledCss: bundle.cachedCompiledCss,
                     pageId: id,
                     pageType: type,

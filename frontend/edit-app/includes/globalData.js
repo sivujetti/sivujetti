@@ -1,7 +1,7 @@
 const globalData = {
     /** @type {TheWebsite} */
     theWebsite: null,
-    /** @type {Array<StyleChunk>} */
+    /** @type {Array<StyleChunkWithoutId>} */
     initialPageBlocksStyles: null,
     /** @type {Theme} */
     theme: null,

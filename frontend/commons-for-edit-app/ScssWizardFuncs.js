@@ -493,8 +493,21 @@ function hoistImportsIfAny(scss) {
     ];
 }
 
+/**
+ * @param {Array<StyleChunk>} chunksAll
+ * @returns {() => number}
+ */
+function createChunkIdGenerator(chunksAll) {
+    let max = chunksAll.reduce((max, c) => c.id > max ? c.id : max, 0);
+    return () => {
+        max += 1;
+        return max;
+    };
+}
+
 export {
     addOrUpdateCodeTo,
+    createChunkIdGenerator,
     createCssDeclExtractor,
     createScssBlock,
     createSelector,

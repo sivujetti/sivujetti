@@ -21,12 +21,16 @@ final class UploadsController {
     public function getUploads(Request $req,
                                Response $res,
                                FluentDb2 $db2): void {
+        $fileNameContains = $req->params->fileNameFilter ?? null;
         $files = $db2->select(self::FILES_TABLE_NAME)
-            ->where(...(match (urldecode($req->params->filters)) {
-                '{"mime":{"$eq":"image/*"}}' => ["`mime` LIKE ?", ["image/%"]],
-                '{"mime":{"$neq":"image/*"}}' => ["`mime` NOT LIKE ?", ["image/%"]],
-                default => throw new \RuntimeException("Not implemented"),
-            }))
+            ->where(
+                ("`mime` " . ($req->params->fileType === "images" ? "" : "NOT ") . "LIKE ?") .
+                ($fileNameContains? " AND `fileName` LIKE ?" : ""),
+                [
+                    "image/%",
+                    ...($fileNameContains? ["%" . urldecode($req->params->fileNameFilter) . "%"] : [])
+                ]
+            )
             ->orderBy("id DESC")
             ->limit(40)
             ->fetchAll(\PDO::FETCH_CLASS, UploadsEntry::class);

@@ -9,7 +9,7 @@ final class UploadsModule {
      * @param \Pike\Router $router
      */
     public function init(Router $router): void {
-        $router->map("GET", "/api/uploads/[*:filters]?",
+        $router->map("GET", "/api/uploads/[*:fileType]?/[*:fileNameFilter]?",
             [UploadsController::class, "getUploads", ["consumes" => "application/json",
                                                       "identifiedBy" => ["view", "uploads"]]]
         );

@@ -16,6 +16,7 @@ stringBundles.push({
     'Files': 'Files',
     'Drop files here': 'Drop files here',
     'No uploads yet.': 'No uploads yet.',
+    'No results found for the term "%s".': 'No results found for the term "%s".',
     'No image': 'No image',
     // edit-app/src/commons/UploadButton.jsx
     'File #%s could not be uploaded because the file type is not supported.': 'File #%s could not be uploaded because the file type is not supported.',

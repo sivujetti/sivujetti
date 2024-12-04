@@ -702,10 +702,13 @@ a.popup-close-area {
     color: #3b4351 !important;
 }
 .live-files-list.item-grid article.loading:before,
-.live-files-list li.loading:before {
+.live-files-list li.loading:before,
+.loading-spinner-cover:before {
     content: "";
     position: absolute;
     background: rgba(var(--components-color-bg-default),.5);
+    animation: .275s reveal-anim forwards;
+    opacity: 0;
     width: 100%;
     height: 100%;
     top: 0;

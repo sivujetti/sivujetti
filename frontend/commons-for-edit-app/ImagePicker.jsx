@@ -122,6 +122,7 @@ class PickImageDialog extends preact.Component {
                 mode="pick"
                 showClearItem={ showClearItem }
                 onEntryClicked={ onSelected }
+                autoFocusToFilterInput
                 onlyImages/>,
             <button
                 onClick={ () => floatingDialog.close() }

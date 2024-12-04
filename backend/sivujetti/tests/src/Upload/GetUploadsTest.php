@@ -7,7 +7,7 @@ final class GetUploadsTest extends UploadsControllerTestCase {
         $state = $this->setupListUploadsTest();
         $this->dbDataHelper->insertData($state->testFiles, "files");
         $this->makeSivujettiAppForUploadsTest($state);
-        $this->sendGetUploadsRequest($state, '{"mime":{"$eq":"image/*"}}');
+        $this->sendGetUploadsRequest($state, "images");
         $onlyImagesOldestToNewest = array_slice($state->testFiles, 0, 2);
         $this->verifyListedTheseFiles(array_reverse($onlyImagesOldestToNewest), $state);
     }
@@ -20,8 +20,22 @@ final class GetUploadsTest extends UploadsControllerTestCase {
         $state = $this->setupListUploadsTest();
         $this->dbDataHelper->insertData($state->testFiles, "files");
         $this->makeSivujettiAppForUploadsTest($state);
-        $this->sendGetUploadsRequest($state, '{"mime":{"$neq":"image/*"}}');
+        $this->sendGetUploadsRequest($state, "files");
         $this->verifyListedTheseFiles(array_slice($state->testFiles, 2), $state);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testGetUploadsWithFileNameFilterReturnsOnlyMatchingFiles(): void {
+        $state = $this->setupListUploadsTest();
+        $this->dbDataHelper->insertData($state->testFiles, "files");
+        $this->makeSivujettiAppForUploadsTest($state);
+        $this->sendGetUploadsRequest($state, "images", "cat");
+        $this->verifyListedTheseFiles(array_slice($state->testFiles, 0, 1), $state);
+        $this->sendGetUploadsRequest($state, "files", "foo");
+        $this->verifyListedTheseFiles([], $state);
     }
     private function setupListUploadsTest(): \TestState {
         $state = new \TestState;
@@ -51,9 +65,14 @@ final class GetUploadsTest extends UploadsControllerTestCase {
         $state->spyingResponse = null;
         return $state;
     }
-    private function sendGetUploadsRequest(\TestState $state, ?string $filters = null): void {
+    private function sendGetUploadsRequest(\TestState $state,
+                                           ?string $fileTypeFilter = null,
+                                           ?string $fileNameFilter = null): void {
         $state->spyingResponse = $state->app->sendRequest(
-            $this->createApiRequest("/api/uploads" . (!$filters ? "" : "/{$filters}"), "GET"));
+            $this->createApiRequest(sprintf("/api/uploads%s%s",
+                !$fileTypeFilter ? "" : "/{$fileTypeFilter}",
+                !$fileNameFilter ? "" : "/{$fileNameFilter}"
+            ), "GET"));
     }
     private function verifyListedTheseFiles(array $expected, \TestState $state): void {
         $makeExpectedResponseItem = fn($testItem) => (object) [

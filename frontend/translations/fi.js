@@ -16,6 +16,7 @@ stringBundles.push({
     'Files': 'Tiedostot',
     'Drop files here': 'Pudota tiedostot tähän',
     'No uploads yet.': 'Ei vielä latauksia.',
+    'No results found for the term "%s".': 'Ei hakutuloksia termille "%s".',
     'No image': 'Ei kuvaa',
     // edit-app/src/commons/UploadButton.jsx
     'File #%s could not be uploaded because the file type is not supported.': 'Tiedostoa #%s ei voitu ladata koska tiedostotyyppiä ei tuettu.',

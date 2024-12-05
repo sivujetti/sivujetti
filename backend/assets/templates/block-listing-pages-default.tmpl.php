@@ -44,7 +44,7 @@
                         ($_text = \Sivujetti\Block\BlockTree::findBlock($page->blocks, fn($b) => $b->type === "Text" && str_contains($b->html, "</p>"))) &&
                         ($_firstPara = (function ($html) {
                             $dom = new DOMDocument(encoding: "UTF-8");
-                            $dom->loadHTML($html);
+                            $dom->loadHTML("<meta charset=\"UTF-8\">{$html}");
                             $p = $dom->getElementsByTagName("p")->item(0) ?? null;
                             return $p ? array_reduce(iterator_to_array($p->childNodes),
                                 fn($html, $c) => "{$html}<p>{$p->ownerDocument->saveHTML($c)}</p>",

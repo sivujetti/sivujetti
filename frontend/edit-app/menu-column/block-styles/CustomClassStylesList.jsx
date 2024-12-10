@@ -68,7 +68,7 @@ class CustomClassStylesList extends preact.Component {
                     }
                 })(),
             });
-            if (floatingDialog.isOpen())
+            if (floatingDialog.getCurrentRendererCls() === CustomClassStyleEditCustomizationsDialog)
                 floatingDialog.updateRendererProps({
                     currentSettings: next[this.state.idxOfOpenDialogListItem].data?.customizationSettings?.varDefs,
                     onSettingsChanged: newSettings => this.emitCustomClassSettingsData(this.state.idxOfOpenDialogListItem, newSettings),

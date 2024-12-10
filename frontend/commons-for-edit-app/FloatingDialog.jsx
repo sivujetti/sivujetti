@@ -3,6 +3,7 @@ import {iconAsString} from './Icon.jsx';
 
 let currentInstance = {
     open: null,
+    getCurrentRendererCls: null,
     isOpen: null,
     updateRendererProps: null,
     close: null,
@@ -25,8 +26,9 @@ class FloatingDialog extends preact.Component {
         super(props);
         this.state = {Renderer: null, rendererProps: null, title: null};
         currentInstance.open = this.open.bind(this);
-        currentInstance.isOpen = () => !!this.state.Renderer;
-        currentInstance.updateRendererProps = newProps => this.setState({rendererProps: newProps});
+        currentInstance.getCurrentRendererCls = () => this.state.Renderer;
+        currentInstance.isOpen = () => !!currentInstance.getCurrentRendererCls();
+        currentInstance.updateRendererProps = newProps => this.setState({rendererProps: {...this.state.rendererProps, ...newProps}});
         currentInstance.close = this.close.bind(this);
         currentInstance.setTitle = title => { this.currenTitle = title; this.currentJsPanel.setHeaderTitle(title); };
         currentInstance.setOnBeforeClose = fn => { this.onBeforeClose = fn; };

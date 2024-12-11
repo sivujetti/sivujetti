@@ -620,6 +620,8 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
 interface BlockBehaviourDefinition {
     name: string;
     friendlyName: string;
+    createData(serialized: string): {[prop: string]: boolean;};
+    serializeData(data: {[prop: string]: boolean;}): string;
 }
 
 interface BlockBehaviour {

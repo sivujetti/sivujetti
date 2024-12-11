@@ -487,6 +487,15 @@ function getActiveBehaviours(block, defs) {
 }
 
 /**
+ * @param {Block} block
+ * @param {string} behaviourName
+ * @returns {boolean}
+ */
+function hasBehaviour({styleClasses}, behaviourName) {
+    return styleClasses.indexOf(behaviourName) > -1;
+}
+
+/**
  * @typedef {{item: LiUiState; children: Array<LiUiState>;}} UiStateEntry
  *
  * @typedef {{isSelected: boolean; isCollapsed: boolean; isHidden: boolean; blockId: string; isPartOf: globalBlockReferenceBlockId|null;}} LiUiState
@@ -507,6 +516,7 @@ export {
     getActiveBehaviours,
     getShortFriendlyName,
     getVisibleLisCount,
+    hasBehaviour,
     hideOrShowChildren,
     setAsCollapsed,
     splitPath,

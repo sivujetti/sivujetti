@@ -11,6 +11,7 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import CustomClassStyleEditCustomizationsDialog from '../../main-column/popups/CustomClassStyleEditCustomizationsDialog.jsx';
 import EditTitlePopup from '../../main-column/popups/CustomClassStyleEditTitlePopup.jsx';
+import {createUpdateBlockPropOp, pushBlockChanges} from '../block/block-edit-funcs.js';
 import ScssEditor from './ScssEditor.jsx';
 /** @typedef {import('../../main-column/popups/CustomClassStyleEditTitlePopup.jsx').CustomClassStyleEditTitlePopupProps} CustomClassStyleEditTitlePopupProps */
 
@@ -314,14 +315,7 @@ class CustomClassStylesList extends preact.Component {
      * @access private
      */
     createAddOrRemoveBlockClassOp(type, chunkClass) {
-        return this.props.createUpdateBlockPropOp(this.props.blockId, blockRefMut => {
-            const newClasses = addOrRemoveStyleClass(type, chunkClass, blockRefMut.styleClasses);
-            if (newClasses.startsWith(' ') || newClasses.endsWith(' ') || newClasses.indexOf('  ') > -1) {
-                env.window.console.error('Bad white space', newClasses);
-                return {};
-            }
-            return {styleClasses: newClasses};
-        });
+        return createUpdateBlockPropOp(this.props.blockId, createClassesAdderOrRemover(type, chunkClass));
     }
 }
 
@@ -395,6 +389,33 @@ function createIsDuplicateCustomClassChunkChecker(curCustomClassChunks = null) {
 }
 
 /**
+ * @param {string} blockId
+ * @param {'add'|'remove'} type
+ * @param {string} clsOrClses 'foo' or 'foo bar'
+ */
+function addOrRemoveBlockClasses(blockId, type, clsOrClses) {
+    pushBlockChanges(blockId, createClassesAdderOrRemover(type, clsOrClses));
+}
+
+/**
+ * @param {'add'|'remove'} type
+ * @param {string} clsOrClses 'foo' or 'foo bar'
+ * @returns {(blockRefMut: Block) => ({styleClasses: string;}|{})}
+ */
+function createClassesAdderOrRemover(type, clsOrClses) {
+    return blockRefMut => {
+        const newClasses = clsOrClses.split(' ').reduce((clses, cls) =>
+            addOrRemoveStyleClass(type, cls, clses)
+        , blockRefMut.styleClasses);
+        if (newClasses.startsWith(' ') || newClasses.endsWith(' ') || newClasses.indexOf('  ') > -1) {
+            env.window.console.error('Bad white space', newClasses);
+            return {};
+        }
+        return {styleClasses: newClasses};
+    };
+}
+
+/**
  * @param {'add'|'remove'} type
  * @param {string} chunkClass
  * @param {string} to
@@ -416,13 +437,13 @@ function addOrRemoveStyleClass(type, chunkClass, to) {
  *   blockTypeName: string;
  *   stylesStateId: number;
  *   checkIsChunkActive: (chunk: StyleChunk) => boolean;
- *   createUpdateBlockPropOp: (blockId: string, getChanges: (blockRefMut: Block) => {[key: string]: any;}) => ['theBlockTree', Array<Block>, StateChangeUserContext]|['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext];
  *   styleClasses: string;
  * }} CustomClassStylesListProps
  */
 
 export default CustomClassStylesList;
 export {
+    addOrRemoveBlockClasses,
     ccPlaceholder,
     createCustomClassChunkClassNameCreator,
     createIsDuplicateCustomClassChunkChecker,

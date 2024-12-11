@@ -21,6 +21,7 @@ import TreeDragDrop from '../../includes/TreeDragDrop.js';
 import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';
 import BlockTreeShowHelpPopup from '../../main-column/popups/BlockTreeShowHelpPopup.jsx';
 import {historyInstance} from '../../main-column/MainColumnViews.jsx';
+import {addOrRemoveBlockClasses} from '../block-styles/CustomClassStylesList.jsx';
 import {
     blockToBlueprint,
     clearHighlight,
@@ -36,6 +37,7 @@ import {
     getActiveBehaviours,
     getShortFriendlyName,
     getVisibleLisCount,
+    hasBehaviour,
     hideOrShowChildren,
     setAsCollapsed,
     splitPath,
@@ -557,13 +559,25 @@ class BlockTree extends preact.Component {
         //
     }
     /**
-     * @param {?} 
-     * @param {?} 
-     * @returns {}
+     * @param {'add'|'remove'} type
+     * @param {string} name
      * @access private
      */
-    addOrClearBehaviour(kind, name) {
-        //
+    addOrClearBehaviour(type, name) {
+        const {block} = this.openMoreMenuData;
+        let classes = null;
+        if (type === 'add' && !hasBehaviour(block, name)) {
+            classes = name;
+        } else if (type === 'remove' && hasBehaviour(block, name)) {
+            const behaviourDef = this.registeredBlockBehaviourDefs.find(def => def.name === name);
+            const falses = behaviourDef.createData([]);
+            const trues = Object.keys(falses).reduce((o, k) => ({...o, [k]: true}), {});
+            const dataClassesAll = behaviourDef.serializeData(trues);
+            classes = name + (dataClassesAll ? ` ${dataClassesAll}` : '');
+        }
+        if (classes) {
+            addOrRemoveBlockClasses(block.id, type, classes);
+        }
     }
     /**
      * @param {Block} block

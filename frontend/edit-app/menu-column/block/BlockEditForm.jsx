@@ -11,12 +11,12 @@ import {
     putToLocalStorage,
     Tabs,
     timingUtils,
-    writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
 import CustomClassStylesList, {extractClassName} from '../block-styles/CustomClassStylesList.jsx';
 import StyleClassesPicker from '../block-styles/StyleClassesPicker.jsx';
 import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
+import {pushBlockChanges} from './block-edit-funcs.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
 /** @typedef {import('../block-styles/style-tabs-commons.js').TabInfo} TabInfo */
 
@@ -183,7 +183,6 @@ class BlockEditForm extends preact.Component {
                             blockId={ blockId }
                             blockTypeName={ this.blockType.name }
                             checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
-                            createUpdateBlockPropOp={ createUpdateBlockPropOp }
                             stylesStateId={ this.state.stylesStateId }
                             styleClasses={ blockCopyForEditForm.styleClasses }/>,
                         <StyleClassesPicker
@@ -331,54 +330,6 @@ function getUserStyleTabHasContent({styleClasses}, tabsInfo) {
         return varList.length > 0;
     }
     return false;
-}
-
-/**
- * @param {string} blockId
- * @param {{[key: string]: any;}} changes
- * @param {blockPropValueChangeFlags} flags = null
- * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
- */
-function pushBlockChanges(blockId, changes, flags = null) {
-    const saveButton = api.saveButton.getInstance();
-    saveButton.pushOp(...createUpdateBlockPropOp(blockId, () => changes, flags, saveButton));
-}
-
-/**
- * @param {string} blockId
- * @param {(blockRefMut: Block) => {[key: string]: any;}} getChanges
- * @param {blockPropValueChangeFlags} flags = null
- * @param {SaveButton} saveButton = api.saveButton.getInstance()
- * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]|['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext]}
- */
-function createUpdateBlockPropOp(blockId, getChanges, flags = null, saveButton = api.saveButton.getInstance()) {
-    const root1 = blockTreeUtils.findBlockMultiTree(blockId, saveButton.getChannelState('theBlockTree'))[3];
-    const trid = blockTreeUtils.getIdFor(root1);
-    if (trid === 'main')
-        return [
-            'theBlockTree',
-            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                const [blockRefMut] = blockTreeUtils.findBlock(blockId, newTreeCopy);
-                writeBlockProps(blockRefMut, getChanges(blockRefMut));
-                return newTreeCopy;
-            }),
-            {event: 'update-single-block-prop', blockId},
-            flags
-        ];
-    else
-        return [
-            'globalBlockTrees',
-            saveButton.getChannelState('globalBlockTrees').map(gbt =>
-                gbt.id !== trid
-                    ? gbt
-                    : {...gbt, blocks: blockTreeUtils.createMutation(gbt.blocks, copy => {
-                        const [blockRefMut] = blockTreeUtils.findBlock(blockId, copy);
-                        writeBlockProps(blockRefMut, getChanges(blockRefMut));
-                    })}
-            ),
-            {event: 'update-block-in', blockId},
-            flags,
-        ];
 }
 
 export default BlockEditForm;

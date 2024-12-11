@@ -28,6 +28,8 @@ interface SivujettiFrontendApi {
     };
     registerTranslationStrings(strings: {[key: string]: string}): void;
     webPagePreview: WebPagePreviewApp;
+    import(name: string): any|Array<any>;
+    export(name: string, item: any): void;
 }
 
 interface OpQueueOp {
@@ -312,7 +314,7 @@ interface Env {
 
 interface ContextMenuController {
     getLinks(): Array<ContextMenuLink>;
-    onItemClicked(item: ContextMenuLink): void;
+    onItemClicked(item: ContextMenuLink, e: Event): void;
     onMenuClosed(): void;
     placement?: 'right';
     zIndex?: number;
@@ -322,6 +324,7 @@ interface ContextMenuLink {
     text: string;
     title: string;
     id: string;
+    printChildNav?: () => preact.ComponentChildren;
 }
 
 type blockPropValueChangeFlags = 'is-throttled'|'is-group'|'is-initial'|null;
@@ -612,6 +615,16 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
         LengthValue |
         OptionValue |
         string;
+}
+
+interface BlockBehaviourDefinition {
+    name: string;
+    friendlyName: string;
+}
+
+interface BlockBehaviour {
+    name: string;
+    data: {[prop: string]: any;};
 }
 
 type scssCodeInput = string|Array<string>;

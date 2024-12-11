@@ -1125,10 +1125,12 @@ a.popup-close-area {
     padding-bottom: calc(.3rem - 2px);
 }
 /* EditApp: Components: button dropdowns */
-.btn.btn-dropdown {
+.btn.btn-dropdown,
+.dropdown-outer{
     cursor: pointer;
 }
-.btn.btn-dropdown > select {
+.btn.btn-dropdown > select,
+.dropdown-outer > select {
     appearance: none;
     background: transparent;
     z-index: 1;

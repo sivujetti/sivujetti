@@ -30,6 +30,8 @@ const editAppScssWizardInstance = new ScssWizard;
 
 const editAppMainMenuPanelApi = new MainMenuPanelApi;
 
+const mainRegistry = new Map;
+
 const api = {
     getPageTypes() { return dataFromBackend.pageTypes; },
     getBlockRenderers() { return dataFromBackend.blockRenderers; },
@@ -71,6 +73,17 @@ const api = {
     mainPopper: {
         open(/*Renderer, btn, rendererProps = {}, settings = {}*/) {},
         close() {},
+    },
+    export(name, item) {
+        mainRegistry.set(name, item);
+    },
+    import(name) {
+        if (name.endsWith('/*'))
+            return [...mainRegistry.entries()]
+                .reduce((out, [key, val]) =>
+                        key.split('/')[0] !== name.split('/')[0] ? out : [...out, val]
+                , []);
+        return mainRegistry.get(name);
     },
 };
 

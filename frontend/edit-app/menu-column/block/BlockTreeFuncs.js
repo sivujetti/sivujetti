@@ -9,6 +9,7 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
 import {findGbt, removeFrom, replaceAt} from '../../includes/block/tree-dnd-controller-funcs.js';
+import {extractChangeableClasses} from '../block-styles/StyleClassesPicker.jsx';
 
 const autoCollapseNonUniqueRootLevelItems = true;
 
@@ -467,6 +468,25 @@ function findUiStateEntry(blockId, nthOfId, blockBranch, uiStateBranch, stat = {
 }
 
 /**
+ * @param {Block} block
+ * @param {Array<BlockBehaviourDefinition>} defs
+ * @returns {Array<BlockBehaviour>}
+ */
+function getActiveBehaviours(block, defs) {
+    const classes = extractChangeableClasses(block.styleClasses).split(' ');
+    const names = defs.map(({name}) => name);
+    return classes
+        .filter(cls => names.indexOf(cls) > -1)
+        .map(name => {
+            const def = defs.find(def => def.name === name);
+            return {
+                name,
+                data: def.createData ? def.createData(classes.filter(cls => !cls.startsWith('cc-'))) : {},
+            };
+        });
+}
+
+/**
  * @typedef {{item: LiUiState; children: Array<LiUiState>;}} UiStateEntry
  *
  * @typedef {{isSelected: boolean; isCollapsed: boolean; isHidden: boolean; blockId: string; isPartOf: globalBlockReferenceBlockId|null;}} LiUiState
@@ -484,6 +504,7 @@ export {
     createStyleShunkcScssIdReplacer,
     findUiStateEntry,
     findVisibleLi,
+    getActiveBehaviours,
     getShortFriendlyName,
     getVisibleLisCount,
     hideOrShowChildren,

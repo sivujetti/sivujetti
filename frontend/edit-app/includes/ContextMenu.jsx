@@ -1,4 +1,5 @@
 import {env} from '@sivujetti-commons-for-web-pages';
+import {Icon} from '@sivujetti-commons-for-edit-app';
 
 let isGlobalEscKeyPressListenerHookedUp = false;
 let openInstance = null;
@@ -75,9 +76,22 @@ class ContextMenu extends preact.Component {
                 if (typeof zIndex === 'number') {
                     el.style.zIndex = zIndex;
                 }
-            } }>{ this.controller.getLinks().map(link =>
-                <li class="menu-item"><a onClick={ e => this.emitItemClick(link, e) } href={ `#${link.id}` } title={ link.title }>{ link.text }</a></li>
-            ) }</ul>
+            } }>{ this.controller.getLinks().map(link => {
+                const {printChildNav} = link;
+                return <li class="menu-item">
+                    <a
+                        onClick={ e => this.emitItemClick(link, e) }
+                        href={ `#${link.id}` }
+                        title={ link.title }>
+                        { link.text }
+                        { printChildNav ? <Icon iconId="chevron-down" className="size-xs p-absolute ml-1"/> : null }
+                    </a>
+                    { printChildNav
+                        ? printChildNav(link)
+                        : null
+                    }
+                </li>;
+            }) }</ul>
         ];
     }
     /**
@@ -87,7 +101,7 @@ class ContextMenu extends preact.Component {
      */
     emitItemClick(link, e) {
         e.preventDefault();
-        if (this.controller.onItemClicked(link) !== false)
+        if (this.controller.onItemClicked(link, e) !== false)
             this.close();
     }
 }

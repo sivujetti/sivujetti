@@ -33,6 +33,7 @@ import {
     createStyleShunkcScssIdReplacer,
     findUiStateEntry,
     findVisibleLi,
+    getActiveBehaviours,
     getShortFriendlyName,
     getVisibleLisCount,
     hideOrShowChildren,
@@ -59,6 +60,7 @@ class BlockTree extends preact.Component {
     // mouseDownHoverClearerHookedUp;
     // curUrl;
     // openMoreMenuData;
+    // registeredBlockBehaviourDefs;
     /**
      * @access protected
      */
@@ -243,9 +245,10 @@ class BlockTree extends preact.Component {
     }); }
     /**
      * @param {ContextMenuLink} link
+     * @param {Event} e
      * @access private
      */
-    handleContextMenuLinkClicked(link) {
+    handleContextMenuLinkClicked(link, e) {
         const addContentKind = ({
             'add-content-above': 'before',
             'add-content-below': 'after',
@@ -266,6 +269,9 @@ class BlockTree extends preact.Component {
         } else if (link.id === 'duplicate-block') {
             const [blockToCloneTrid, blockToCloneId] = getRealTarget(createBlockDescriptorFromLi(this.openMoreMenuData.li), null);
             this.cloneBlock(blockToCloneId, blockToCloneTrid);
+        } else if (link.id === 'toggle-is-behaviours-sub-nav-visible') {
+            e.target.closest('li').querySelector('.menu').classList.toggle('d-none');
+            return false;
         } else if (link.id === 'delete-block') {
             const blockVisible = this.openMoreMenuData.block;
             const [blockToDeleteTrid, blockToDeleteId] = getRealTarget(createBlockDescriptorFromLi(this.openMoreMenuData.li), null);
@@ -447,7 +453,10 @@ class BlockTree extends preact.Component {
      * @access private
      */
     openMoreMenu(block, isRootBlockOf, e) {
-        this.openMoreMenuData = {block, isRootBlockOf, li: e.target.closest('li')};
+        if (!this.registeredBlockBehaviourDefs)
+            this.registeredBlockBehaviourDefs = api.import('behaviours/*');
+        this.openMoreMenuData = {block, isRootBlockOf, li: e.target.closest('li'),
+            activeBlockBehaviours: block.type !== 'PageInfo' ? getActiveBehaviours(block, this.registeredBlockBehaviourDefs) : []};
         this.refElOfOpenMoreMenu = e.target;
         this.refElOfOpenMoreMenu.style.opacity = '1';
         api.contextMenu.open(e, this.createContextMenuController(!!isRootBlockOf));
@@ -471,6 +480,11 @@ class BlockTree extends preact.Component {
                     ? [
                         ...spawnLinks,
                         {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
+                        ...(this.registeredBlockBehaviourDefs.length
+                            ? [{text: __('Behaviours'), title: __('Behaviours'), id: 'toggle-is-behaviours-sub-nav-visible',
+                                printChildNav: this.createBlockBehaviourSubNavPrinter()}]
+                            : []
+                        ),
                         {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
                         ...(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees') ? [
                             {text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}
@@ -485,6 +499,71 @@ class BlockTree extends preact.Component {
             onItemClicked: this.handleContextMenuLinkClicked.bind(this),
             onMenuClosed: this.onContextMenuClosed.bind(this),
         };
+    }
+    /**
+     * @returns {() => preact.VNode}
+     * @access private
+     */
+    createBlockBehaviourSubNavPrinter() {
+        const translatedNames = this.registeredBlockBehaviourDefs.reduce((map, def) =>
+            ({...map, [def.name]: def.friendlyName})
+        , {});
+        return () => <ul class="menu p-absolute d-none">{ [
+            ...this.openMoreMenuData.activeBlockBehaviours.map(({name}) => <div class="d-grid" style="grid-template-columns: 1fr 2.7rem">
+                <span class="text-ellipsis">{ translatedNames[name] }:</span>
+                <div class="flex-centered" style="justify-content: end">
+                    <button
+                        onClick={ () => {
+                            this.doOpenBehaviourEditDialog(name);
+                            api.contextMenu.close();
+                        } }
+                        class="btn btn-xs no-color flex-centered"
+                        type="button"
+                        title={ __('Edit %s', __('behaviour#partitive')) }>
+                        <Icon iconId="pencil" className="size-xs color-dimmed3"/>
+                    </button>
+                    <button
+                        onClick={ () => {
+                            this.addOrClearBehaviour('remove', name);
+                            api.contextMenu.close();
+                        } }
+                        class="btn btn-xs no-color flex-centered"
+                        type="button"
+                        title={ __('Delete', __('behaviour')) }>
+                        <svg class="icon icon-tabler size-xs" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 7l16 0"></path><path d="M10 11l0 6"></path><path d="M14 11l0 6"></path><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg>
+                    </button>
+                </div>
+            </div>),
+            <div class="dropdown-outer p-relative c-hand col-12">
+                <label htmlFor="addBehaviourDropdown">{ __('Add %s', __('behaviour')) }</label>
+                <select onChange={ e => {
+                    this.addOrClearBehaviour('add', e.target.value);
+                    api.contextMenu.close();
+                } } value="" id="addBehaviourDropdown">
+                    <option disabled selected value>{ __('Select %s', __('behaviour')) }</option>
+                    { Object.keys(translatedNames).map(name =>
+                        <option value={ name }>{ translatedNames[name] }</option>
+                    ) }
+                </select>
+            </div>
+        ] }</ul>;
+    }
+    /**
+     * @param {Block} 
+     * @returns {}
+     * @access private
+     */
+    doOpenBehaviourEditDialog(name) {
+        //
+    }
+    /**
+     * @param {?} 
+     * @param {?} 
+     * @returns {}
+     * @access private
+     */
+    addOrClearBehaviour(kind, name) {
+        //
     }
     /**
      * @param {Block} block

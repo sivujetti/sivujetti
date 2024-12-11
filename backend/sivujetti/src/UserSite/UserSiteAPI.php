@@ -79,4 +79,12 @@ class UserSiteAPI extends BaseAPI {
     public function getPlugin(string $name): ?UserPluginInterface {
         return $this->apiCtx->getPlugin($name);
     }
+    /**
+     * @param \Sivujetti\Block\Entities\Block $block
+     * @param string $behaviourName
+     * @return bool
+     */
+    public function hasBehaviour(Block $block, string $behaviourName): bool {
+        return str_contains($block->styleClasses, $behaviourName);
+    }
 }

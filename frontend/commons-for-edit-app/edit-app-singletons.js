@@ -73,6 +73,8 @@ const api = {
     mainPopper: {
         open(/*Renderer, btn, rendererProps = {}, settings = {}*/) {},
         close() {},
+        refresh() {},
+        getCurrentRendererCls() {},
     },
     export(name, item) {
         mainRegistry.set(name, item);

@@ -153,3 +153,4 @@ function extractChangeableClasses(styleClasses) {
 }
 
 export default StyleClassesPicker;
+export {extractChangeableClasses};

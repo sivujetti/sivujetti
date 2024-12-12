@@ -2,13 +2,18 @@ import {
     __,
     api,
     blockTreeUtils,
+    floatingDialog,
     generatePushID,
     objectUtils,
+    scssWizard,
     traverseRecursively,
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
 import {findGbt, removeFrom, replaceAt} from '../../includes/block/tree-dnd-controller-funcs.js';
+import {createBlock, treeToTransferable} from '../../includes/block/utils.js';
+import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
+import BlockTreeShowHelpPopup from '../../main-column/popups/BlockTreeShowHelpPopup.jsx';
 import {extractChangeableClasses} from '../block-styles/StyleClassesPicker.jsx';
 
 const autoCollapseNonUniqueRootLevelItems = true;
@@ -481,9 +486,19 @@ function getActiveBehaviours(block, defs) {
             const def = defs.find(def => def.name === name);
             return {
                 name,
-                data: def.createData ? def.createData(classes.filter(cls => !cls.startsWith('cc-'))) : {},
+                data: getBehaviourData(block, def),
             };
         });
+}
+
+/**
+ * @param {Block} block
+ * @param {BlockBehaviourDefinition} def
+ * @returns {{[prop: string]: any;}}
+ */
+function getBehaviourData(block, def) {
+    const classes = extractChangeableClasses(block.styleClasses);
+    return def.createData ? def.createData(classes) : {};
 }
 
 /**
@@ -496,6 +511,95 @@ function hasBehaviour({styleClasses}, behaviourName) {
 }
 
 /**
+ * @param {Block} openBlock
+ * @param {string} blockIsStoredTo
+ * @access private
+ */
+function cloneBlock(blockId, blockIsStoredTo) {
+    const saveButton = api.saveButton.getInstance();
+    const [op, cloned] = createDuplicateBlockOp(blockId, blockIsStoredTo, saveButton);
+    saveButton.pushOp(...op);
+    api.webPagePreview.scrollToBlockAsync(cloned, 1);
+}
+
+/**
+ * @param {{name: string;}} data
+ * @param {Block} originalBlock The block/branch we're just turning global
+ * @param {string} originalBlockIsStoredTo
+ * @access private
+ */
+function convertBlockToGlobal(data, originalBlock, originalBlockIsStoredTo) {
+    const newGbt = {
+        id: generatePushID(),
+        name: data.name,
+        blocks: treeToTransferable([{...originalBlock, ...{title: data.name}}]),
+    };
+    const newGbRefBlock = createBlock(
+        { // block.*
+            type: 'GlobalBlockReference',
+            title: data.name,
+            renderer: 'jsx',
+        },
+        { // block.propData.*
+            globalBlockTreeId: newGbt.id,
+            overrides: '{}',
+            useOverrides: 0,
+        }
+    );
+    const saveButton = api.saveButton.getInstance();
+    const ops = createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlock.id, originalBlockIsStoredTo, saveButton);
+    if (ops.length === 1)
+        saveButton.pushOp(...ops[0]);
+    else
+        saveButton.pushOpGroup(...ops);
+}
+
+/**
+ * @param {{name: string;}} data From BlockSaveAsReusableDialog
+ * @param {Block} block
+ * @access private
+ */
+function saveBlockAsReusable(data, block) {
+    const saveButton = api.saveButton.getInstance();
+    const newTree = objectUtils.cloneDeep(saveButton.getChannelState('theBlockTree'));
+    const [newReusableRootRef] = blockTreeUtils.findBlockMultiTree(block.id, newTree);
+    // 1. Mutate new block tree (update `newReusable.blockBlueprints[0].title`)
+    newReusableRootRef.title = data.name;
+    // 2. Create new reusable branch
+    const blockBlueprints = [blockToBlueprint(treeToTransferable([newReusableRootRef])[0], (blueprint, block) => {
+        const nonClassUserAndDevStyles = scssWizard.findStyles('single-block', block.id);
+        const replacer = createStyleShunkcScssIdReplacer(block.id, '@placeholder');
+        const init = nonClassUserAndDevStyles.map(replacer); // 'data-block-id="uagNk..."' -> 'data-block-id="@placeholder:block-id"'
+        return {
+            ...blueprint,
+            ...{initialStyles: init}
+        };
+    })];
+    // 3. Commit all
+    fetchOrGetReusableBranches().then(reusablesPrev => {
+        const newReusablesState = [{
+            id: generatePushID(),
+            blockBlueprints,
+        }, ...objectUtils.cloneDeep(reusablesPrev)];
+        saveButton.pushOpGroup(
+            ['theBlockTree', newTree, {event: 'update-many-blocks-prop'}],
+            ['reusableBranches', newReusablesState, {event: 'create'}]
+        );
+    });
+}
+
+/**
+ * @access private
+ */
+function showBlockTreeHelpPopup() {
+    floatingDialog.open(BlockTreeShowHelpPopup, {
+        title: __('Content tree'),
+        width: 480,
+        height: 525,
+    }, {});
+}
+
+/**
  * @typedef {{item: LiUiState; children: Array<LiUiState>;}} UiStateEntry
  *
  * @typedef {{isSelected: boolean; isCollapsed: boolean; isHidden: boolean; blockId: string; isPartOf: globalBlockReferenceBlockId|null;}} LiUiState
@@ -504,21 +608,24 @@ function hasBehaviour({styleClasses}, behaviourName) {
 export {
     blockToBlueprint,
     clearHighlight,
+    cloneBlock,
+    convertBlockToGlobal,
     createAddContentPlacementCfg,
-    createConvertBlockToGlobalOps,
     createDeleteBlockOp,
-    createDuplicateBlockOp,
     createGetTreeBlocksFn,
     createPartialState,
     createStyleShunkcScssIdReplacer,
     findUiStateEntry,
     findVisibleLi,
     getActiveBehaviours,
+    getBehaviourData,
     getShortFriendlyName,
     getVisibleLisCount,
     hasBehaviour,
     hideOrShowChildren,
+    saveBlockAsReusable,
     setAsCollapsed,
+    showBlockTreeHelpPopup,
     splitPath,
     withIdxPathDo,
 };

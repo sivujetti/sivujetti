@@ -4,46 +4,42 @@ import {
     blockTreeUtils,
     events,
     floatingDialog,
-    generatePushID,
     Icon,
     LoadingSpinner,
-    objectUtils,
-    scssWizard,
     traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
 import createDndController, {
     createBlockDescriptorFromLi,
 } from '../../includes/block/create-block-tree-dnd-controller.js';
 import {getRealTarget} from '../../includes/block/tree-dnd-controller-funcs.js';
-import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
-import {createBlock, treeToTransferable} from '../../includes/block/utils.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
 import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';
-import BlockTreeShowHelpPopup from '../../main-column/popups/BlockTreeShowHelpPopup.jsx';
 import {historyInstance} from '../../main-column/MainColumnViews.jsx';
 import {addOrRemoveBlockClasses} from '../block-styles/CustomClassStylesList.jsx';
 import {
-    blockToBlueprint,
     clearHighlight,
+    cloneBlock,
+    convertBlockToGlobal,
     createAddContentPlacementCfg,
-    createConvertBlockToGlobalOps,
     createDeleteBlockOp,
-    createDuplicateBlockOp,
     createGetTreeBlocksFn,
     createPartialState,
-    createStyleShunkcScssIdReplacer,
     findUiStateEntry,
     findVisibleLi,
     getActiveBehaviours,
+    getBehaviourData,
     getShortFriendlyName,
     getVisibleLisCount,
     hasBehaviour,
     hideOrShowChildren,
+    saveBlockAsReusable,
     setAsCollapsed,
+    showBlockTreeHelpPopup,
     splitPath,
     withIdxPathDo,
 } from './BlockTreeFuncs.js';
 import AddContentPopup from './AddContentPopup.jsx';
+import EditBehaviourPopup from './EditBehaviourPopup.jsx';
 /** @typedef {import('./BlockTreeFuncs.js').UiStateEntry} UiStateEntry */
 /** @typedef {import('./BlockTreeFuncs.js').LiUiState} LiUiState */
 
@@ -63,6 +59,7 @@ class BlockTree extends preact.Component {
     // curUrl;
     // openMoreMenuData;
     // registeredBlockBehaviourDefs;
+    // openBehaviourEditPopupStash;
     /**
      * @access protected
      */
@@ -95,6 +92,16 @@ class BlockTree extends preact.Component {
             const prevState = isCurrentPage ? this.state.uiStateTree : null;
             this.setState(createPartialState(props.blocks, prevState));
             this.curUrl = pathname;
+
+            if (this.openBehaviourEditPopupStash) {
+                const {blockId, behaviourName} = this.openBehaviourEditPopupStash;
+                const [block] = blockTreeUtils.findBlockMultiTree(blockId, props.blocks);
+                if (block) {
+                    const def = api.import(`behaviours/${behaviourName}`);
+                    const behaviour = {name: behaviourName, data: getBehaviourData(block, def)};
+                    api.mainPopper.refresh({behaviour}, undefined, true);
+                }
+            }
         }
     }
     /**
@@ -109,7 +116,7 @@ class BlockTree extends preact.Component {
     render({blocks}, {uiStateTree}) {
         return <div>
             <div class="p-relative" style="z-index: 1"><button
-                onClick={ this.showBlockTreeHelpPopup.bind(this) }
+                onClick={ showBlockTreeHelpPopup }
                 class={ `btn btn-link p-absolute btn-sm pt-1${uiStateTree ? '' : ' d-invisible'}` }
                 type="button"
                 style="right: .1rem">
@@ -270,7 +277,7 @@ class BlockTree extends preact.Component {
             );
         } else if (link.id === 'duplicate-block') {
             const [blockToCloneTrid, blockToCloneId] = getRealTarget(createBlockDescriptorFromLi(this.openMoreMenuData.li), null);
-            this.cloneBlock(blockToCloneId, blockToCloneTrid);
+            cloneBlock(blockToCloneId, blockToCloneTrid);
         } else if (link.id === 'toggle-is-behaviours-sub-nav-visible') {
             e.target.closest('li').querySelector('.menu').classList.toggle('d-none');
             return false;
@@ -287,8 +294,8 @@ class BlockTree extends preact.Component {
                 height: userCanCreateGlobalBlockTrees ? 468 : 254,
             }, {
                 blockToConvertAndStore: blockToStore,
-                onConfirmed: data => data.saveAsUnique ? this.doConvertBlockToGlobal(data, blockToStore, blockIsStoredTo) :
-                    this.doSaveBlockAsReusable(data, blockToStore),
+                onConfirmed: data => data.saveAsUnique ? convertBlockToGlobal(data, blockToStore, blockIsStoredTo) :
+                    saveBlockAsReusable(data, blockToStore),
                 userCanCreateGlobalBlockTrees,
             });
         }
@@ -299,17 +306,6 @@ class BlockTree extends preact.Component {
     onContextMenuClosed() {
         this.openMoreMenuData = null;
         this.refElOfOpenMoreMenu.style.opacity = '';
-    }
-    /**
-     * @param {Block} openBlock
-     * @param {string} blockIsStoredTo
-     * @access private
-     */
-    cloneBlock(blockId, blockIsStoredTo) {
-        const saveButton = api.saveButton.getInstance();
-        const [op, cloned] = createDuplicateBlockOp(blockId, blockIsStoredTo, saveButton);
-        saveButton.pushOp(...op);
-        api.webPagePreview.scrollToBlockAsync(cloned, 1);
     }
     /**
      * @param {Block} blockVisible
@@ -336,84 +332,6 @@ class BlockTree extends preact.Component {
         return this.selectedRoot.id === block.id ||
             (block.children.length && blockTreeUtils.findRecursively(block.children,
                 b => b.id === this.selectedRoot.id));
-    }
-    /**
-     * @param {{name: string;}} data
-     * @param {Block} originalBlock The block/branch we're just turning global
-     * @param {string} originalBlockIsStoredTo
-     * @access private
-     */
-    doConvertBlockToGlobal(data, originalBlock, originalBlockIsStoredTo) {
-        const newGbt = {
-            id: generatePushID(),
-            name: data.name,
-            blocks: treeToTransferable([{...originalBlock, ...{title: data.name}}]),
-        };
-        const newGbRefBlock = createBlock(
-            { // block.*
-                type: 'GlobalBlockReference',
-                title: data.name,
-                renderer: 'jsx',
-            },
-            { // block.propData.*
-                globalBlockTreeId: newGbt.id,
-                overrides: '{}',
-                useOverrides: 0,
-            }
-        );
-        const saveButton = api.saveButton.getInstance();
-        const ops = createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlock.id, originalBlockIsStoredTo, saveButton);
-        if (ops.length === 1)
-            saveButton.pushOp(...ops[0]);
-        else
-            saveButton.pushOpGroup(...ops);
-    }
-    /**
-     * @param {{name: string;}} data From BlockSaveAsReusableDialog
-     * @param {Block} block
-     * @access private
-     */
-    doSaveBlockAsReusable(data, block) {
-        const saveButton = api.saveButton.getInstance();
-
-        const newTree = objectUtils.cloneDeep(saveButton.getChannelState('theBlockTree'));
-        const [newReusableRootRef] = blockTreeUtils.findBlockMultiTree(block.id, newTree);
-
-        // 1. Mutate new block tree (update `newReusable.blockBlueprints[0].title`)
-        newReusableRootRef.title = data.name;
-
-        // 2. Create new reusable branch
-        const blockBlueprints = [blockToBlueprint(treeToTransferable([newReusableRootRef])[0], (blueprint, block) => {
-            const nonClassUserAndDevStyles = scssWizard.findStyles('single-block', block.id);
-            const replacer = createStyleShunkcScssIdReplacer(block.id, '@placeholder');
-            const init = nonClassUserAndDevStyles.map(replacer); // 'data-block-id="uagNk..."' -> 'data-block-id="@placeholder:block-id"'
-            return {
-                ...blueprint,
-                ...{initialStyles: init}
-            };
-        })];
-
-        // 3. Commit all
-        fetchOrGetReusableBranches().then(reusablesPrev => {
-            const newReusablesState = [{
-                id: generatePushID(),
-                blockBlueprints,
-            }, ...objectUtils.cloneDeep(reusablesPrev)];
-            saveButton.pushOpGroup(
-                ['theBlockTree', newTree, {event: 'update-many-blocks-prop'}],
-                ['reusableBranches', newReusablesState, {event: 'create'}]
-            );
-        });
-    }
-    /**
-     * @access private
-     */
-    showBlockTreeHelpPopup() {
-        floatingDialog.open(BlockTreeShowHelpPopup, {
-            title: __('Content tree'),
-            width: 480,
-            height: 525,
-        }, {});
     }
     /**
      * @param {Block} block
@@ -516,7 +434,7 @@ class BlockTree extends preact.Component {
                 <div class="flex-centered" style="justify-content: end">
                     <button
                         onClick={ () => {
-                            this.doOpenBehaviourEditDialog(name);
+                            this.openBehaviourEditDialog(name);
                             api.contextMenu.close();
                         } }
                         class="btn btn-xs no-color flex-centered"
@@ -551,12 +469,35 @@ class BlockTree extends preact.Component {
         ] }</ul>;
     }
     /**
-     * @param {Block} 
+     * @param {string} behaviourName
      * @returns {}
      * @access private
      */
-    doOpenBehaviourEditDialog(name) {
-        //
+    openBehaviourEditDialog(behaviourName) {
+        const blockId = this.openMoreMenuData.block.id;
+        this.openBehaviourEditPopupStash = {blockId, behaviourName};
+        const arrowRefEl = createAddContentPlacementCfg(this.openMoreMenuData.li, 'after')[0];
+        const behaviourDef = this.registeredBlockBehaviourDefs.find(({name}) => name === behaviourName);
+        api.mainPopper.open(
+            EditBehaviourPopup,
+            arrowRefEl,
+            {
+                behaviour: this.openMoreMenuData.activeBlockBehaviours.find(({name}) => name === behaviourName),
+                behaviourDef,
+                onDataPropChanged: (val, prop) => {
+                    const cls = behaviourDef.serializeData({[prop]: true});
+                    const [block] = blockTreeUtils.findBlockMultiTree(blockId,
+                        api.saveButton.getInstance().getChannelState('theBlockTree'));
+                    this.addOrClearBehaviourOrBehaviourData(val ? 'add' : 'remove', cls, undefined, block);
+                },
+            },
+            {
+                onClose: () => {
+                    this.openBehaviourEditPopupStash = null;
+                },
+                maxWidth: 240,
+            }
+        );
     }
     /**
      * @param {'add'|'remove'} type
@@ -564,16 +505,27 @@ class BlockTree extends preact.Component {
      * @access private
      */
     addOrClearBehaviour(type, name) {
-        const {block} = this.openMoreMenuData;
-        let classes = null;
-        if (type === 'add' && !hasBehaviour(block, name)) {
-            classes = name;
-        } else if (type === 'remove' && hasBehaviour(block, name)) {
+        this.addOrClearBehaviourOrBehaviourData(type, name, () => {
             const behaviourDef = this.registeredBlockBehaviourDefs.find(def => def.name === name);
             const falses = behaviourDef.createData([]);
             const trues = Object.keys(falses).reduce((o, k) => ({...o, [k]: true}), {});
-            const dataClassesAll = behaviourDef.serializeData(trues);
-            classes = name + (dataClassesAll ? ` ${dataClassesAll}` : '');
+            return behaviourDef.serializeData(trues);
+        });
+    }
+    /**
+     * @param {'add'|'remove'} type
+     * @param {string} entry
+     * @param {() => string} getAdditionalClearClasses = () => ''
+     * @param {Block} block = this.openMoreMenuData.block
+     * @access private
+     */
+    addOrClearBehaviourOrBehaviourData(type, entry, getAdditionalClearClasses = () => '', block = this.openMoreMenuData.block) {
+        let classes = null;
+        if (type === 'add' && !hasBehaviour(block, entry)) {
+            classes = entry;
+        } else if (type === 'remove' && hasBehaviour(block, entry)) {
+            const dataClassesAll = getAdditionalClearClasses();
+            classes = entry + (dataClassesAll ? ` ${dataClassesAll}` : '');
         }
         if (classes) {
             addOrRemoveBlockClasses(block.id, type, classes);

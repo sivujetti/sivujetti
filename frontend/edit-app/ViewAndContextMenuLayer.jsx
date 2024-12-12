@@ -68,12 +68,13 @@ class MainPopper extends preact.Component {
     /**
      * @param {Object} newRendererProps
      * @param {{onClose?: () => void; maxWidth?: number; offsetY?: number;}} newSettings = {}
+     * @param {boolean} merge = false
      * @access public
      */
-    refresh(newRendererProps, newSettings = null) {
+    refresh(newRendererProps, newSettings = null, merge = false) {
         if (!this.state.Renderer) return;
         if (newSettings !== null) this.settings = newSettings;
-        this.setState({rendererProps: newRendererProps});
+        this.setState({rendererProps: !merge ? newRendererProps : {...this.state.rendererProps, ...newRendererProps}});
     }
     /**
      * @returns {preact.Component|null}

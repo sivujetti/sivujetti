@@ -100,7 +100,7 @@ class BlockTree extends preact.Component {
                     const def = api.import(`behaviours/${behaviourName}`);
                     const behaviour = {name: behaviourName, data: getBehaviourData(block, def)};
                     api.mainPopper.refresh({behaviour}, undefined, true);
-                }
+                } else api.mainPopper.close();
             }
         }
     }
@@ -428,8 +428,10 @@ class BlockTree extends preact.Component {
         const translatedNames = this.registeredBlockBehaviourDefs.reduce((map, def) =>
             ({...map, [def.name]: def.friendlyName})
         , {});
+        const {activeBlockBehaviours} = this.openMoreMenuData;
+        const addableBlockBehaviours = this.registeredBlockBehaviourDefs.filter(def => !activeBlockBehaviours.some(({name}) => name === def.name));
         return () => <ul class="menu p-absolute d-none">{ [
-            ...this.openMoreMenuData.activeBlockBehaviours.map(({name}) => <div class="d-grid" style="grid-template-columns: 1fr 2.7rem">
+            ...activeBlockBehaviours.map(({name}) => <div class="d-grid flex-centered" style="grid-template-columns: 1fr 2.7rem">
                 <span class="text-ellipsis">{ translatedNames[name] }:</span>
                 <div class="flex-centered" style="justify-content: end">
                     <button
@@ -454,18 +456,18 @@ class BlockTree extends preact.Component {
                     </button>
                 </div>
             </div>),
-            <div class="dropdown-outer p-relative c-hand col-12">
+            addableBlockBehaviours.length ? <div class="dropdown-outer p-relative c-hand col-12">
                 <label htmlFor="addBehaviourDropdown">{ __('Add %s', __('behaviour')) }</label>
                 <select onChange={ e => {
                     this.addOrClearBehaviour('add', e.target.value);
                     api.contextMenu.close();
                 } } value="" id="addBehaviourDropdown">
                     <option disabled selected value>{ __('Select %s', __('behaviour')) }</option>
-                    { Object.keys(translatedNames).map(name =>
+                    { addableBlockBehaviours.map(({name}) =>
                         <option value={ name }>{ translatedNames[name] }</option>
                     ) }
                 </select>
-            </div>
+            </div> : null
         ] }</ul>;
     }
     /**

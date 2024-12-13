@@ -622,11 +622,17 @@ interface BlockBehaviourDefinition {
     friendlyName: string;
     createData(serialized: string): {[prop: string]: boolean;};
     serializeData(data: {[prop: string]: boolean;}): string;
+    createEditFormProps?: (behaviour: BlockBehaviour) => {[prop: string]: any;};
 }
 
 interface BlockBehaviour {
     name: string;
     data: {[prop: string]: any;};
+}
+
+interface BlockBehaviourEditPopupProps {
+    behaviour: BlockBehaviour;
+    emitDataPropChanged(val: boolean, prop: string): void;
 }
 
 type scssCodeInput = string|Array<string>;

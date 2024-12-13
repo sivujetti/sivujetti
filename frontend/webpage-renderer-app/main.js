@@ -3,7 +3,7 @@ An entry point for global file "public/sivujetti/sivujetti-webpage-renderer-app.
 Included by backend/sivujetti/src/Page/WebPageAwareTemplate.php jsFiles().
 */
 import {cloneDeep} from '../shared-inline.js';
-import ReRenderingWebPage, {api} from './ReRenderingWebPage.jsx';
+import {api} from './ReRenderingWebPage.jsx';
 
 /**
  * Mounts <ReRenderingWebPage/> to document.body.
@@ -18,6 +18,7 @@ function mountWebPageRendererApp(dataBundle) {
     /** @type {preact.Ref<RenderAllOuter>} */
     const reRenderingWebPage = preact.createRef();
     const outerEl = document.body;
+    const ReRenderingWebPage = api.import('ReRenderingWebPage');
     preact.render(
         <ReRenderingWebPage
             blocks={ withNested__globalBlockTrees }

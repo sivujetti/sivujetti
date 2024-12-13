@@ -3,19 +3,33 @@ import {getMetaKey, getBlockEl, traverseRecursively} from '../shared-inline.js';
 import {stringHtmlPropToVNodeArray} from './ReRenderingWebPageFuncs.js';
 import builtInRenderers from './builtin-renderers-all.jsx';
 
-/** @type {Map<string, preact.AnyComponent>} */
-const customRenderers = new Map;
+const useCtrlClickBasedFollowLinkLogic = true;
+
+const registry = new Map;
+
 const api = {
     /**
      * @param {string} name
      * @param {preact.AnyComponent} Cls
      */
     registerRenderer(name, Cls) {
-        customRenderers.set(name, Cls);
-    }
+        api.export(`customRenderers/${name}`, Cls);
+    },
+    /**
+     * @param {string} name
+     * @param {any} item
+     */
+    export(name, item) {
+        registry.set(name, item);
+    },
+    /**
+     * @param {string} name
+     * @returns {any}
+     */
+    import(name) {
+        return registry.get(name);
+    },
 };
-
-const useCtrlClickBasedFollowLinkLogic = true;
 
 class RenderAll extends preact.Component {
     // messagePortToEditApp;
@@ -89,6 +103,15 @@ class RenderAll extends preact.Component {
         this.isLocalLink = createIsLocalLinkCheckFn();
     }
     /**
+     * @param {preact.Component} Cls
+     * @param {Block} block
+     * @returns {preact.Component}
+     * @access protected
+     */
+    createRendererCls(Cls/*, block*/) {
+        return Cls;
+    }
+    /**
      * @access protected
      */
     render(_, {blocks}) {
@@ -107,9 +130,10 @@ class RenderAll extends preact.Component {
                     depth
                 );
             const {type, styleClasses, renderer} = block;
-            const Renderer = renderer === 'jsx' || renderer.indexOf(':block-listing-') > -1
-                ? (builtInRenderers[type] || customRenderers.get(type))
-                : customRenderers.get(renderer);
+            const rendererCls = renderer === 'jsx' || renderer.indexOf(':block-listing-') > -1
+                ? (builtInRenderers[type] || api.import(`customRenderers/${type}`))
+                : api.import(`customRenderers/${renderer}`);
+            const Renderer = this.createRendererCls(rendererCls, block);
             if (!Renderer) return <p>{ renderer === 'jsx'
                 ? `Block type \`${type}\` doesn't have a renderer!`
                 : `Renderer "${renderer || 'none provided'}" does not exist`
@@ -245,7 +269,7 @@ class RenderAll extends preact.Component {
 
             if (!this.metaKeyIsPressed)
                 e.preventDefault();
-            else if (a || b) {
+            else if ((a || b) && !e.defaultPrevented) {
                 if (a) { e.preventDefault(); this.doFollowLink(a); }
                 // else omit preventDefault
                 return;
@@ -370,6 +394,8 @@ function isSubHoverable(el, currentlyHoveredBlockEl) {
 function isBlockEl(el) {
     return !!el.getAttribute('data-block-type');
 }
+
+api.export('ReRenderingWebPage', RenderAll);
 
 export default RenderAll;
 export {api};

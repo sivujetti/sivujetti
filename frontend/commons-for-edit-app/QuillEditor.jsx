@@ -138,15 +138,18 @@ class QuillEditor extends preact.Component {
      */
     getEditorHtml() {
         if (!this.contentMaybeHasLinks || !this.quill.container.firstChild.querySelectorAll('a[data-href-original]').length)
-            return this.quill.container.firstChild.innerHTML;
+            return this.quill.getSemanticHTML();
         //
-        const copy = this.quill.container.firstChild.cloneNode(true);
-        Array.from(copy.querySelectorAll('a[data-href-original]')).forEach(el => {
+        const editorEl = this.quill.container.firstChild;
+        const beforeLinkPatches = editorEl.cloneNode(true);
+        Array.from(editorEl.querySelectorAll('a[data-href-original]')).forEach(el => {
             const urlWithoutOrigin = el.getAttribute('data-href-original');
             el.removeAttribute('data-href-original');
             el.setAttribute('href', urlWithoutOrigin);
         });
-        return copy.innerHTML;
+        const out = this.quill.getSemanticHTML();
+        this.quill.container.firstChild.innerHTML = beforeLinkPatches.innerHTML;
+        return out;
     }
 }
 

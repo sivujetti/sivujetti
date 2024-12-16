@@ -59,7 +59,7 @@ class BlockTree extends preact.Component {
     // curUrl;
     // openMoreMenuData;
     // registeredBlockBehaviourDefs;
-    // openBehaviourEditPopupStash;
+    // openPopupStash;
     /**
      * @access protected
      */
@@ -93,14 +93,17 @@ class BlockTree extends preact.Component {
             this.setState(createPartialState(props.blocks, prevState));
             this.curUrl = pathname;
 
-            if (this.openBehaviourEditPopupStash) {
-                const {blockId, behaviourName} = this.openBehaviourEditPopupStash;
+            if (this.openPopupStash) {
+                const {blockId} = this.openPopupStash;
                 const [block] = blockTreeUtils.findBlockMultiTree(blockId, props.blocks);
-                if (block) {
+                if (!block) {
+                    api.mainPopper.close();
+                } else if (this.openPopupStash.popupName === 'edit-behaviour') {
+                    const {behaviourName} = this.openPopupStash;
                     const def = api.import(`behaviours/${behaviourName}`);
                     const behaviour = {name: behaviourName, data: getBehaviourData(block, def)};
                     api.mainPopper.refresh({behaviour}, undefined, true);
-                } else api.mainPopper.close();
+                }
             }
         }
     }
@@ -266,14 +269,22 @@ class BlockTree extends preact.Component {
         }[link.id]) || null;
         if (addContentKind) {
             const {li} = this.openMoreMenuData;
+            this.openPopupStash = {popupName: 'add-content', blockId: this.openMoreMenuData.block.id};
             const [arrowRefEl, placeAtBefore] = createAddContentPlacementCfg(li, addContentKind);
             const isReplace = link.id === 'replace-block-with';
             api.mainPopper.open(
                 AddContentPopup,
                 arrowRefEl,
-                {targetInfo: createBlockDescriptorFromLi(li), insertPos: addContentKind, isReplace,
-                    wasCurrentlySelectedBlock: isReplace && this.isCurrentlySelectedBlock(this.openMoreMenuData.block)},
-                {maxWidth: 580, offsetY: !placeAtBefore ? 4 : -25},
+                {
+                    targetInfo: createBlockDescriptorFromLi(li),
+                    insertPos: addContentKind,
+                    isReplace,
+                    wasCurrentlySelectedBlock: isReplace && this.isCurrentlySelectedBlock(this.openMoreMenuData.block),
+                },
+                {
+                    onClose: this.clearOpenPopupStash.bind(this),
+                    maxWidth: 580, offsetY: !placeAtBefore ? 4 : -25,
+                },
             );
         } else if (link.id === 'duplicate-block') {
             const [blockToCloneTrid, blockToCloneId] = getRealTarget(createBlockDescriptorFromLi(this.openMoreMenuData.li), null);
@@ -481,7 +492,7 @@ class BlockTree extends preact.Component {
      */
     openBehaviourEditDialog(behaviourName) {
         const blockId = this.openMoreMenuData.block.id;
-        this.openBehaviourEditPopupStash = {blockId, behaviourName};
+        this.openPopupStash = {popupName: 'edit-behaviour', blockId, behaviourName};
         const arrowRefEl = createAddContentPlacementCfg(this.openMoreMenuData.li, 'after')[0];
         const behaviourDef = this.registeredBlockBehaviourDefs.find(({name}) => name === behaviourName);
         api.mainPopper.open(
@@ -498,9 +509,7 @@ class BlockTree extends preact.Component {
                 },
             },
             {
-                onClose: () => {
-                    this.openBehaviourEditPopupStash = null;
-                },
+                onClose: this.clearOpenPopupStash.bind(this),
                 maxWidth: 240,
             }
         );
@@ -513,27 +522,25 @@ class BlockTree extends preact.Component {
     addOrClearBehaviour(type, name) {
         this.addOrClearBehaviourOrBehaviourData(type, name, () => {
             const behaviourDef = this.registeredBlockBehaviourDefs.find(def => def.name === name);
-            const falses = behaviourDef.createData([]);
-            const trues = Object.keys(falses).reduce((o, k) => ({...o, [k]: true}), {});
-            return behaviourDef.serializeData(trues);
+            const defaults = behaviourDef.createData(null);
+            const data = type === 'add'
+                ? defaults
+                : Object.keys(defaults).reduce((o, k) => ({...o, [k]: true}), {});
+            return behaviourDef.serializeData(data);
         });
     }
     /**
      * @param {'add'|'remove'} type
      * @param {string} entry
-     * @param {() => string} getAdditionalClearClasses = () => ''
+     * @param {() => string} getDataClasses = () => ''
      * @param {Block} block = this.openMoreMenuData.block
      * @access private
      */
-    addOrClearBehaviourOrBehaviourData(type, entry, getAdditionalClearClasses = () => '', block = this.openMoreMenuData.block) {
-        let classes = null;
-        if (type === 'add' && !hasBehaviour(block, entry)) {
-            classes = entry;
-        } else if (type === 'remove' && hasBehaviour(block, entry)) {
-            const dataClassesAll = getAdditionalClearClasses();
-            classes = entry + (dataClassesAll ? ` ${dataClassesAll}` : '');
-        }
-        if (classes) {
+    addOrClearBehaviourOrBehaviourData(type, entry, getDataClasses = () => '', block = this.openMoreMenuData.block) {
+        if ((type === 'add' && !hasBehaviour(block, entry)) ||
+            (type === 'remove' && hasBehaviour(block, entry))) {
+            const dataClassesAll = getDataClasses();
+            const classes = entry + (dataClassesAll ? ` ${dataClassesAll}` : '');
             addOrRemoveBlockClasses(block.id, type, classes);
         }
     }
@@ -624,6 +631,12 @@ class BlockTree extends preact.Component {
             findUiStateEntry(block.id, nthOfIdOrUiStateEntry, this.props.blocks, this.state.uiStateTree),
             nthOfIdOrUiStateEntry,
         ];
+    }
+    /**
+     * @access private
+     */
+    clearOpenPopupStash() {
+        this.openPopupStash = null;
     }
 }
 

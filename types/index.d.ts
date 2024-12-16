@@ -620,7 +620,7 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
 interface BlockBehaviourDefinition {
     name: string;
     friendlyName: string;
-    createData(serialized: string): {[prop: string]: boolean;};
+    createData(serialized: string|null = null): {[prop: string]: boolean;};
     serializeData(data: {[prop: string]: boolean;}): string;
     createEditFormProps?: (behaviour: BlockBehaviour) => {[prop: string]: any;};
     canAdd?: (block: Block) => boolean;

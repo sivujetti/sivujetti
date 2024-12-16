@@ -59,13 +59,13 @@ class CustomClassStylesList extends preact.Component {
                         return next.reduce((out, sc) => ({...out, [sc.id]: this.state.listItemIsOpens[sc.id] || false}), {});
                     if (prevAction.kind === 'add-style') {
                         prevAction = null;
-                        return {[next.at(-1).id]: true, ...this.state.listItemIsOpens};
+                        return {...this.state.listItemIsOpens, [next.at(-1).id]: true};
                     } else if (prevAction.kind === 'duplicate-style') {
                         const {chunkIdx} = prevAction;
                         prevAction = null;
                         const orig = next[chunkIdx];
                         const cloned = next[chunkIdx + 1];
-                        return {[orig.id]: false, [cloned.id]: false, ...this.state.listItemIsOpens};
+                        return {...this.state.listItemIsOpens, [orig.id]: false, [cloned.id]: false};
                     }
                 })(),
             });

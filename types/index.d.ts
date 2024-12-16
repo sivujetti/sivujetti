@@ -623,6 +623,7 @@ interface BlockBehaviourDefinition {
     createData(serialized: string): {[prop: string]: boolean;};
     serializeData(data: {[prop: string]: boolean;}): string;
     createEditFormProps?: (behaviour: BlockBehaviour) => {[prop: string]: any;};
+    canAdd?: (block: Block) => boolean;
 }
 
 interface BlockBehaviour {

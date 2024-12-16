@@ -138,8 +138,11 @@ const spectreCssClasses = [
  * @returns {Array<string>}
  */
 function createTagifyChoices(devDefinedClassInfos) {
+    const maybeDuplicates = devDefinedClassInfos
+        .filter(({className}) => !className.startsWith('j-') && /^[^:> [\]()|~+]+$/.test(className))
+        .map(({className}) => className);
     return [
-        ...devDefinedClassInfos.map(({className}) => className),
+        ...new Set(maybeDuplicates),
         ...spectreCssClasses,
     ];
 }

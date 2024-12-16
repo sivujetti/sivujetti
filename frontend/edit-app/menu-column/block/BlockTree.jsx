@@ -428,8 +428,12 @@ class BlockTree extends preact.Component {
         const translatedNames = this.registeredBlockBehaviourDefs.reduce((map, def) =>
             ({...map, [def.name]: def.friendlyName})
         , {});
-        const {activeBlockBehaviours} = this.openMoreMenuData;
-        const addableBlockBehaviours = this.registeredBlockBehaviourDefs.filter(def => !activeBlockBehaviours.some(({name}) => name === def.name));
+        const {activeBlockBehaviours, block} = this.openMoreMenuData;
+        const addableBlockBehaviours = this.registeredBlockBehaviourDefs
+            .filter(def =>
+                !activeBlockBehaviours.some(({name}) => name === def.name) &&
+                (!def.canAdd || def.canAdd(block))
+            );
         return () => <ul class="menu p-absolute d-none">{ [
             ...activeBlockBehaviours.map(({name}) => <div class="d-grid flex-centered" style="grid-template-columns: 1fr 2.7rem">
                 <span class="text-ellipsis">{ translatedNames[name] }:</span>

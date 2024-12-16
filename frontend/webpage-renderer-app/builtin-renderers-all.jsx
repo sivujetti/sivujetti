@@ -19,52 +19,41 @@ class ButtonBlock extends preact.Component {
 }
 
 class CodeBlock extends preact.Component {
-    // lastExecutedCode;
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        const {id, code} = this.props.block;
-        if (this.lastExecutedCode === code) return;
-        this.lastExecutedCode = code;
-        const {head} = document;
-        // Remove previous injections (if any)
-        [...head.querySelectorAll(`[data-injected-by-sivujetti-code-block="${id}"]`)].forEach(el => {
-            head.removeChild(el);
-        });
-        // Inject again
-        const temp = document.createElement('div');
-        temp.innerHTML = code;
-        [...temp.querySelectorAll('script')].forEach(el => {
-            injectScript(el, head, [{name: 'data-injected-by-sivujetti-code-block', value: id}]);
-        });
-    }
+    // codeQueuedForExecution;
+    // codeLastExecuted;
     /**
      * @param {BlockRendererProps} props
      * @access protected
      */
     render({block, createDefaultProps}) {
+        if (this.codeLastExecuted !== block.code) {
+            this.codeQueuedForExecution = block.code;
+        }
         return <div
             { ...createDefaultProps() }
             dangerouslySetInnerHTML={ {
                 __html: block.code || __('Waits for configuration ...'),
+            } }
+            ref={ el => {
+                if (!el || !this.codeQueuedForExecution) return;
+                [...el.querySelectorAll('script')].forEach(el => executeCodeIn(el));
+                this.codeLastExecuted = this.codeQueuedForExecution;
+                this.codeQueuedForExecution = null;
             } }></div>;
     }
 }
 
 /**
- * @param {HTMLScriptElement} original
- * @param {HTMLElement} toEl
+ * @param {HTMLScriptElement} tag
  * @param {Array<{name: string; value: string;}>} extraAttrs
  */
-function injectScript(original, toEl, extraAttrs = []) {
-    const inject = document.createElement('script');
-    [...original.attributes, ...extraAttrs].forEach(attr => {
-        inject.setAttribute(attr.name, attr.value);
+function executeCodeIn(tag, extraAttrs = []) {
+    const clone = document.createElement('script');
+    [...tag.attributes, ...extraAttrs].forEach(attr => {
+        clone.setAttribute(attr.name, attr.value);
     });
-    if (original.innerHTML)
-        inject.innerHTML = original.innerHTML;
-    toEl.appendChild(inject);
+    clone.innerHTML = tag.innerHTML;
+    tag.replaceWith(clone);
 }
 
 class ColumnsBlock extends preact.Component {

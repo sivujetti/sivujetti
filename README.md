@@ -4,7 +4,7 @@ Sivujetti is a website builder and CMS.
 
 [![License GPL-3.0](https://img.shields.io/badge/license-GPLv3-green)](./LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/sivujetti/sivujetti/next)](https://github.com/sivujetti/sivujetti/commits/next/)
-[![Pre-release](https://img.shields.io/github/v/release/sivujetti/sivujetti?include_prereleases&label=pre-release&logo=github)](https://github.com/sivujetti/sivujetti/releases/tag/sivujetti-0.16.0)
+[![Pre-release](https://img.shields.io/github/v/release/sivujetti/sivujetti?include_prereleases&label=pre-release&logo=github)](https://github.com/sivujetti/sivujetti/releases/tag/sivujetti-0.16.1)
 
 ## Requirements
 

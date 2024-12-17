@@ -2,6 +2,26 @@
 
 ...
 
+# 0.16.1 (2024-12-18)
+
+_Translated by ChatGPT._
+
+## Added
+- Files can now be filtered in the "Choose a picture" popup and the files view
+- New "Behaviours" submenu to the context menu of content blocks
+  - Behaviours (e.g., lightbox gallery, image carousel) can now be added directly in the edit mode
+  - Behaviours can be registered from plugins
+
+## Changed
+-
+
+## Fixed
+- An issue where the frontend threw an error if an empty string was set as the text for a menu link
+- An issue where empty ("This page") links saved in the Quill editor's content were not stored in the database
+- An issue where list items in the Quill editor (ul/li) were not correctly saved in the database
+- An issue where the text in the "Excerpt" part of a listing block was sometimes printed with incorrect encoding
+- An issue where the code block's code was only executed on page load but not when editing the block
+
 # 0.16.0 (2024-11-25)
 
 _Translated by ChatGPT._

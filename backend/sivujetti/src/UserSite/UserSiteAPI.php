@@ -5,6 +5,7 @@ namespace Sivujetti\UserSite;
 use Sivujetti\{BaseAPI, ValidationUtils};
 use Sivujetti\BlockType\{BlockTypeInterface, JsxLikeRenderingBlockTypeInterface};
 use Pike\{PikeException, Validation};
+use Sivujetti\Block\Entities\Block;
 use Sivujetti\UserPlugin\UserPluginInterface;
 
 /**

@@ -1794,7 +1794,10 @@ a.popup-close-area {
     top: 0;
 }
 .vert-tab-content {
-    min-height: 7.7rem;
+    max-height: 562px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    min-height: 154px;
     background: var(--color-bg-default);
     border: 1px solid var(--color-bg-button-selected);
     border-radius: var(--small-rect-radius);

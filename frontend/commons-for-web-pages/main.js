@@ -20,7 +20,27 @@ const env = {
     normalTypingDebounceMillis: 400, // ??
 };
 
+const registry = new Map;
+
+const api = {
+    /**
+     * @param {string} name
+     * @param {any} item
+     */
+    export(name, item) {
+        registry.set(name, item);
+    },
+    /**
+     * @param {string} name
+     * @returns {any}
+     */
+    import(name) {
+        return registry.get(name);
+    },
+};
+
 export {
+    api,
     env,
     Http,
     httpInstance as http,

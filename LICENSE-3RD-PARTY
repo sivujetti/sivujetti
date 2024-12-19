@@ -24,6 +24,10 @@ Library: Autosize
 License: MIT
 Link: https://github.com/jackmoore/autosize/blob/master/LICENSE.md
 
+Library: Codemirror
+License: MIT
+Link: https://github.com/codemirror/dev/blob/master/LICENSE
+
 Library: Coloris
 License: MIT
 Link: https://github.com/mdbassit/Coloris/blob/main/LICENSE
@@ -52,10 +56,6 @@ Library: Quill
 License: BSD-3-Clause License
 Link: https://github.com/quilljs/quill/blob/develop/LICENSE
 
-Library: Redux
-License: MIT
-Link: https://github.com/reduxjs/redux/blob/master/LICENSE.md
-
 Library: Sortable
 License: MIT
 Link: https://github.com/SortableJS/Sortable/blob/master/LICENSE
@@ -63,10 +63,6 @@ Link: https://github.com/SortableJS/Sortable/blob/master/LICENSE
 Library: Spectre.css
 License: MIT
 Link: https://github.com/picturepan2/spectre/blob/master/LICENSE
-
-Library: Storeon
-License: MIT
-Link: https://github.com/storeon/storeon/blob/main/LICENSE
 
 Library: stylis.js
 License: MIT

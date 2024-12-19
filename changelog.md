@@ -2,6 +2,17 @@
 
 ...
 
+# 0.17.0 (not yet released)
+
+## Added
+- .
+
+## Fixed
+- .
+
+## Changed
+- .
+
 # 0.16.1 (2024-12-18)
 
 _Translated by ChatGPT._

@@ -361,20 +361,8 @@ function normalizeItem(ir) {
  * @param {string} channelName
  * @returns {string}
  */
-function createSignalName(channelName) {
+function createEventName(channelName) {
     return `on-${channelName}-event`;
-}
-
-/**
- * @returns {Object}
- */
-function createInitialState() {
-    return {
-        isVisible: false,
-        isSubmitting: false,
-        canUndo: false,
-        canRedo: false,
-    };
 }
 
 /**
@@ -382,8 +370,7 @@ function createInitialState() {
  */
 
 export {
-    createInitialState,
-    createSignalName,
+    createEventName,
     getLatestItemsOfEachChannel,
     handlerFactoriesMap,
     normalizeItem,

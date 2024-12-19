@@ -1,11 +1,13 @@
 import {
     __,
+    api,
     env,
     events,
     getFromLocalStorage,
     http,
-    Icon,
+    isUndoOrRedo,
     putToLocalStorage,
+    scssWizard,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import toasters from './includes/toasters.jsx';
@@ -15,7 +17,7 @@ import PageCreateState from './menu-column/page/PageCreateState.jsx';
 import PageDuplicateState from './menu-column/page/PageDuplicateState.jsx';
 import PageTypeCreateState from './menu-column/page-type/PageTypeCreateState.jsx';
 import DefaultState from './menu-column/DefaultState.jsx';
-import SaveButton from './menu-column/SaveButton.jsx';
+import SaveButtonRenderer from './menu-column/SaveButtonRenderer.jsx';
 
 let showFirstTimeDragInstructions = env.window.isFirstRun && getFromLocalStorage('sivujettiDragInstructionsShown') !== 'yes';
 
@@ -39,35 +41,22 @@ class EditApp extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        const rootEl = document.getElementById('root');
-        const resizeEl = this.resizeHandleEl.current;
-        const startTreshold = 1;
-        const minWidth = 219;
-        const {documentElement, addEventListener} = document;
-        let startWidth = 0;
-        let startScreenX = null;
-        resizeEl.addEventListener('mousedown', async e => {
-            if (e.button !== 0) return;
-            startScreenX = e.screenX;
-            startWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--menu-column-width'));
-            resizeEl.classList.add('dragging');
-            rootEl.classList.add('adjusting-panel-widths');
+        registerResizeMouseHandlers(this.resizeHandleEl.current);
+
+        const saveButton = api.saveButton.getInstance();
+        // Refresh ScssWizard's styles every time new styles (page) are loaded
+        // into the preview iframe, or when an undo|redo event happens
+        saveButton.subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
+            if (ctx === 'initial' || isUndoOrRedo(ctx))
+                scssWizard.replaceStylesState(bundle);
         });
-        addEventListener('mousemove', e => {
-            if (startScreenX === null) return;
-            const screenXDelta = e.screenX - startScreenX;
-            if (Math.abs(screenXDelta) < startTreshold) return;
-            const newWidth = clamp(parseInt(startWidth + screenXDelta, 10), minWidth, Infinity);
-            documentElement.style.setProperty('--menu-column-width', `${newWidth}px`);
-            events.emit('left-column-width-changed', newWidth);
+        // Update ScssWizard's 'currentPageIdPair' every time a new page is
+        // loaded into the preview iframe
+        events.on('webpage-preview-iframe-loaded', () => {
+            // See also ./menu-column/page/PageCreateState.jsx.componentWillMount() (if pageData.isPlaceholderPage === true)
+            scssWizard.setCurrentPageInfo(saveButton.getChannelState('currentPageData'));
         });
-        addEventListener('mouseup', () => {
-            if (startScreenX === null) return;
-            startScreenX = null;
-            startWidth = null;
-            resizeEl.classList.remove('dragging');
-            rootEl.classList.remove('adjusting-panel-widths');
-        });
+
         if (getFromLocalStorage('sivujettiFollowLinksInstructionDismissed') !== 'yes') {
             const startShowInstructionTimeout = () => setTimeout(() => {
                 toasters.editAppMain(<div>
@@ -84,7 +73,7 @@ class EditApp extends preact.Component {
         }
     }
     /**
-     * @param {{outerEl: HTMLElement; onSaveButtonRefd: (cmp: SaveButton) => void; showGoToDashboardMode?: boolean; dashboardUrl?: string;}} props
+     * @param {{outerEl: HTMLElement; showGoToDashboardMode?: boolean; dashboardUrl?: string;}} props
      * @access protected
      */
     render({outerEl}) {
@@ -110,9 +99,9 @@ class EditApp extends preact.Component {
                         ) }</select>
                     </span>
                 </div>
-            <SaveButton
+            <SaveButtonRenderer
                 editAppOuterEl={ outerEl }
-                ref={ this.props.onSaveButtonRefd }/>
+                saveButton={ api.saveButton.getInstance() }/>
             </header>,
             <MyRouter history={ historyInstance }>
                 <DefaultState path="/:slug*"/>
@@ -136,6 +125,40 @@ class EditApp extends preact.Component {
                 toasters.editAppMain(__('Something unexpected happened.'), 'error');
             });
     }
+}
+
+/**
+ * @param {HTMLElement} resizeEl
+ */
+function registerResizeMouseHandlers(resizeEl) {
+    const rootEl = document.getElementById('root');
+    const startTreshold = 1;
+    const minWidth = 219;
+    const {documentElement, addEventListener} = document;
+    let startWidth = 0;
+    let startScreenX = null;
+    resizeEl.addEventListener('mousedown', async e => {
+        if (e.button !== 0) return;
+        startScreenX = e.screenX;
+        startWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--menu-column-width'));
+        resizeEl.classList.add('dragging');
+        rootEl.classList.add('adjusting-panel-widths');
+    });
+    addEventListener('mousemove', e => {
+        if (startScreenX === null) return;
+        const screenXDelta = e.screenX - startScreenX;
+        if (Math.abs(screenXDelta) < startTreshold) return;
+        const newWidth = clamp(parseInt(startWidth + screenXDelta, 10), minWidth, Infinity);
+        documentElement.style.setProperty('--menu-column-width', `${newWidth}px`);
+        events.emit('left-column-width-changed', newWidth);
+    });
+    addEventListener('mouseup', () => {
+        if (startScreenX === null) return;
+        startScreenX = null;
+        startWidth = null;
+        resizeEl.classList.remove('dragging');
+        rootEl.classList.remove('adjusting-panel-widths');
+    });
 }
 
 /**

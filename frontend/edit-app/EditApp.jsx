@@ -1,10 +1,10 @@
 import {
     __,
+    api,
     env,
     events,
     getFromLocalStorage,
     http,
-    Icon,
     putToLocalStorage,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
@@ -15,7 +15,7 @@ import PageCreateState from './menu-column/page/PageCreateState.jsx';
 import PageDuplicateState from './menu-column/page/PageDuplicateState.jsx';
 import PageTypeCreateState from './menu-column/page-type/PageTypeCreateState.jsx';
 import DefaultState from './menu-column/DefaultState.jsx';
-import SaveButton from './menu-column/SaveButton.jsx';
+import SaveButtonRenderer from './menu-column/SaveButtonRenderer.jsx';
 
 let showFirstTimeDragInstructions = env.window.isFirstRun && getFromLocalStorage('sivujettiDragInstructionsShown') !== 'yes';
 
@@ -84,7 +84,7 @@ class EditApp extends preact.Component {
         }
     }
     /**
-     * @param {{outerEl: HTMLElement; onSaveButtonRefd: (cmp: SaveButton) => void; showGoToDashboardMode?: boolean; dashboardUrl?: string;}} props
+     * @param {{outerEl: HTMLElement; showGoToDashboardMode?: boolean; dashboardUrl?: string;}} props
      * @access protected
      */
     render({outerEl}) {
@@ -110,9 +110,9 @@ class EditApp extends preact.Component {
                         ) }</select>
                     </span>
                 </div>
-            <SaveButton
+            <SaveButtonRenderer
                 editAppOuterEl={ outerEl }
-                ref={ this.props.onSaveButtonRefd }/>
+                saveButton={ api.saveButton.getInstance() }/>
             </header>,
             <MyRouter history={ historyInstance }>
                 <DefaultState path="/:slug*"/>

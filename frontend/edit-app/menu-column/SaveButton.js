@@ -1,35 +1,30 @@
-import {__, env, Icon, Events} from '@sivujetti-commons-for-edit-app';
+import {__, env, Events} from '@sivujetti-commons-for-edit-app';
 import {getMetaKey} from '../../shared-inline.js';
 import {historyInstance, isMainColumnViewUrl} from '../main-column/MainColumnViews.jsx';
 import {
+    createEventName,
     getLatestItemsOfEachChannel,
     handlerFactoriesMap,
-    createSignalName,
     normalizeItem,
-    createInitialState,
 } from './SaveButtonFuncs.js';
 
 const saveButtonEvents = new Events;
 const saveButtonEvents2 = new Events;
 
-const useStickiedClsChangeUpdater = false;
-
-class SaveButton extends preact.Component {
+class SaveButton {
     // states;
     // stateCursors;
     // channelImpls;
     // opHistory;
     // opHistoryCursor;
-    // unregisterUnsavedChangesAlert;
     // syncQueueFilters;
     // hotkeyUndoLockIsOn;
+    // renderer;
+    // unregisterUnsavedChangesAlert;
     /**
-     * @param {SaveButtonProps} props
      */
-    constructor(props) {
-        super(props);
+    constructor() {
         this.doInvalidateAll();
-        this.state = createInitialState();
         this.addUndoKeyListener();
         this.hotkeyUndoLockIsOn = false;
     }
@@ -43,7 +38,7 @@ class SaveButton extends preact.Component {
             env.window.console.warn(`Unknown channel "${name}". Known: ${Object.keys(handlerFactoriesMap).join(', ')}`);
             return;
         }
-        return saveButtonEvents.on(createSignalName(name), fn);
+        return saveButtonEvents.on(createEventName(name), fn);
     }
     /**
      * @param {string} name
@@ -60,7 +55,7 @@ class SaveButton extends preact.Component {
             this.clearStateOf(name, state);
 
             if (broadcastInitialStateToListeners)
-                saveButtonEvents.emit(createSignalName(name), state, null, 'initial');
+                saveButtonEvents.emit(createEventName(name), state, null, 'initial');
         } else throw new Error(`Unknown channel name: ${name}`);
     }
     /**
@@ -98,7 +93,10 @@ class SaveButton extends preact.Component {
                     const delCount = this.opHistoryCursor - firstI;
                     this.opHistory = [...this.opHistory.slice(0, firstI)];
                     this.opHistoryCursor = this.opHistory.length;
-                    this.states[channelName] = [...this.states[channelName].slice(0, this.stateCursors[channelName] - delCount), this.states[channelName].at(-1)];
+                    this.states[channelName] = [
+                        ...this.states[channelName].slice(0, this.stateCursors[channelName] - delCount),
+                        this.states[channelName].at(-1),
+                    ];
                     this.stateCursors[channelName] = this.states[channelName].length - 1;
                 }
             }
@@ -132,7 +130,7 @@ class SaveButton extends preact.Component {
     invalidateAll() {
         this.unregisterAndClearUnsavedChagesAlertIfSet();
         this.doInvalidateAll();
-        this.setState(createInitialState());
+        this.renderer.resetState();
         this.syncQueueFilters = [];
     }
     /**
@@ -168,51 +166,64 @@ class SaveButton extends preact.Component {
         return activeStatesMut;
     }
     /**
-     * @access protected
+     * @access public
      */
-    componentDidMount() {
-        if (useStickiedClsChangeUpdater)
-            this.props.editAppOuterEl.addEventListener('scroll', e => {
-                if (e.target.scrollTop > 21 && !this.state.isStickied)
-                    this.setState({isStickied: true});
-                else if (e.target.scrollTop < 21 && this.state.isStickied)
-                    this.setState({isStickied: false});
-            });
-        this.syncQueueFilters = [];
+    doUndo() {
+        const head = this.opHistory[--this.opHistoryCursor];
+        const norm = normalizeItem(head);
+        norm.forEach(({channelName, userCtx}) => {
+            const state = this.states[channelName][--this.stateCursors[channelName]];
+            this.emitStateChange(channelName, state, userCtx, 'undo');
+        });
+        this.renderer.setState(this.createCanUndoAndRedo());
     }
     /**
-     * @param {SaveButtonProps} props
-     * @access protected
+     * @access public
      */
-    render(_, {isVisible, canUndo, canRedo, isSubmitting, isStickied}) {
-        if (!isVisible) return;
-        const cls = !isStickied ? '' : ' stickied pl-1';
-        const icon = <Icon iconId="arrow-back-up" className={ `${!isStickied ? 'size-sm' : 'size-xs'} color-dimmed3` }/>;
-        const canSave = !canUndo && canRedo ? false : true;
-        return <div class={ `save-button d-flex col-ml-auto flex-centered${cls}` }>
-            <button
-                onClick={ this.doUndo.bind(this) }
-                class="btn btn-link px-1 pt-2"
-                title={ __('Undo latest change') }
-                disabled={ !canUndo }>
-                <span class="d-flex">{ icon }</span>
-            </button>
-            <button
-                onClick={ this.doRedo.bind(this) }
-                class="btn btn-link px-1 pt-2"
-                title={ __('Redo') }
-                disabled={ !canRedo }>
-                <span class="d-flex flipped-undo-icon">{ icon }</span>
-            </button>
-            <button
-                onClick={ this.syncQueuedOpsToBackend.bind(this) }
-                class="btn btn-link flex-centered px-2"
-                title={ __('Save changes') }
-                disabled={ !canSave || isSubmitting }>
-                <Icon iconId="device-floppy" className={ !isStickied ? '' : 'size-sm' }/>
-                <span class="mt-1 ml-1">*</span>
-            </button>
-        </div>;
+    doRedo() {
+        const head = this.opHistory[this.opHistoryCursor++];
+        normalizeItem(head).forEach(({channelName, userCtx}) => {
+            const state = this.states[channelName][++this.stateCursors[channelName]];
+            this.emitStateChange(channelName, state, userCtx, 'redo');
+        });
+        this.renderer.setState(this.createCanUndoAndRedo());
+    }
+    /**
+     * @access public
+     */
+    async syncQueuedOpsToBackend() {
+        this.unregisterAndClearUnsavedChagesAlertIfSet();
+        this.renderer.setState({isSubmitting: true});
+
+        const syncQueue = await this.createSynctobackendQueue();
+        for (const top of syncQueue) {
+            const handler = this.channelImpls[top.channelName];
+            const result = await handler.syncToBackend(top, syncQueue);
+            // If handler returns false -> stop processing. If it returns any other value
+            // (undefined, true, etc.) -> interpret this as a success and continue
+            const isStopSignal = result === false;
+            if (isStopSignal) {
+                this.removeOpHistoryItemsBetween(/*?, ? todo*/);
+                this.renderer.setState({isSubmitting: false});
+            }
+        }
+
+        this.reset(getLatestItemsOfEachChannel(syncQueue));
+        saveButtonEvents2.emit('after-items-synced');
+    }
+    /**
+     * @access public
+     */
+    getInstance() {
+        return this;
+    }
+    /**
+     * @param {preact.Component} renderer
+     * @access public
+     */
+    linkRenderer(renderer) {
+        this.renderer = renderer;
+        this.syncQueueFilters = [];
     }
     /**
      * @param {HistoryItem|Array<HistoryItem>} item
@@ -222,7 +233,7 @@ class SaveButton extends preact.Component {
         if (this.opHistoryCursor < this.opHistory.length)
             this.opHistory.splice(this.opHistoryCursor);
         this.opHistoryCursor = this.opHistory.push(item);
-        this.setState({isVisible: true, canUndo: true, canRedo: false});
+        this.renderer.setState({isVisible: true, canUndo: true, canRedo: false});
         if (!this.unregisterUnsavedChangesAlert) {
             // #1 Register a function that will prompt the user for confirmation during the next navigation
             const unregisterBlocker = historyInstance.block(__('You have unsaved changes, do you want to navigate away?'));
@@ -251,63 +262,7 @@ class SaveButton extends preact.Component {
     emitStateChange(channelName, state, userCtx, context) {
         const handler = this.channelImpls[channelName];
         handler.handleStateChange(state, userCtx, context);
-        saveButtonEvents.emit(createSignalName(channelName), state, userCtx, context);
-    }
-    /**
-     * @access private
-     */
-    doUndo() {
-        const head = this.opHistory[--this.opHistoryCursor];
-        const norm = normalizeItem(head);
-        norm.forEach(({channelName, userCtx}) => {
-            const state = this.states[channelName][--this.stateCursors[channelName]];
-            this.emitStateChange(channelName, state, userCtx, 'undo');
-        });
-        this.setState(this.createCanUndoAndRedo());
-    }
-    /**
-     * @access private
-     */
-    doRedo() {
-        const head = this.opHistory[this.opHistoryCursor++];
-        normalizeItem(head).forEach(({channelName, userCtx}) => {
-            const state = this.states[channelName][++this.stateCursors[channelName]];
-            this.emitStateChange(channelName, state, userCtx, 'redo');
-        });
-        this.setState(this.createCanUndoAndRedo());
-    }
-    /**
-     * @access private
-     */
-    createCanUndoAndRedo() {
-        const activeHistory = this.opHistory.slice(this.opHistoryCursor);
-        return {
-            canUndo: this.opHistoryCursor > 0,
-            canRedo: activeHistory.length > 0,
-        };
-    }
-    /**
-     * @access private
-     */
-    async syncQueuedOpsToBackend() {
-        this.unregisterAndClearUnsavedChagesAlertIfSet();
-        this.setState({isSubmitting: true});
-
-        const syncQueue = await this.createSynctobackendQueue();
-        for (const top of syncQueue) {
-            const handler = this.channelImpls[top.channelName];
-            const result = await handler.syncToBackend(top, syncQueue);
-            // If handler returns false -> stop processing. If it returns any other value
-            // (undefined, true, etc.) -> interpret this as a success and continue
-            const isStopSignal = result === false;
-            if (isStopSignal) {
-                this.removeOpHistoryItemsBetween(/*?, ? todo*/);
-                this.setState({isSubmitting: false});
-            }
-        }
-
-        this.reset(getLatestItemsOfEachChannel(syncQueue));
-        saveButtonEvents2.emit('after-items-synced');
+        saveButtonEvents.emit(createEventName(channelName), state, userCtx, context);
     }
     /**
      * @returns {state}
@@ -379,7 +334,7 @@ class SaveButton extends preact.Component {
             if (emitChange)
                 this.emitStateChange(channelName, initialState, {}, 'undo');
         }
-        this.setState(createInitialState());
+        this.renderer.resetState();
     }
     /**
      * @param {string} channelName
@@ -425,10 +380,10 @@ class SaveButton extends preact.Component {
             } else if (e.key === 'Shift') {
                 shiftKeyIsPressed = true;
             } else if (metaKeyIsPressed && e.key === undoKey) {
-                if (shiftKeyIsPressed && this.state.canRedo && !this.hotkeyUndoLockIsOn) {
+                if (shiftKeyIsPressed && this.renderer?.state.canRedo && !this.hotkeyUndoLockIsOn) {
                     e.preventDefault(); // Prevent active input's onInput
                     this.doRedo();
-                } else if (!shiftKeyIsPressed && this.state.canUndo && !this.hotkeyUndoLockIsOn) {
+                } else if (!shiftKeyIsPressed && this.renderer?.state.canUndo && !this.hotkeyUndoLockIsOn) {
                     e.preventDefault(); // Prevent active input's onInput
                     this.doUndo();
                 }
@@ -453,6 +408,16 @@ class SaveButton extends preact.Component {
     /**
      * @access private
      */
+    createCanUndoAndRedo() {
+        const activeHistory = this.opHistory.slice(this.opHistoryCursor);
+        return {
+            canUndo: this.opHistoryCursor > 0,
+            canRedo: activeHistory.length > 0,
+        };
+    }
+    /**
+     * @access private
+     */
     doInvalidateAll() {
         this.states = {};
         this.stateCursors = {};
@@ -464,9 +429,6 @@ class SaveButton extends preact.Component {
 }
 
 /**
- * @typedef SaveButtonProps
- * @prop {HTMLElement} editAppOuterEl
- *
  * @typedef {any} state
  *
  * @typedef HistoryItem

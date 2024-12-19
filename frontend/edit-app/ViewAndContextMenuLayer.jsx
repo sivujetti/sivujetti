@@ -30,7 +30,7 @@ class ViewAndContextMenuLayer extends preact.Component {
      */
     render({rootEl}) { return [
         <ContextMenu ref={ cmp => {
-            if (cmp && api.contextMenu.initialized === false) api.contextMenu = cmp;
+            if (cmp && !api.contextMenu.setState) api.contextMenu = cmp;
         } }/>,
         <MainPopper ref={ cmp => {
             if (cmp && !api.mainPopper.render) api.mainPopper = cmp;

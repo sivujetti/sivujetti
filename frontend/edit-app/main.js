@@ -2,19 +2,14 @@
 An entry point for global file "public/sivujetti/sivujetti-edit-app.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
-import {
-    __,
-    api,
-    events,
-    isUndoOrRedo,
-    scssWizard,
-} from '@sivujetti-commons-for-edit-app';
+import {__, api} from '@sivujetti-commons-for-edit-app';
 import WebPagePreviewApp from './main-column/WebPagePreviewApp.jsx';
 import InspectorPanel from './menu-column/InspectorPanel.jsx';
 import patchQuillEditor from './includes/quill-customizations.js';
 import globalData from './includes/globalData.js';
 import EditApp from './EditApp.jsx';
 import ViewAndContextMenuLayer from './ViewAndContextMenuLayer.jsx';
+import SaveButton from './menu-column/SaveButton.js';
 
 configureApis();
 
@@ -23,7 +18,7 @@ preact.render(
         urlToLoad="@currentUrl"
         highlightRectEls={ [...document.querySelectorAll('.highlight-rect')] }
         ref={ cmp => {
-            if (cmp && api.webPagePreview.initialized === false)
+            if (cmp && !api.webPagePreview.setState)
                 api.webPagePreview = cmp;
         } }/>,
     document.getElementById('webpage-preview-app')
@@ -34,25 +29,7 @@ window.dataFromAdminBackend.__websiteDebugOnly = window.dataFromAdminBackend.web
 delete window.dataFromAdminBackend.website;
 const editAppOuterEl = api.menuPanel.getOuterEl();
 preact.render(
-    <EditApp
-        outerEl={ editAppOuterEl }
-        onSaveButtonRefd={ saveButton => {
-            if (!saveButton) return;
-            api.saveButton.setInstance(saveButton);
-            const instance = api.saveButton.getInstance();
-            // Refresh ScssWizard's styles every time new styles (page) are loaded
-            // into the preview iframe, or when an undo|redo event happens
-            instance.subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
-                if (ctx === 'initial' || isUndoOrRedo(ctx))
-                    scssWizard.replaceStylesState(bundle);
-            });
-            // Update ScssWizard's 'currentPageIdPair' every time a new page is
-            // loaded into the preview iframe
-            events.on('webpage-preview-iframe-loaded', () => {
-                // See also ./menu-column/page/PageCreateState.jsx.componentWillMount() (if pageData.isPlaceholderPage === true)
-                scssWizard.setCurrentPageInfo(saveButton.getChannelState('currentPageData'));
-            });
-        } }/>,
+    <EditApp outerEl={ editAppOuterEl }/>,
     editAppOuterEl
 );
 
@@ -82,5 +59,6 @@ function configureApis() {
         api.registerTranslationStrings(strings);
     });
     //
+    api.saveButton = new SaveButton;
     patchQuillEditor();
 }

@@ -38,44 +38,6 @@ const api = {
     getAvailableUpdatePackages() { return dataFromBackend.availableUpdatePackages || []; },
     menuPanel: editAppMainMenuPanelApi,
     blockTypes: editAppBlockTypeRegister,
-    inspectorPanel: {
-        getOuterEl() { return document.getElementById('inspector-panel'); },
-        setInstance(cmp) { this._instance = cmp; },
-        close() { this._instance?.close(); },
-    },
-    saveButton: {
-        setInstance(cmp) { this._instance = cmp; },
-        getInstance() { return this._instance; }
-    },
-    user: editAppUserApiInstance,
-    registerTranslationStrings: editAppTranslatorInstance.addStrings.bind(editAppTranslatorInstance),
-
-    // These are initialized in ViewAndContextMenuLayer (../edit-app/main.js)
-    webPagePreview: {
-        initialized: false,
-        getEl() { return document.body.querySelector('.site-preview-iframe'); },
-        updateCss(/*compiledCss*/) { },
-        updateCssFast(/*blockId, scssChunk*/) { },
-        highlightBlock(/*block*/) { },
-        unHighlightBlock(/*blockId*/) { },
-        unHighlightTextBlockChildEl() { },
-        scrollToBlock(/*block, nthOfId*/) { },
-        scrollToBlockAsync(/*block, nthOfId*/) { },
-        highlightTextBlockChildEl(/*elIdx, textBlockBlockId, nthOfTextBlockBlockId*/) { },
-        onReady(/*fn*/) {},
-        sendMessageToReRenderer(/*args*/) {},
-    },
-    contextMenu: {
-        initialized: false,
-        open(/*event, controller*/) { },
-        close() { },
-    },
-    mainPopper: {
-        open(/*Renderer, btn, rendererProps = {}, settings = {}*/) {},
-        close() {},
-        refresh() {},
-        getCurrentRendererCls() {},
-    },
     export(name, item) {
         mainRegistry.set(name, item);
     },
@@ -87,6 +49,23 @@ const api = {
                 , []);
         return mainRegistry.get(name);
     },
+    user: editAppUserApiInstance,
+    registerTranslationStrings: editAppTranslatorInstance.addStrings.bind(editAppTranslatorInstance),
+
+    // Intialized in ../edit-app/main.js
+    saveButton: {},
+    webPagePreview: {
+        getEl() { return document.body.querySelector('.site-preview-iframe'); },
+    },
+    inspectorPanel: {
+        getOuterEl() { return document.getElementById('inspector-panel'); },
+        setInstance(cmp) { this._instance = cmp; },
+        close() { this._instance?.close(); },
+    },
+
+    // Initialized in ViewAndContextMenuLayer (../edit-app/main.js)
+    contextMenu: {},
+    mainPopper: {},
 };
 
 export {

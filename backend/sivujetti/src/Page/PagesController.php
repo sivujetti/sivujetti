@@ -166,6 +166,7 @@ final class PagesController {
                     "canSpecializeGlobalBlocks" => $userRole <= ACL::ROLE_ADMIN,
                     "canEditTheWebsitesBasicInfo" => $acl->can($userRole, "updateBasicInfoOf", "theWebsite"),
                     "canEditTheWebsitesGlobalScripts" => $acl->can($userRole, "updateGlobalScriptsOf", "theWebsite"),
+                    "canCheckTheWebsitesHealth" => $acl->can($userRole, "checkHealthOf", "theWebsite"),
                     "canListUploads" => $acl->can($userRole, "list", "uploads"),
                 ],
                 "userRole" => $userRole,

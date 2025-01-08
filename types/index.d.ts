@@ -15,21 +15,23 @@ interface SivujettiFrontendApi {
             // todo
         };
     };
-    user: {
-        can(doWhat: 'doAnything'|'editGlobalStylesVisually'|'editBlockCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'editTheWebsitesGlobalScripts'|'listUploads'): boolean;
-        getRole(): number;
-        ROLE_SUPER_ADMIN: number;
-        ROLE_ADMIN: number;
-        ROLE_ADMIN_EDITOR: number;
-        ROLE_EDITOR: number;
-        ROLE_AUTHOR: number;
-        ROLE_CONTRIBUTOR: number;
-        ROLE_FOLLOWER: number;
-    };
+    user: UserApi;
     registerTranslationStrings(strings: {[key: string]: string}): void;
     webPagePreview: WebPagePreviewApp;
     import(name: string): any|Array<any>;
     export(name: string, item: any): void;
+}
+
+interface UserApi {
+    can(doWhat: 'doAnything'|'editGlobalStylesVisually'|'editBlockCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'editTheWebsitesGlobalScripts'|'checkTheWebsitesHealth'|'listUploads'): boolean;
+    getRole(): number;
+    ROLE_SUPER_ADMIN: number;
+    ROLE_ADMIN: number;
+    ROLE_ADMIN_EDITOR: number;
+    ROLE_EDITOR: number;
+    ROLE_AUTHOR: number;
+    ROLE_CONTRIBUTOR: number;
+    ROLE_FOLLOWER: number;
 }
 
 interface OpQueueOp {
@@ -269,6 +271,7 @@ interface TheWebsiteBundle {
         canSpecializeGlobalBlocks: boolean;
         canEditTheWebsitesBasicInfo: boolean;
         canEditTheWebsitesGlobalScripts: boolean;
+        canCheckTheWebsitesHealth: boolean;
         canListUploads: boolean;
     };
     userRole: number;
@@ -293,6 +296,7 @@ interface TheWebsiteBundle2 {
         canSpecializeGlobalBlocks: boolean;
         canEditTheWebsitesBasicInfo: boolean;
         canEditTheWebsitesGlobalScripts: boolean;
+        canCheckTheWebsitesHealth: boolean;
         canListUploads: boolean;
     };
     userRole: number;

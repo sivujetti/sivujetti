@@ -2,10 +2,13 @@
 
 namespace Sivujetti\TheWebsite;
 
+use anlutro\cURL\cURL;
 use Pike\{Request, Response, Validation};
 use Pike\Db\FluentDb2;
 use Pike\Interfaces\FileSystemInterface;
 use Sivujetti\{AppEnv, JsonUtils, ValidationUtils};
+use Sivujetti\Page\{PagesController, WebPageAwareTemplate};
+use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class TheWebsiteController {
     private const T = "\${p}theWebsite";
@@ -74,13 +77,49 @@ final class TheWebsiteController {
     /**
      * GET /api/the-website/issues: returns security and other issues.
      *
+     * @param \Pike\Request $req
      * @param \Pike\Response $res
+     * @param \Sivujetti\AppEnv $appEnv
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
-    public function getSecurityAndOtherIssues(Response $res): void {
+    public function getSecurityAndOtherIssues(Request $req, Response $res, AppEnv $appEnv, TheWebsite $theWebsite): void {
         $issues = [];
-        // todo only if not localhost
-        if (in_array(ini_get("display_errors"), ["1", "On"], false) && extension_loaded("xdebug"))
-            $issues[] = "Xdebug is enabled. This is a security risk.";
+        $host = PagesController::getServerHost($req); // "http[s]://foo.com"
+        $hostNoScheme = parse_url($host, PHP_URL_HOST);
+        $isLocalhost = in_array($hostNoScheme, ["localhost", "127.0.0.1", "[::1]", "::1"], true);
+
+        if ($isLocalhost && ini_get("display_errors") === "1" && extension_loaded("xdebug")) {
+            $issues[] = (object) ["issue" => "Xdebug is enabled", "detail" => null];
+        }
+
+        // If SIVUJETTI_BACKEND_PATH = '/to/htdocs/backend/' and SIVUJETTI_INDEX_PATH === '/to/htdocs/'
+        $backendIsInsidePublicDir = dirname(SIVUJETTI_INDEX_PATH . "file.php") === dirname(SIVUJETTI_BACKEND_PATH . "file.php", 2);
+        if ($backendIsInsidePublicDir &&
+            strlen(self::createFetchFn($host, $appEnv)(substr(SIVUJETTI_BACKEND_PATH, strlen(SIVUJETTI_INDEX_PATH)) . // "/to/htdocs/backend/" -> "backend/"
+                                                      "assets/templates/edit-app-wrapper.tmpl.php"))) {
+            $issues[] = (object) [
+                "issue" => "Backend directory is publicly accessible",
+                "detail" => $isLocalhost ? "isFineBecauseLocalhost" : null,
+            ];
+        }
+
+        if (!$isLocalhost && (
+            $theWebsite->hideFromSearchEngines ||
+            str_contains(self::createFetchFn($host, $appEnv)("/"), "noindex, nofollow, nosnippet, noarchive")
+        )) {
+            $issues[] = (object) [
+                "issue" => "Website is hidden from search engines",
+                "detail" => $theWebsite->hideFromSearchEngines ? null : "isNotHiddenInSettings",
+            ];
+        }
+
+        if (!str_contains(
+            self::createFetchFn($host, $appEnv)("/?in-edit=1"),
+            "<script>sivujettiWebPagePreviewRendererApp.mountToDocumentBody(window.__pageDataDebugOnly)</script></body>"
+        )) {
+            $issues[] = (object) ["issue" => "File conflict detected", "detail" => null];
+        }
+
         $res->json($issues);
     }
     /**
@@ -120,5 +159,21 @@ final class TheWebsiteController {
             ->rule("footHtml", "type", "string")
             ->rule("footHtml", "maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN)
             ->validate($input);
+    }
+    /**
+     * @param object $serverHost
+     * @param \Sivujetti\AppEnv $appEnv
+     * @return \Closure
+     * @psalm-return \Closure(string):string
+     */
+    private static function createFetchFn(string $serverHost, AppEnv $appEnv): \Closure {
+        static $fetch;
+        if (!$fetch) {
+            $tmpl = (new WebPageAwareTemplate("", env: $appEnv->constants));
+            $fetch = static fn(string $url): string =>
+                (new cURL)->get("{$serverHost}{$tmpl->makeUrl($url)}")->getBody()
+            ;
+        }
+        return $fetch;
     }
 }

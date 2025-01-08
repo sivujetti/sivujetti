@@ -23,7 +23,7 @@ final class TheWebsiteModule {
         );
         $router->map("GET", "/api/the-website/issues",
             [TheWebsiteController::class, "getSecurityAndOtherIssues", ["consumes" => "application/json",
-                                                                        "identifiedBy" => ["updateBasicInfoOf", "theWebsite"]]] // todo
+                                                                        "identifiedBy" => ["checkHealthOf", "theWebsite"]]]
         );
     }
 }

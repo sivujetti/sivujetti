@@ -184,12 +184,13 @@ Structure:
 }
 .fieldset .legend {
     background: var(--color-bg-default);
-    padding: 0 .2rem !important;
+    padding: 0 .3rem !important;
     display: inline-block;
     position: relative;
-    line-height: 1px;
+    line-height: .9rem;
     bottom: .7rem;
-    right: 0.2rem;
+    right: .1rem;
+    font-weight: 400;
 }
 .fieldset .legend + * {
     margin-top: -.4rem;
@@ -524,24 +525,24 @@ h2 {
 
 /* == EditApp: Components ============================================== */
 /* EditApp: Components: info boxes & toaster messages */
-p.info-box, .toaster-message {
+.info-box, .toaster-message {
     padding: 1.2rem;
     border-left: 2px solid rgb(177,177,179);
     background-color: rgba(177,177,177,0.078);
 }
-p.info-box.error, .toaster-message.error {
+.info-box.error, .toaster-message.error {
     border-color: rgb(254,90,120);
     background-color: rgba(254,90,120,0.031);
 }
-p.info-box.notice, .toaster-message.notice {
+.info-box.notice, .toaster-message.notice {
     border-color: rgb(254,203,90);
     background-color: rgba(255,146,57,0.05);
 }
-p.info-box.success, .toaster-message.success {
+.info-box.success, .toaster-message.success {
     border-color: rgb(47,200,139);
     background-color: rgba(47,200,139,0.06);
 }
-p.info-box, .toaster-message {
+.info-box, .toaster-message {
     border-left: 2px solid rgb(147, 188, 243);
     background-color: rgba(147, 188, 243, 0.07);
 }

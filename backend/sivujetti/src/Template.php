@@ -53,7 +53,7 @@ class Template extends PikeTemplate {
         // "/path?myvar=val" -> "index.php?q=/path&myvar=val"
         $pcs = explode("?", ltrim($url, "/"), 2);
         return $this->__env["BASE_URL"] . $indexFile . self::escAttr($pcs[0]) .
-            (count($pcs) === 1 ? "" : ("&amp;" . self::escAttr($pcs[1])));
+            (count($pcs) === 1 ? "" : ("&" . self::escAttr($pcs[1])));
     }
     /**
      * "foo.tmpl.php" -> SIVUJETTI_SITE_PATH . "templates/foo.tmpl.php"

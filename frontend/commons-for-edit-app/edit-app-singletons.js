@@ -14,6 +14,7 @@ const __ = editAppTranslatorInstance.t.bind(editAppTranslatorInstance);
 
 const dataFromBackend = window.dataFromAdminBackend || {};
 const {userPermissions, userRole} = dataFromBackend || {userPermissions: {}, userRole: null};
+/** @type {UserApi} */
 const editAppUserApiInstance = {
     can(doWhat) { return userPermissions[`can${stringUtils.capitalize(doWhat)}`] === true; },
     getRole() { return userRole; },

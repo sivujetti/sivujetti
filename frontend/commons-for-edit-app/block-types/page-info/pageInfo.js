@@ -19,6 +19,7 @@ import ImagePicker from '../../ImagePicker.jsx';
 import {completeImageSrc} from '../../../shared-inline.js';
 import ManyToManyField from './ManyToManyField.jsx';
 
+/** @extends {preact.Component<BlockEditFormProps, any>} */
 class PageInfoBlockEditForm extends preact.Component {
     // titleEl;
     // descriptionEl;
@@ -42,8 +43,8 @@ class PageInfoBlockEditForm extends preact.Component {
             {name: 'title', value: initialFormState[0].value, validations: [['required'], ['maxLength', 92]],
              label: __('Page title'), onAfterValueChanged: (value, hasErrors, source) => {
                 throttler({
-                    ...{title: value},
-                    ...(curPage.isPlaceholderPage ? createSlugAndPath(makeSlug(value), this.pageType): {})
+                    title: value,
+                    ...(curPage.isPlaceholderPage ? createSlugAndPath(makeSlug(value), this.pageType) : {})
                 }, hasErrors, source);
             }},
             {name: 'slug', value: initialFormState[1].value, validations: [['required'], ['maxLength', 92],
@@ -88,7 +89,6 @@ class PageInfoBlockEditForm extends preact.Component {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {BlockEditFormProps} props
      * @access protected
      */
     render(_, {socialImageSrc, metaImgLoadError, status}) {
@@ -222,7 +222,7 @@ function getNormalizedMetaImageSrc(page) {
 /**
  * @param {string} slug
  * @param {PageType} pageType
- * @returns {slug: string; path: string;}
+ * @returns {{slug: string; path: string;}}
  */
 function createSlugAndPath(slug, pageType) {
     return {slug, path: makePath(slug, pageType)};

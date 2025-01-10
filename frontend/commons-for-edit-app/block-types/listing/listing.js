@@ -1,7 +1,7 @@
 import {__} from '../../edit-app-singletons.js';
 import EditForm from './ListingBlockEditForm.jsx';
 import StylesEditForm from './ListingBlockVisualStylesEditForm.jsx';
-/** @typedef {import('./ListingBlockEditForm.jsx').RendererSettings} RendererSettings */
+/** @typedef {import('./filterPopupForms.jsx').RendererSettings} RendererSettings */
 
 /**
  * @typedef ListingBlockProps

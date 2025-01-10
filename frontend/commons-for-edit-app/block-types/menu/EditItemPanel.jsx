@@ -14,10 +14,11 @@ import {
 import {Icon} from '../../Icon.jsx';
 import {objectUtils} from '../../utils.js';
 
+/** @extends {preact.Component<{item: MenuLink|null; onValueChanged: (value: string, key: keyof MenuLink) => void; done: () => void; menuForm?: MenuBlockEditForm;}, any>} */
 class EditItemPanel extends preact.Component {
     // crudListRef;
     /**
-     * @param {{item: MenuLink|null; onValueChanged: (value: string, key: keyof MenuLink) => void; done: () => void; menuForm?: MenuBlockEditForm;}} props
+     * @access protected
      */
     componentWillMount() {
         this.crudListRef = preact.createRef();

@@ -333,8 +333,8 @@ interface ContextMenuLink {
 
 type blockPropValueChangeFlags = 'is-throttled'|'is-group'|'is-initial'|null;
 
-interface BlockEditFormProps {
-    block: Block;
+interface BlockEditFormProps<T=Object> {
+    block: Block & T;
     lastBlockTreeChangeEventInfo: {
         ctx: stateChangeContext;
         flags: blockPropValueChangeFlags;

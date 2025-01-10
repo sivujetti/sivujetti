@@ -11,9 +11,9 @@ import {
 import {generatePushID} from '../../utils.js';
 import {makePath, makeSlug} from '../../local-url-utils.js';
 
+/** @extends {preact.Component<{pageType: PageType; cssClass: string; onAddingFinished: (newCompactPage: RelPage|null) => void; panelHeight: number;}, any>} */
 class AddCategoryPanel extends preact.Component {
     /**
-     * @param {{pageType: PageType; cssClass: string; onAddingFinished: (newCompactPage: RelPage|null) => void; panelHeight: number;}} props
      * @access protected
      */
     componentWillReceiveProps(props) {
@@ -72,7 +72,7 @@ class AddCategoryPanel extends preact.Component {
             path: makePath(slug, this.props.pageType),
             type: this.props.pageType.name,
         });
-        return Promise.resolve(true);
+        return Promise.resolve();
     }
 }
 

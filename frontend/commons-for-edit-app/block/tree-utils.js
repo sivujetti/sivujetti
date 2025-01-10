@@ -78,7 +78,7 @@ const blockTreeUtils = {
         });
     },
     /**
-     * @param {GlobalBlockTree|Array<Block>} input
+     * @param {GlobalBlockTree|Array<Block>} root
      * @returns {string} 'main' or <pushId>
      * @access public
      */
@@ -86,7 +86,7 @@ const blockTreeUtils = {
         return this.isMainTree(root) ? 'main' : root.id;
     },
     /**
-     * @param {GlobalBlockTree|Array<Block>} input
+     * @param {GlobalBlockTree|Array<Block>} root
      * @returns {boolean}
      * @access public
      */

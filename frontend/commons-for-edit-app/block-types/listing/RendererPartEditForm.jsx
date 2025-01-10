@@ -146,7 +146,7 @@ class RendererPartEditForm extends preact.Component {
         return null;
     }
     /**
-     * @param {val} any
+     * @param {any} val
      * @param {keyof HeadingPartData | keyof ImagePartData | keyof LinkPartData} prop
      * @access private
      */

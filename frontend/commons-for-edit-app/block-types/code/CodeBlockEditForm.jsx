@@ -14,6 +14,7 @@ import {Icon} from '../../Icon.jsx';
 
 const saveBtnEdgeCssStr = '.2rem';
 
+/** @extends {preact.Component<BlockEditFormProps, any>} */
 class CodeBlockEditForm extends preact.Component {
     // userCanEditCode;
     // codeInputEl;
@@ -102,7 +103,6 @@ class CodeBlockEditForm extends preact.Component {
         this.unregisterScrollListner();
     }
     /**
-     * @param {BlockEditFormProps} props
      * @access protected
      */
     render(_, {committedCode, committingCode, values}) {
@@ -138,7 +138,6 @@ class CodeBlockEditForm extends preact.Component {
         </FormGroup>;
     }
     /**
-     * @param {BlockEditFormProps} props
      * @access protected
      */
     commitCurrentlyTypedCode() {

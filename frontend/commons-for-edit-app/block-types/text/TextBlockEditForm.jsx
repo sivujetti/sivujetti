@@ -28,6 +28,7 @@ events.on('web-page-click-received', (/*blockId, nthOfId*/) => {
         currentInstance.maybeScrollToEditorNode(currentHoveredNodeInfo);
 });
 
+/** @extends {preact.Component<BlockEditFormProps<{html: string;}>, any>} */
 class TextBlockEditForm extends preact.Component {
     // editor;
     // editorId;
@@ -108,7 +109,6 @@ class TextBlockEditForm extends preact.Component {
         unhookForm(this);
     }
     /**
-     * @param {BlockEditFormProps} props
      * @access protected
      */
     render() {
@@ -196,8 +196,9 @@ function getChildNodeIdx(node, parent) {
 }
 
 /**
- * @typedef TextBlockProps
- * @prop {string} html
+ * @typedef {{html: string;}} TextBlockProps
+ *
+ * @typedef {{blockId: string; childIdx: number;}} HoverNodeInfo
  */
 
 export default TextBlockEditForm;

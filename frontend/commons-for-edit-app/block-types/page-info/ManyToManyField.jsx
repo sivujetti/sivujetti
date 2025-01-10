@@ -5,11 +5,9 @@ import LoadingSpinner from '../../LoadingSpinner.jsx';
 import {isUndoOrRedo, objectUtils} from '../../utils.js';
 import AddCategoryPanel from './AddCategoryPanel.jsx';
 
+/** @extends {preact.Component<{curSelections: Array<string>; onSelectionsChanged: (newSelections: Array<string>) => void; relPageType: PageType; onItemsFetched?: (manyToManyPages: Array<RelPage>) => void; useRadios?: boolean;}, any>} */
 class ManyToManyItemSelector extends preact.Component {
-    // unregistrables;
-    // selectionType;
     /**
-     * @param {{curSelections: Array<string>; onSelectionsChanged: (newSelections: Array<string>) => void; relPageType: PageType; onItemsFetched?: (manyToManyPages: Array<RelPage>) => void; useRadios?: boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -104,14 +102,8 @@ class ManyToManyItemSelector extends preact.Component {
     }
 }
 
+/** @extends {preact.Component<{field: PageTypeField; emitChanges: (setChanges: (pageToMutate: Page) => void) => void;}, any>} */
 class ManyToManyField extends preact.Component {
-    // unregistrables;
-    // k;
-    // firstPanelEl;
-    // relPageType;
-    /**
-     * @param {{field: PageTypeField; emitChanges: (setChanges: (pageToMutate: Page) => void) => void;}} props
-     */
     constructor(props) {
         super(props);
         if (props.field.dataType.type !== 'many-to-many')
@@ -159,7 +151,7 @@ class ManyToManyField extends preact.Component {
                         pageType={ this.relPageType }
                         cssClass={ createCatPanelState.rightClass }
                         onAddingFinished={ newCompactPage => {
-                            this.setState({createCatPanelState: createCreateCatPanelStateState('reveal-from-left', 'fade-to-right', false)});
+                            this.setState({createCatPanelState: createCreateCatPanelStateState('reveal-from-left', 'fade-to-right')});
                             if (newCompactPage) {
                                 const saveButton = api.saveButton.getInstance();
                                 saveButton.pushOp(
@@ -195,8 +187,7 @@ class ManyToManyField extends preact.Component {
     openCreateCategoryPanel() {
         this.setState({createCatPanelState: createCreateCatPanelStateState(
             'fade-to-left',
-            'reveal-from-right',
-            true
+            'reveal-from-right'
         )});
     }
 }

@@ -166,7 +166,7 @@ function hasErrors(cmp) {
 
 /**
  * @param {preact.Component} cmp
- * @param {Array<InputDef>} inps
+ * @param {Array<{name: string; value?: string|number;}>} inps
  * @param {{[key: string]: any;}} initialState = {}
  */
 function reHookValues(cmp, inps, initialState = {}) {
@@ -303,12 +303,13 @@ class FormGroupInline extends preact.Component {
 /**
  * @typedef InputDef
  * @prop {string} name e.g. 'numColumns'
- * @prop {string|number} value e.g. 1, 'foo'
- * @prop {Array<[string, ...any]>} validations e.g. [['min', 0], ['max', 12]]
+ * @prop {(string|number)=} value e.g. 1, 'foo'
+ * @prop {Array<[string|{doValidate: (val: any, hints?: {}) => boolean; errorMessageTmpl: string;}, ...any]>} validations e.g. [['min', 0], ['max', 12]]
  * @prop {string=} id e.g. 'numColumns'
  * @prop {string=} label e.g. 'Num columns'
  * @prop {string=} valueType e.g. 'int'
  * @prop {string=} type e.g. 'number'
+ * @prop {((value: string, numErrors: boolean, source: 'undo'|'redo'|'default'|string) => any)=} onAfterValueChanged
  * other props
  */
 

@@ -6,7 +6,7 @@ use Sivujetti\Page\WebPageAwareTemplate;
 
 use function Sivujetti\createElement as el;
 
-final class TextBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
+class TextBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
     /**
      * @inheritdoc
      */

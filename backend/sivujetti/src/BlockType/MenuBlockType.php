@@ -10,7 +10,7 @@ use function Sivujetti\createElement as el;
  * @psalm-type LinkTreeItem = {id: string, slug: string, text: string, children: array<int, LinkTreeItem>, includeToggleButton?: bool}
  * @psalm-import-type VNode from Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface
  */
-final class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
+class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
     /**
      * @inheritdoc
      */

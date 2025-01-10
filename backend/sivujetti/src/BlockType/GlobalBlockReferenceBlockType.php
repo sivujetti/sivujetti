@@ -6,8 +6,7 @@ use Pike\Injector;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
 
-final class GlobalBlockReferenceBlockType implements BlockTypeInterface,
-                                                     RenderAwareBlockTypeInterface {
+class GlobalBlockReferenceBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterface {
     public const EMPTY_OVERRIDES = "{}";
     /** @var array<int, \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree|null> */
     private static array $trees = [];

@@ -2,7 +2,7 @@
 
 namespace Sivujetti\BlockType;
 
-final class PageInfoBlockType implements BlockTypeInterface {
+class PageInfoBlockType implements BlockTypeInterface {
     /**
      * @inheritdoc
      */

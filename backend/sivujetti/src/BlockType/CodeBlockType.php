@@ -8,7 +8,7 @@ use Sivujetti\ValidationUtils;
 
 use function Sivujetti\createElement as el;
 
-final class CodeBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
+class CodeBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
     /**
      * @inheritdoc
      */

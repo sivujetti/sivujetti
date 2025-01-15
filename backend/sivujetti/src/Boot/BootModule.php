@@ -68,42 +68,6 @@ class BootModule {
         $this->loadEssentialsIfNotLoaded($di);
     }
     /**
-     * @param \Pike\Request $req
-     * @param bool $devModeIsOn
-     * @return string $error or ""
-     */
-    private function validateRouteContext(Request $req, bool $devModeIsOn): string {
-        $routeInfo = $req->routeInfo->myCtx ?? null;
-        if (!is_array($routeInfo))
-            return "All routes must define a context (router->map('A', 'B', <context>))";
-        if ($devModeIsOn &&
-            !is_array($routeInfo["identifiedBy"] ?? null) &&
-            ($routeInfo["skipAuth"] ?? null) !== true &&
-            ($routeInfo["skipAuthButLoadRequestUser"] ?? null) !== true)
-            return "A route context must contain `identifiedBy` or `skipAuth` or `skipAuthButLoadRequestUser`";
-        return "";
-    }
-    /**
-     * @param \Pike\Request $req
-     * @param \Pike\Response $res
-     * @return bool $requestMetaWasOk
-     * @throws \Pike\PikeException If the route definition (ctx->router->map) wasn't valid
-     */
-    private function validateRequestMeta(Request $req, Response $res): bool {
-        $ctx = $req->routeInfo->myCtx;
-        if (($consumesStr = $ctx["consumes"] ?? "") &&
-            !str_starts_with($req->header("Content-Type", "text/html"), $consumesStr)) {
-            $res->status(415)->plain("Unexpected content-type");
-            return false;
-        }
-        if (!($ctx["allowMissingRequestedWithHeader"] ?? false) &&
-            $req->header("X-Requested-With", null) === null) {
-            $res->status(400)->plain("X-Requested-With missing");
-            return false;
-        }
-        return true;
-    }
-    /**
      * @param \Pike\Injector $di
      */
     protected function doLoadEssentials(Injector $di): void {
@@ -120,6 +84,28 @@ class BootModule {
             userRoleCookieName: "maybeLoggedInUserRole",
             doUseRememberMe: true
         ));
+    }
+    /**
+     * @param \Sivujetti\SharedAPIContext $apiCtx
+     * @param \Pike\Router $router
+     */
+    protected function instantiateSite(SharedAPIContext $apiCtx,
+                                       Router $router): void {
+        $apiCtx->userSite = $this->instantiatePluginOrSite(null, $apiCtx, $router);
+    }
+    /**
+     * @param \Sivujetti\SharedAPIContext $apiCtx
+     * @param \Pike\Router $router
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+     */
+    protected function instantiatePlugins(SharedAPIContext $apiCtx,
+                                          Router $router,
+                                          TheWebsite $theWebsite): void {
+        $instances =& $apiCtx->userPlugins; // Note: reference
+        foreach ($theWebsite->plugins as $fromDb) {
+            if (array_key_exists($fromDb->name, $instances)) continue;
+            $instances[$fromDb->name] = $this->instantiatePluginOrSite($fromDb, $apiCtx, $router);
+        }
     }
     /**
      * @param \Pike\Injector $di
@@ -186,28 +172,6 @@ class BootModule {
         $this->essentialsLoaded = true;
     }
     /**
-     * @param \Sivujetti\SharedAPIContext $apiCtx
-     * @param \Pike\Router $router
-     */
-    private function instantiateSite(SharedAPIContext $apiCtx,
-                                     Router $router): void {
-        $apiCtx->userSite = $this->instantiatePluginOrSite(null, $apiCtx, $router);
-    }
-    /**
-     * @param \Sivujetti\SharedAPIContext $apiCtx
-     * @param \Pike\Router $router
-     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-     */
-    private function instantiatePlugins(SharedAPIContext $apiCtx,
-                                        Router $router,
-                                        TheWebsite $theWebsite): void {
-        $instances =& $apiCtx->userPlugins; // Note: reference
-        foreach ($theWebsite->plugins as $fromDb) {
-            if (array_key_exists($fromDb->name, $instances)) continue;
-            $instances[$fromDb->name] = $this->instantiatePluginOrSite($fromDb, $apiCtx, $router);
-        }
-    }
-    /**
      * @param ?\Sivujetti\Plugin\Entities\Plugin $plugin
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Pike\Router $router
@@ -231,5 +195,41 @@ class BootModule {
         if ($isPlugin)
             return new $Ctor(new UserPluginAPI($plugin->name, $apiCtx, $router, $this->di));
         return new $Ctor(new UserSiteAPI("site", $apiCtx));
+    }
+    /**
+     * @param \Pike\Request $req
+     * @param bool $devModeIsOn
+     * @return string $error or ""
+     */
+    private function validateRouteContext(Request $req, bool $devModeIsOn): string {
+        $routeInfo = $req->routeInfo->myCtx ?? null;
+        if (!is_array($routeInfo))
+            return "All routes must define a context (router->map('A', 'B', <context>))";
+        if ($devModeIsOn &&
+            !is_array($routeInfo["identifiedBy"] ?? null) &&
+            ($routeInfo["skipAuth"] ?? null) !== true &&
+            ($routeInfo["skipAuthButLoadRequestUser"] ?? null) !== true)
+            return "A route context must contain `identifiedBy` or `skipAuth` or `skipAuthButLoadRequestUser`";
+        return "";
+    }
+    /**
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @return bool $requestMetaWasOk
+     * @throws \Pike\PikeException If the route definition (ctx->router->map) wasn't valid
+     */
+    private function validateRequestMeta(Request $req, Response $res): bool {
+        $ctx = $req->routeInfo->myCtx;
+        if (($consumesStr = $ctx["consumes"] ?? "") &&
+            !str_starts_with($req->header("Content-Type", "text/html"), $consumesStr)) {
+            $res->status(415)->plain("Unexpected content-type");
+            return false;
+        }
+        if (!($ctx["allowMissingRequestedWithHeader"] ?? false) &&
+            $req->header("X-Requested-With", null) === null) {
+            $res->status(400)->plain("X-Requested-With missing");
+            return false;
+        }
+        return true;
     }
 }

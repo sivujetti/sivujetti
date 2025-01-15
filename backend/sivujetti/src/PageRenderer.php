@@ -17,20 +17,24 @@ use Sivujetti\Update\{CurlHttpClient, HttpClientInterface};
 
 use function Sivujetti\createElement as el;
 
-final class PageRenderer {
+/**
+ * @phpstan-import-type UserDefinedAssets from \Sivujetti\SharedAPIContext
+ */
+class PageRenderer {
     private array $configBundle;
     private ?AppEnv $parentAppEnv = null;
     /**
      * @param Request|string |string $reqOrPath
+     * @param (\Closure(UserDefinedAssets $enqueuedFiles): void)|null $onAfterExec = null
      * @return string
      */
-    public function renderToString(Request|string $reqOrPath): string {
-        $response = $this->execute($reqOrPath);
+    public function renderToString(Request|string $reqOrPath, ?\Closure $onAfterExec = null): string {
+        $response = $this->execute($reqOrPath, $onAfterExec);
         return $response->getActualBody();
     }
     /**
      * @param array $configBundle todo
-     * @return $this
+     * @return static
      */
     public function setConfig(array $configBundle): PageRenderer {
         $this->configBundle = $configBundle;
@@ -38,7 +42,7 @@ final class PageRenderer {
     }
     /**
      * @param \Sivujetti\AppEnv $parentAppEnv
-     * @return $this
+     * @return static
      */
     public function setParentAppEnv(AppEnv $parentAppEnv): PageRenderer {
         $this->parentAppEnv = $parentAppEnv;
@@ -46,9 +50,10 @@ final class PageRenderer {
     }
     /**
      * @param \Pike\Request|string $reqOrPath
+     * @param (\Closure(UserDefinedAssets $enqueuedFiles): void)|null $onAfterExec = null
      * @return \Pike\TestUtils\MutedSpyingResponse
      */
-    public function execute(Request|string $reqOrPath): MutedSpyingResponse {
+    public function execute(Request|string $reqOrPath, ?\Closure $onAfterExec = null): MutedSpyingResponse {
         static $appBuilder = null;
         if (!$appBuilder) {
             $useParentAppForConfig = $this->parentAppEnv !== null;
@@ -69,7 +74,11 @@ final class PageRenderer {
             ]);
             $appBuilder = new ResponseSpyingAppBuilder($pageRendererApp);
         }
-        return $appBuilder->sendRequest($reqOrPath);
+        $resp = $appBuilder->sendRequest($reqOrPath);
+        if ($onAfterExec) {
+            $onAfterExec(clone $appBuilder->getApp()->getDi()->make(SharedAPIContext::class)->userDefinedAssets);
+        }
+        return $resp;
     }
 }
 
@@ -90,6 +99,8 @@ class ParentAppAwarePageRendererBootModule extends PageRendererBootModule {
     private AppEnv $parentAppEnv;
     /** @var bool */
     private bool $isLoaded = false;
+    /** @var (\Closure(): void)|null */
+    private ?\Closure $resetApiCtx = null;
     /**
      * @inheritdoc
      */
@@ -100,7 +111,7 @@ class ParentAppAwarePageRendererBootModule extends PageRendererBootModule {
     }
     /**
      * @param \Sivujetti\AppEnv $parentAppEnv
-     * @return $this
+     * @return static
      */
     public function use(AppEnv $parentAppEnv): ParentAppAwarePageRendererBootModule {
         $this->parentAppEnv = $parentAppEnv;
@@ -111,11 +122,13 @@ class ParentAppAwarePageRendererBootModule extends PageRendererBootModule {
      */
     public function beforeExecCtrl(Injector $di): void {
         if ($this->isLoaded) {
-            $fromPrevCall = $di->make(SharedAPIContext::class);
-            $fromPrevCall->userDefinedAssets = (object) ["css" => [], "js" => []];
+            $fromPrevCall = $this->resetApiCtx;
+            $fromPrevCall();
+            $this->resetApiCtx = $di->make(SharedAPIContext::class)->createRestorePoint();
             return;
         }
         $this->configureDi($di);
+        $this->resetApiCtx = $di->make(SharedAPIContext::class)->createRestorePoint();
         $this->isLoaded = true;
     }
     /**
@@ -161,24 +174,28 @@ class ParentAppAwarePageRendererBootModule extends PageRendererBootModule {
             $di->alias(Db::class, $dbCls);
         $di->share($db);
         $di->share($fluentDb);
-
         $this->di = $di;
         //
         $di->alias(FileSystemInterface::class, FileSystem::class);
         $di->alias(SessionInterface::class, NativeSession::class);
         $di->alias(HttpClientInterface::class, CurlHttpClient::class);
         //
-        $apiCtx = $pdi->make(SharedAPIContext::class);
+        $apiCtx = new SharedAPIContext;
         $di->share($apiCtx);
-        // $apiCtx->blockTypes already initialized
-        $blockTypes = $pdi->make(BlockTypes::class);
+        $papiCtx = $pdi->make(SharedAPIContext::class);
+        //
+        $blockTypes = clone $pdi->make(BlockTypes::class);
         $this->patchBlockTypesIfNeeded($blockTypes);
+        $apiCtx->blockTypes = $blockTypes;
         $di->share($blockTypes);
-        // $apiCtx->blockRenderers already initialized
-
-        // $apiCtx->userSite already initialized
-        // $apiCtx->userPlugins already initialized
-        $di->share($pdi->make(TheWebsite::class));
+        //
+        $apiCtx->blockRenderers = $papiCtx->blockRenderers; // copy-on-write
+        //
+        $router = $di->make(Router::class);
+        $this->instantiateSite($apiCtx, $router);
+        $theWebsite = $pdi->make(TheWebsite::class);
+        $this->instantiatePlugins($apiCtx, $router, $theWebsite);
+        $di->share($theWebsite);
     }
     /**
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes

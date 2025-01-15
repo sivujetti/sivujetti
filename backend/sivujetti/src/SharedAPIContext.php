@@ -10,6 +10,9 @@ use Sivujetti\UserSite\UserSiteInterface;
 /**
  * Stuff registered by Site.php, Theme.php, SomePlugin.php. Gets populated on
  * every request.
+ *
+ * @phpstan-type UserDefinedAssets object{css: UserDefinedAsset[], js: UserDefinedAsset[]}
+ * @phpstan-type UserDefinedAsset object{url: string, attrs: array<string, string>}
  */
 final class SharedAPIContext {
     public const PHASE_INITIAL = 0;
@@ -23,11 +26,11 @@ final class SharedAPIContext {
     private array $filters;
     /** @var object @see Sivujetti\Boot\BootModule->loadEssentialsIfNotLoaded()  */
     public BlockTypes $blockTypes;
-    /** @var object {"css" => object[], "js" => object[]} @see also \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
+    /** @var UserDefinedAssets @see also \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
     public object $userDefinedAssets;
     /** @var array<int, array{fileId: string, impl: \Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface|null, friendlyName: string|null, associatedWith: string|null}> \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */
     public array $blockRenderers;
-    /** @var object {"editApp" => object[], "previewApp" => object[]} @see also \Sivujetti\UserSite\UserSiteAPI->enqueueEdit|PreviewAppJsFile() */
+    /** @var object{editApp: string[], previewApp: string[]} @see also \Sivujetti\UserSite\UserSiteAPI->enqueueEdit|PreviewAppJsFile() */
     public object $devJsFiles;
     /** @var array<string, \Sivujetti\UserPlugin\UserPluginInterface> */
     public array $userPlugins;
@@ -76,7 +79,7 @@ final class SharedAPIContext {
      */
     public function applyFilters(string $name, mixed ...$args): mixed {
         foreach (($this->filters[$name] ?? []) as $fn)
-            $args[0] = call_user_func_array($fn, $args);
+            $args[0] = $fn(...$args);
         return $args[0];
     }
     /**
@@ -103,5 +106,20 @@ final class SharedAPIContext {
                                     "to ensure they're all loaded",
                                     PikeException::ERROR_EXCEPTION);
         return $this->userPlugins[$name] ?? null;
+    }
+    /**
+     * @return \Closure(): void
+     */
+    public function createRestorePoint(): \Closure {
+        $eventListeners = $this->eventListeners;
+        $filters = $this->filters;
+        $userDefinedAssets = clone $this->userDefinedAssets;
+        $devJsFiles = clone $this->devJsFiles;
+        return function () use ($eventListeners, $filters, $userDefinedAssets, $devJsFiles) {
+            $this->eventListeners = $eventListeners;
+            $this->filters = $filters;
+            $this->userDefinedAssets = $userDefinedAssets;
+            $this->devJsFiles = $devJsFiles;
+        };
     }
 }

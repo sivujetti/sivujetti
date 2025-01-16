@@ -9,7 +9,7 @@ use Sivujetti\BlockType\ButtonBlockType;
 use Sivujetti\{PushIdGenerator, Template};
 
 /**
- * @psalm-import-type RawStorableBlock from \Sivujetti\BlockType\SaveAwareBlockTypeInterface
+ * @phpstan-import-type RawStorableBlock from \Sivujetti\BlockType\SaveAwareBlockTypeInterface
  */
 final class BlockTestUtils {
     /** @var ?\Sivujetti\Tests\Utils\PageTestUtils */
@@ -28,8 +28,7 @@ final class BlockTestUtils {
      * @param array<string, mixed>|object|null $propsData = null
      * @param ?string $id = null
      * @param ?string $styleClasses = null
-     * @return object
-     * @psalm-return RawStorableBlock
+     * @return RawStorableBlock
      */
     public function makeBlockData(?string $type = null,
                                   ?string $title = null,

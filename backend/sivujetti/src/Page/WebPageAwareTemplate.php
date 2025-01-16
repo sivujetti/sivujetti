@@ -7,19 +7,19 @@ use Sivujetti\{JsonUtils, SharedAPIContext, Template, ValidationUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Page\Entities\Page;
-use Sivujetti\Theme\ThemesController;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 use function Sivujetti\renderVNodes;
 use function Sivujetti\createElement as el;
 
 /*
- * @psalm-import-type VNode from Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface
+ * @phpstan-import-type VNode from \Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface
+ * @phpstan-import-type EnvConstants from \Sivujetti\AppEnv
  */
 final class WebPageAwareTemplate extends Template {
     /** @var ?object */
     private ?object $__cssAndJsFiles;
-    /** @var string[] */
+    /** @var list<string> */
     private array $__pluginNames;
     /** @var bool */
     private bool $__useEditModeMarkup;
@@ -32,14 +32,14 @@ final class WebPageAwareTemplate extends Template {
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
-     * @psalm-param EnvConstants $env = null (include "config.php")["env"]
+     * @param EnvConstants $env = null (include "config.php")["env"]
      * @param ?array<string, mixed> $initialLocals = null
      * @param ?\Sivujetti\SharedAPIContext $apiCtx = null
      * @param ?Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite = null
      * @param ?array<string> $pluginNames = null
      * @param ?bool $useEditModeMarkup = null
      * @param ?string $assetUrlCacheBustStr = ""
-     * @param ?array{page: object, layout: object, theme: object{id: string, styles: \Sivujetti\Theme\Entities\Style[]}} $getDataForPreviewApp = null
+     * @param ?array{page: object, layout: object, theme: object{id: string, styles: list<\Sivujetti\Theme\Entities\Style>}} $getDataForPreviewApp = null
      */
     public function __construct(string $file,
                                 ?array $vars = null,
@@ -188,7 +188,7 @@ final class WebPageAwareTemplate extends Template {
         return $block->children ? $this->renderBlocks($block->children) : "";
     }
     /**
-     * @param \Sivujetti\Block\Entities\Block[] $blocks
+     * @param list<\Sivujetti\Block\Entities\Block> $blocks
      * @return string
      */
     public function renderBlocks(array $blocks): string {
@@ -198,9 +198,8 @@ final class WebPageAwareTemplate extends Template {
         return renderVNodes($vnodes);
     }
     /**
-     * @param \Sivujetti\Block\Entities\Block[] $blocks
-     * @return array<int, array>
-     * @psalm-return array<int, VNode>
+     * @param list<\Sivujetti\Block\Entities\Block> $blocks
+     * @return list<VNode>
      */
     private function __createVNodeTree(array $blocks): array {
         $out = [];

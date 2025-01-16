@@ -3,8 +3,9 @@
 namespace Sivujetti;
 
 /**
- * @param       array<int, array|string|array<int, array|string>> $branch
- * @psalm-param array<int, VNode|string|array<int, VNode|string>> $branch
+ * @phpstan-import-type VNode from \Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface
+ *
+ * @param list<VNode|string|list<VNode|string>> $branch
  * @return string
  */
 function renderVNodes(array $branch): string {
@@ -39,9 +40,8 @@ function renderVNodes(array $branch): string {
 /**
  * @param string $el
  * @param array<string, string>|null $attrs
- * @param array<int, VNode>|array<int, string>|string ...$children
- * @return array
- * @psalm-return VNode
+ * @param list<VNode>|list<string>|string ...$children
+ * @return VNode
  */
 function createElement(string $el, ?array $attrs, array|string ...$children): array {
     return [

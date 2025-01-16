@@ -11,10 +11,11 @@ class TestState extends \stdClass {
 }
 
 /**
+ * @phpstan-import-type ConfigBundle from \Sivujetti\AppEnv
  * @param ?string $testSitePath = null Default __DIR__ . "/test-site/"
  * @param ?string $testPluginsPath = null Default SIVUJETTI_BACKEND_PATH . "plugins/"
- * @param \Closure $alterPsr4Loader = null
- * @return array{env: array<string, mixed>, app: array<string, mixed>} Config bundle see ConfigBundle @App.php
+ * @param \Closure(\Composer\Autoload\ClassLoader): void $alterPsr4Loader = null
+ * @return ConfigBundle
  */
 return function (?string $testSitePath = null,
                  ?string $testPluginsPath = null,

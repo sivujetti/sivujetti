@@ -5,14 +5,14 @@ namespace Sivujetti;
 use Pike\{PikeException, Template as PikeTemplate};
 
 /**
- * @psalm-import-type EnvConstants from \Sivujetti\AppEnv
+ * @phpstan-import-type EnvConstants from \Sivujetti\AppEnv
  */
 class Template extends PikeTemplate {
     private array $__env;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
-     * @psalm-param EnvConstants $env = null (include "config.php")["env"]
+     * @param EnvConstants $env = null (include "config.php")["env"]
      * @param ?array<string, mixed> $initialLocals = null
      */
     public function __construct(string $file,

@@ -3,7 +3,7 @@
 namespace Sivujetti\PageType\Entities;
 
 /**
- * @psalm-type RawPageTypeField = object{name: string, friendlyName: string, dataType: {type: string, isNullable?: bool, length?: int, validationRules?: array[], canBeEditedBy?: int}, defaultValue: string|int|mixed[]}
+ * @phpstan-type RawPageTypeField object{name: string, friendlyName: string, dataType: {type: string, isNullable?: bool, length?: int, validationRules?: list<list<mixed>>, canBeEditedBy?: int}, defaultValue: string|int|list<mixed>}
  */
 final class Field extends \stdClass {
     /** @var string */
@@ -12,13 +12,13 @@ final class Field extends \stdClass {
     public string $friendlyName;
     /** @var \Sivujetti\PageType\Entities\DataType */
     public DataType $dataType;
-    /** @var string|int|mixed[] */
+    /** @var string|int|list<mixed> */
     public string|int|array $defaultValue;
     /**
-     * @param \Closure $formatterFn = null fn(\Sivujetti\PageType\Entities\Field $field): string
+     * @param (\Closure(self): string)|null $formatterFn = null
      * @return string '`name`, `name2`'
      */
-    public function toSqlCol(\Closure $formatterFn = null): string {
+    public function toSqlCol(?\Closure $formatterFn = null): string {
         if (!$formatterFn)
             return "`{$this->name}`";
         return $formatterFn($this);
@@ -30,8 +30,8 @@ final class Field extends \stdClass {
         return "`{$this->name}` {$this->dataType->toSql()}";
     }
     /**
-     * @psalm-param RawPageTypeField $input
-     * @return \Sivujetti\PageType\Entities\Field
+     * @param RawPageTypeField $input
+     * @return self
      */
     public static function fromValidatedObject(object $input): Field {
         $out = new Field;
@@ -50,7 +50,7 @@ class DataType {
     public bool $isNullable;
     /** @var ?int */
     public ?int $length;
-    /** @var ?array<int, mixed[]> */
+    /** @var ?list<list<mixed>> */
     public ?array $validationRules;
     /** @var ?int */
     public ?int $canBeEditedBy;
@@ -85,7 +85,7 @@ class DataType {
         return $this->type . ($this->length ?? "");
     }
     /**
-     * @param object $obj {type: string, isNullable?: bool, length?: int, validationRules?: array<int, mixed[]>, canBeEditedBy?: int}
+     * @param object $obj {type: string, isNullable?: bool, length?: int, validationRules?: list<list<mixed>>, canBeEditedBy?: int}
      * @return \Sivujetti\PageType\Entities\DataType
      */
     public static function fromValidatedObject(object $obj): DataType {

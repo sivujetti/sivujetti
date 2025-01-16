@@ -3,14 +3,14 @@
 namespace Sivujetti\Block;
 
 use Pike\{ArrayUtils, Injector, PikeException, Request, Validation};
-use Sivujetti\AppEnv;
+use Sivujetti\{AppEnv, JsonUtils};
 use Sivujetti\Auth\ACL;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\BlockType\{PropertiesBuilder, SaveAwareBlockTypeInterface};
 
 /**
- * @psalm-type PropModification = array{propName: string}
- * @psalm-import-type RawStorableBlock from \Sivujetti\BlockType\SaveAwareBlockTypeInterface
+ * @phpstan-type PropModification array{propName: string}
+ * @phpstan-import-type RawStorableBlock from \Sivujetti\BlockType\SaveAwareBlockTypeInterface
  */
 final class BlocksInputValidatorScanner {
     /** @var \Sivujetti\BlockType\Entities\BlockTypes */
@@ -32,10 +32,10 @@ final class BlocksInputValidatorScanner {
         $this->appDi = $appEnv->di;
     }
     /**
-     * @param \Closure $getCurrentBlocks fn(): array<int, object>
+     * @param \Closure(): list<object> $getCurrentBlocks
      * @param \Pike\Request $req
      * @param bool $isInsert = false
-     * @return array{0: string|null, 1: array<int, string>|array<string, string>, 2: int}
+     * @return array{0: string|null, 1: list<string>|array<string, string>, 2: int}
      * @throws \Pike\PikeException
      */
     public function createStorableBlocks(\Closure $getCurrentBlocks,
@@ -66,19 +66,19 @@ final class BlocksInputValidatorScanner {
         //
         $this->runOnBeforeSaveForEach($storable, $isInsert);
         //
-        return [BlockTree::toJson($storable), null, 0];
+        return [JsonUtils::stringify($storable), null, 0];
     }
     /**
-     * @param array<int, object> $blocks
+     * @param list<object> $blocks
      * @return string
      */
     public function createStorableBlocksWithoutValidating(array $blocks): string {
         $validStorableBlocks = BlocksController::makeStorableBlocksDataFromValidInput($blocks, $this->blockTypes);
         $this->runOnBeforeSaveForEach($validStorableBlocks);
-        return BlockTree::toJson($validStorableBlocks);
+        return JsonUtils::stringify($validStorableBlocks);
     }
     /**
-     * @psalm-param RawStorableBlock[] $blocks
+     * @param list<RawStorableBlock> $storable
      * @param bool $isInsert = true
      */
     private function runOnBeforeSaveForEach(array $storable, bool $isInsert = true): void {
@@ -91,7 +91,7 @@ final class BlocksInputValidatorScanner {
     /**
      * @param array $current
      * @param array $new
-     * @return array{added: array<int, array{blockId: string}>, modified: array<int, array{blockId: string, blockType: string, mods: array<int, PropModification>}>, deleted: array<int, array{blockId: string}>}
+     * @return array{added: list<array{blockId: string}>, modified: list<array{blockId: string, blockType: string, mods: list<PropModification>}>, deleted: list<array{blockId: string}>}
      */
     private static function diff(array $current, array $new): array {
         $out = ["added" => [], "modified" => [], "deleted" => []];
@@ -112,9 +112,9 @@ final class BlocksInputValidatorScanner {
         return $out;
     }
     /**
-     * @param object $a {propsData: array<int, {key: string, value: string}>, ...}
-     * @param object $b {propsData: array<int, {key: string, value: string}>, ...}
-     * @return array<int, PropModification>
+     * @param object $a {propsData: list<{key: string, value: string}>, ...}
+     * @param object $b {propsData: list<{key: string, value: string}>, ...}
+     * @return list<PropModification>
      */
     private static function getPropModifications(object $a, object $b): array {
         $mods = [];
@@ -127,7 +127,7 @@ final class BlocksInputValidatorScanner {
     }
     /**
      * @param object $input
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     public function validateBlocksUpdateData(object $input): array {
         if (($errors = Validation::makeObjectValidator()

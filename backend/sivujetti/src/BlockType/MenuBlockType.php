@@ -7,8 +7,8 @@ use Sivujetti\Page\WebPageAwareTemplate;
 use function Sivujetti\createElement as el;
 
 /**
- * @psalm-type LinkTreeItem = {id: string, slug: string, text: string, children: array<int, LinkTreeItem>, includeToggleButton?: bool}
- * @psalm-import-type VNode from Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface
+ * @phpstan-type LinkTreeItem {id: string, slug: string, text: string, children: list<LinkTreeItem>, includeToggleButton?: bool}
+ * @phpstan-import-type VNode from Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface
  */
 class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
     /**
@@ -35,12 +35,11 @@ class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInte
         );
     }
     /**
-     * @param array $branch
+     * @param list<LinkTreeItem> $branch
      * @param object $block
      * @param int $depth
      * @param \Sivujetti\Page\WebPageAwareTemplate $tmpl
-     * @return array
-     * @psalm-return VNode
+     * @return VNode
      */
     private static function renderBranch(array $branch, object $block, int $depth, WebPageAwareTemplate $tmpl): array {
         $currentPageSlug = $tmpl->getLocal("currentUrl");
@@ -84,8 +83,7 @@ class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInte
     }
     /**
      * @param object $obj
-     * @return object
-     * @psalm-return LinkTreeItem
+     * @return LinkTreeItem
      */
     private static function objToTreeItem(object $obj): object {
         return (object) [
@@ -97,10 +95,8 @@ class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInte
         ];
     }
     /**
-     * @param array $input
-     * @psalm-param array<int, object> $input
-     * @return array
-     * @psalm-return array<int, LinkTreeItem>
+     * @param list<object> $input
+     * @return list<LinkTreeItem>
      */
     private static function createLinkTree(array $input): array {
         return array_map(self::objToTreeItem(...), $input);

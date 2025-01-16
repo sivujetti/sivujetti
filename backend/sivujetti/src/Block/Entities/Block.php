@@ -5,10 +5,10 @@ namespace Sivujetti\Block\Entities;
 use Sivujetti\{PushIdGenerator, ShortIdGenerator};
 
 /**
- * @psalm-type stylesLayer = 'user-styles'|'dev-styles'|'base-styles'
- * @psalm-type styleScopeKind = 'single-block'|'custom-class'|'base-vars'|'base-freeform'
- * @psalm-type StyleChunk = object{scss: string, scope: object{kind: styleScopeKind, layer: stylesLayer, page?: string}, data?: object{title?: string, customizationSettings?: object{varDefs: array<int, todo>}, associatedBlockTypes?: array<int, string>}}
- * @psalm-type BlockBlueprint = object{blockType: string, initialOwnData: object, initialDefaultsData: object{title: string, renderer: string, styleClasses: string}, initialStyles: array<int, StyleChunk>, initialChildren: array<int, BlockBlueprint>}
+ * @phpstan-type stylesLayer 'user-styles'|'dev-styles'|'base-styles'
+ * @phpstan-type styleScopeKind 'single-block'|'custom-class'|'base-vars'|'base-freeform'
+ * @phpstan-type StyleChunk object{scss: string, scope: object{kind: styleScopeKind, layer: stylesLayer, page?: string}, data?: object{title?: string, customizationSettings?: object{varDefs: list<todo>}, associatedBlockTypes?: list<string>}}
+ * @phpstan-type BlockBlueprint object{blockType: string, initialOwnData: object, initialDefaultsData: object{title: string, renderer: string, styleClasses: string}, initialStyles: list<StyleChunk>, initialChildren: list<BlockBlueprint>}
  */
 final class Block extends \stdClass {
     public const TYPE_BUTTON           = "Button";
@@ -34,11 +34,11 @@ final class Block extends \stdClass {
     public string $renderer;
     /** @var string */
     public string $id;
-    /** @var array array<int, {key: string, value: string}> */
+    /** @var array list<{key: string, value: string}> */
     public array $propsData;
     /** @var string Example "j-Section-default j-Section-header" */
     public string $styleClasses;
-    /** @var \Sivujetti\Block\Entities\Block[] */
+    /** @var list<\Sivujetti\Block\Entities\Block> */
     public array $children;
 
     /* If self::TYPE_BUTTON
@@ -75,7 +75,7 @@ final class Block extends \stdClass {
     public string $filterOrder; "desc"|"asc"|"rand"
     public object $filterAdditional; Example: {tokens: ["p.categories", "LIKE", ":b1", "AND", "p.slug", "LIKE", ":b2"], paramMap: [":b1" => "%id-here%", ":b2" => "/slug"]}
     public object|null $rendererSettings; Example: {parts: [{kind: "heading", data: {level: 2}}, {kind: "link", data: {text: "Read more"}}]}
-    public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page>
+    public ?array $__pages; ?list<\Sivujetti\Page\Entities\Page>
     public ?\Sivujetti\PageType\Entities\PageType $__pageType; */
 
     /* If self::TYPE_MENU
@@ -120,10 +120,8 @@ final class Block extends \stdClass {
         return $out;
     }
     /**
-     * @param object $blueprint
-     * @psalm-param BlockBlueprint $blueprint
-     * @param ?\Closure $onEach = null
-     * @psalm-param (\Closure(BlockBlueprint, Block): void)|null $onEach = null
+     * @param BlockBlueprint $blueprint
+     * @param (\Closure(BlockBlueprint, Block): void)|null $onEach = null
      * @return \Sivujetti\Block\Entities\Block
      */
     public static function fromBlueprint(object $blueprint, ?\Closure $onEach = null): Block {

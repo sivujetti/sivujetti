@@ -18,12 +18,12 @@ use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
 
 /**
- * @psalm-type EnvConstants = array{BASE_URL: string, QUERY_VAR: string, SITE_SECRET: string, UPDATE_KEY: string, UPDATE_CHANNEL: string} & array<string, mixed>
+ * @phpstan-import-type ConfigBundle from \Sivujetti\AppEnv
  */
 final class App extends PikeApp {
     public const VERSION = "0.17.0-dev";
     /**
-     * @psalm-param ConfigBundle|\Sivujetti\Boot\BootModule $config
+     * @param ConfigBundle|\Sivujetti\Boot\BootModule $config
      */
     public function __construct(array|BootModule $config) {
         parent::__construct();

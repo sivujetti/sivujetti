@@ -132,8 +132,7 @@ class ParentAppAwarePageRendererBootModule extends PageRendererBootModule {
         $this->isLoaded = true;
     }
     /**
-     * @return \Closure|null
-     * @psalm-return (\Closure(string):string)|null
+     * @return (\Closure(string):string)|null
      */
     public function createLinkPatcher(): ?\Closure {
         if (!$this->parentAppEnv) return null;

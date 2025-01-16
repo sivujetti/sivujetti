@@ -5,16 +5,15 @@ namespace Sivujetti\BlockType;
 use Sivujetti\Page\WebPageAwareTemplate;
 
 /**
- * @psalm-type VNode = array{el: string, attrs: array<string, string>, children: array<int, VNode|string>}
+ * @phpstan-type VNode array{el: string, attrs: array<string, string>, children: list<VNode|string>}
  */
 interface JsxLikeRenderingBlockTypeInterface {
     /**
      * @param object $block
-     * @param \Closure $createDefaultProps
-     * @param \Closure $renderChildren
+     * @param \Closure(?string): (array<string, string>|null) $createDefaultProps
+     * @param \Closure(): list<VNode|string> $renderChildren
      * @param \Sivujetti\Page\WebPageAwareTemplate $tmpl
-     * @return array
-     * @psalm-return VNode
+     * @return VNode
      */
     public function render(object $block,
                            \Closure $createDefaultProps,

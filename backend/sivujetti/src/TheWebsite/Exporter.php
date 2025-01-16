@@ -6,7 +6,7 @@ use Pike\Db\FluentDb2;
 use Pike\{AppConfig, Db};
 
 /**
- * @psalm-type ColumnInfo = array{tableName: string, entities: array<int, \stdClass>}
+ * @phpstan-type TableDump array{tableName: string, entities: list<\stdClass>>}
  */
 final class Exporter {
     /** @var \Pike\Db\FluentDb2 */
@@ -26,7 +26,7 @@ final class Exporter {
      * @param \Pike\Db $db
      * @param string $driver
      * @param ?string $schemaName = null
-     * @psalm-return ColumnInfo[]
+     * @return list<TableDump>
      */
     public static function describeTableColums(string $tableName, Db $db, string $driver, ?string $schemaName = null): array {
         $prefixedTableName = $db->compileQuery("\${p}{$tableName}");
@@ -46,11 +46,15 @@ final class Exporter {
             );
     }
     /**
-     * @psalm-return ColumnInfo[]
+     * @param list<string>|null $notTheseTables
+     * @return list<TableDump>
      */
-    public function export(): array {
+    public function export(?array $notTheseTables = []): array {
+        $notTheseTables = is_array($notTheseTables) ? $notTheseTables : ["users", "storedObjects", "plugins", "jobs", "snapshots"];
         $dbDriver = $this->config->get("db.driver");
-        $orderedTableNames = $this->orderedTableNamesOfCurrentSchema($dbDriver);
+        $orderedTableNamesAll = $this->orderedTableNamesOfCurrentSchema($dbDriver, $notTheseTables);
+        $filtered = array_filter($orderedTableNamesAll, fn($tableName) => !in_array($tableName, $notTheseTables, true));
+        $orderedTableNames = array_values($filtered);
 
         $schemaName = $dbDriver === "sqlite" ? null : $this->config->get("db.database");
         $out = [];
@@ -67,38 +71,28 @@ final class Exporter {
             $entities = $this->getEachRowFrom($tableName, $columnInfos);
             if (!$entities) continue;
             //
-            $cleaned = $this->cleanEachRowOf($tableName, $entities);
-            //
-            $out[] = (object) ["tableName" => $tableName, "entities" => $cleaned];
+            $out[] = (object) ["tableName" => $tableName, "entities" => $entities];
         }
 
         return $out;
     }
     /**
      * @param string $dbDriver
-     * @return string[]
+     * @return list<string>
      */
     private function orderedTableNamesOfCurrentSchema(string $dbDriver): array {
         $stmts = include SIVUJETTI_BACKEND_PATH . "installer/schema.{$dbDriver}.php";
         $filtered = array_filter($stmts, fn ($stmt) => str_starts_with($stmt, "CREATE TABLE "));
-        $noPrefixes = array_map(function ($line) {
-            $tmp = explode("\${p}", $line)[1]; // "CREATE TABLE `\${p}users` (" -> "users` ("
-            return explode("`", $tmp)[0]; // "users` (" -> "users"
+        $noPrefixes = array_map(function (string $line): string {
+            $tmp = explode("\${p}", $line)[1]; // "CREATE TABLE `\${p}tableName` (" -> "tableName` ("
+            return explode("`", $tmp)[0]; // "tableName` (" -> "tableName"
         }, $filtered);
-        $builtins = [
-            "users",
-            "storedObjects",
-            "plugins",
-            "jobs",
-            "snapshots",
-        ];
-        $noBuiltin = array_filter($noPrefixes, fn($tableName) => !in_array($tableName, $builtins, true));
-        return array_values($noBuiltin);
+        return $noPrefixes;
     }
     /**
      * @param string $tableName
-     * @psalm-param ColumnInfo[] $infos
-     * @return \stdClass[]
+     * @param list<TableDump> $infos
+     * @return list<\stdClass>
      */
     private function getEachRowFrom(string $tableName, array $infos): array {
         $cols = array_column($infos, "colName");
@@ -106,21 +100,5 @@ final class Exporter {
             ->fields($cols)
             ->limit(1000)
             ->fetchAll(\PDO::FETCH_OBJ);
-    }
-    /**
-     * @param string $tableName
-     * @param \stdClass[] $entities Note: mutates this
-     * @return \stdClass[]
-     */
-    private function cleanEachRowOf(string $tableName, array $entities): array {
-        if ($tableName === "theWebsite") {
-            for ($i = 0; $i < count($entities); ++$i) {
-                $entities[$i]->firstRuns = "{}";
-                $entities[$i]->pendingUpdates = null;
-                $entities[$i]->headHtml = "";
-                $entities[$i]->footHtml = "";
-            }
-        }
-        return $entities;
     }
 }

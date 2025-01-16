@@ -11,7 +11,7 @@ use Pike\TestUtils\SingleConnectionDb;
 use Sivujetti\Boot\BootModule;
 
 /**
- * @psalm-import-type ConfigBundle from \Sivujetti\App
+ * @phpstan-import-type ConfigBundle from \Sivujetti\App
  */
 class TestEnvBootstrapper extends BootModule {
     /** @var array<string, mixed> */
@@ -21,7 +21,7 @@ class TestEnvBootstrapper extends BootModule {
     /** @var array<int, \Closure> */
     protected array $customAlterers;
     /**
-     * @psalm-param ConfigBundle $configBundle
+     * @param ConfigBundle $configBundle
      * @param ?Db $db = null
      */
     public function __construct(array $configBundle, ?Db $db = null) {
@@ -86,7 +86,7 @@ class TestEnvBootstrapper extends BootModule {
         return $this;
     }
     /**
-     * @param \Closure $fn
+     * @param \Closure(\Pike\Injector): void $fn
      * @return $this
      */
     public function useMockAlterer(\Closure $fn): TestEnvBootstrapper {

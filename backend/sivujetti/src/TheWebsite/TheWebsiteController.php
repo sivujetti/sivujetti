@@ -10,6 +10,9 @@ use Sivujetti\{AppEnv, JsonUtils, ValidationUtils};
 use Sivujetti\Page\{PagesController, WebPageAwareTemplate};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
+/**
+ * @phpstan-import-type TableDump from \Sivujetti\TheWebsite\Exporter
+ */
 final class TheWebsiteController {
     private const T = "\${p}theWebsite";
     /**
@@ -65,13 +68,27 @@ final class TheWebsiteController {
      * POST /api/the-website/export: exports local database (excluding plugins)
      * to a single json file SIVUJETTI_BACKEND_PATH . "exported.json".
      *
+     * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\TheWebsite\Exporter $exporter
      * @param \Pike\Interfaces\FileSystemInterface $fs
      */
-    public function export(Response $res, Exporter $exporter, FileSystemInterface $fs): void {
-        $rows = $exporter->export(); // @allow \Pike\PikeException
-        $fs->write(SIVUJETTI_BACKEND_PATH . "exported.json", JsonUtils::stringify($rows));
+    public function export(Request $req, Response $res, Exporter $exporter, FileSystemInterface $fs): void {
+        $tables = $exporter->export(null); // @allow \Pike\PikeException
+        if ($req->body->resetEntities) {
+            foreach ($tables as $dump) {
+                if ($dump["tableName"] === "theWebsite") {  // mutate $rows[*]["entities"]
+                    $entities = $dump["entities"];
+                    for ($i = 0; $i < count($entities); ++$i) {
+                        $entities[$i]->firstRuns = "{}";
+                        $entities[$i]->pendingUpdates = null;
+                        $entities[$i]->headHtml = "";
+                        $entities[$i]->footHtml = "";
+                    }
+                }
+            }
+        }
+        $fs->write(SIVUJETTI_BACKEND_PATH . "exported.json", JsonUtils::stringify($tables));
         $res->json(["ok" => "ok"]);
     }
     /**
@@ -134,7 +151,7 @@ final class TheWebsiteController {
     }
     /**
      * @param object $input
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     private function validateSaveBasicInfoInput(object $input): array {
         return Validation::makeObjectValidator()
@@ -150,7 +167,7 @@ final class TheWebsiteController {
     }
     /**
      * @param object $input
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     private function validateSaveGlobalScriptsInput(object $input): array {
         return Validation::makeObjectValidator()

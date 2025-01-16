@@ -26,17 +26,17 @@ use Sivujetti\UserPlugin\{UserPluginAPI, UserPluginInterface};
 use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
 
 /**
- * @psalm-import-type ConfigBundle from \Sivujetti\App
+ * @phpstan-import-type ConfigBundle from \Sivujetti\AppEnv
  */
 class BootModule {
-    /** @psalm-var ConfigBundle */
+    /** @var ConfigBundle */
     public array $configBundle;
     /** @var \Pike\Injector */
     protected Injector $di;
     /** @var bool */
     private bool $essentialsLoaded = false;
     /**
-     * @psalm-param ConfigBundle $configBundle
+     * @param ConfigBundle $configBundle
      */
     public function __construct(array $configBundle) {
         $this->configBundle = $configBundle;

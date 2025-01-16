@@ -36,7 +36,7 @@ import {
     validateAll,
 } from './Form.jsx';
 import {sensibleDefaults, validationConstraints} from './constants.js';
-import {Icon, iconAsString} from './Icon.jsx';
+import {Icon, iconAsString, PathIcon} from './Icon.jsx';
 import LoadingSpinner from './LoadingSpinner.jsx';
 import ColorPickerInput from './ColorPickerInput.jsx';
 import Tabs from './Tabs.jsx';
@@ -109,6 +109,7 @@ export {
     MenuSection,
     MenuSectionAbstract,
     objectUtils,
+    PathIcon,
     placeholderImageSrc,
     Popup,
     putToLocalStorage,

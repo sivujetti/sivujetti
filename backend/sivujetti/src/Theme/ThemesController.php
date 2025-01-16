@@ -170,6 +170,13 @@ final class ThemesController {
             ->rule("{$propName}.*.data?", "type", "object");
     }
     /**
+     * @param ?int $timestamp = null
+     * @return string
+     */
+    public static function createGenDate(?int $timestamp = null): string {
+        return !defined("I_LIKE_TES") ? gmdate("D, M d Y H:i:s e", $timestamp) : self::tesDate($timestamp);
+    }
+    /**
      * @param string $newCompiledCss
      * @param object $currentTheme
      * @psalm-param object{name: string, cachedScreenSizesCssHashes: string[], stylesLastUpdatedAt: int[]} $currentTheme
@@ -182,7 +189,7 @@ final class ThemesController {
         $newHashes = [$crypto->hash("sha256", $newCompiledCss)];
 
         $now = time();
-        $at = !defined("I_LIKE_TES") ? gmdate("D, M d Y H:i:s e", $now) : self::tesDate($now);
+        $at = self::createGenDate($now);
         $newFilesData = [self::mediaScopeCssHasChanged(0, $newHashes, $currentTheme->cachedScreenSizesCssHashes)
             ? [
                 "filePath" => SIVUJETTI_INDEX_PATH . "public/{$currentTheme->name}-generated.css",

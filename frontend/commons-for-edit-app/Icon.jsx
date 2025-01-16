@@ -12,6 +12,27 @@ class Icon extends preact.Component {
     }
 }
 
+class PathIcon extends preact.Component {
+    /**
+     * @param {{className?: string;}} props
+     * @access protected
+     */
+    render({children, className}) {
+        return <svg xmlns="http://www.w3.org/2000/svg"
+            class={ 'icon-tabler' + (!className ? '' : ` ${className}`) }
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+            { children }
+        </svg>;
+    }
+}
+
 /**
  * @param {string} iconId
  * @param {string?} className
@@ -31,4 +52,4 @@ function hrefFull(iconId) {
     return `${urlUtils.assetBaseUrl}public/sivujetti/assets/${urlUtils.withCacheBustStr('tabler-sprite-custom.svg')}#tabler-${iconId}`;
 }
 
-export {Icon, iconAsString};
+export {Icon, iconAsString, PathIcon};

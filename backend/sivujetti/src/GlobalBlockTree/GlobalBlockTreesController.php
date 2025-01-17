@@ -96,7 +96,7 @@ final class GlobalBlockTreesController {
     }
     /**
      * @param object $input
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     private function validateCreateInput(object $input): array {
         return Validation::makeObjectValidator()

@@ -8,7 +8,7 @@ use Sivujetti\{App, AppEnv, JsonUtils, LogUtils};
 use Sivujetti\Update\Entities\Job;
 
 /**
- * @psalm-type Package object{name: string, sig: string}
+ * @phpstan-type Package object{name: string, sig: string}
  */
 final class Updater {
     public const RESULT_BAD_INPUT           = 111010;
@@ -30,7 +30,7 @@ final class Updater {
     private Signer $signer;
     /** @var \Sivujetti\AppEnv */
     private AppEnv $appEnv;
-    /** @var string[] ["Some error"] or [] */
+    /** @var list<string> ["Some error"] or [] */
     private array $lastErrorDetails;
     /** @var string */
     private string $targetBackendDirPath;
@@ -74,7 +74,7 @@ final class Updater {
      * @param int $lastCheckedAt
      * @param \ArrayObject<int, \Sivujetti\Plugin\Entities\Plugin> $currentPlugins
      * @param ?string $channel = "stable" "none" or "stable"
-     * @return string[] Example ["sivujetti-0.16.0", "JetForms-0.16.0"]
+     * @return list<string> Example ["sivujetti-0.16.0", "JetForms-0.16.0"]
      */
     public function getAndSyncAvailablePackages(?string $currentPackagesJson,
                                                 int $lastCheckedAt,
@@ -167,7 +167,7 @@ final class Updater {
         return self::RESULT_OK;
     }
     /**
-     * @psalm-param Package $package Single entry from $theWebsite->pendingUpdatesJson array
+     * @param Package $package Single entry from $theWebsite->pendingUpdatesJson array
      * @return int self::RESULT_*
      */
     public function installUpdate(object $package): int {
@@ -246,7 +246,7 @@ final class Updater {
         }
     }
     /**
-     * @psalm-param Package[] $packages
+     * @param list<Package> $packages
      */
     public function finishUpdates(array $packages): int {
         foreach ($packages as $package) {
@@ -391,7 +391,7 @@ final class Updater {
             ->execute();
     }
     /**
-     * @return string[] ["Some error"] or []
+     * @return list<string> ["Some error"] or []
      */
     public function getLastErrors(): array {
         return $this->lastErrorDetails;
@@ -442,7 +442,7 @@ final class Updater {
      * @param string $channelValidated
      * @param int $now
      * @param \ArrayObject<int, \Sivujetti\Plugin\Entities\Plugin> $currentPlugins
-     * @psalm-return Package[]
+     * @return list<Package>
      */
     private function doGetAndSyncPackagesFromRemoteServer(string $channelValidated,
                                                           int $now,
@@ -476,7 +476,7 @@ final class Updater {
     }
     /**
      * @param string $body Example '<!-- [{"name": "sivujetti-0.16.0", "sig": "2d1be3d...<128-chars-total>"}, {"name": "JetForms-0.16.0", "sig": "0b367...<128-chars-total>"}] -->'
-     * @psalm-return Package[]
+     * @return list<Package>
      */
     private static function extractPackages(string $body): array {
         $begin = "<!-- ";
@@ -556,7 +556,7 @@ final class Updater {
     }
     /**
      * @param \Sivujetti\Update\ZipPackageStream $zip
-     * @return \Sivujetti\Update\UpdateProcessTaskInterface[]
+     * @return list<\Sivujetti\Update\UpdateProcessTaskInterface>
      */
     private function createFileUpdateTasks(ZipPackageStream $zip): array {
         return [
@@ -573,7 +573,7 @@ final class Updater {
      * @param string $toVersion
      * @param string $currentVersion
      * @param string $for "core" or "SomePlugin"
-     * @return \Sivujetti\Update\UpdateProcessTaskInterface[]
+     * @return list<\Sivujetti\Update\UpdateProcessTaskInterface>
      */
     private function createDbPatchTasks(ZipPackageStream $zip,
                                         string $toVersion,
@@ -606,10 +606,10 @@ final class Updater {
             ->execute();
     }
     /**
-     * @psalm-param Package[] $packages
-     * @return string[]
+     * @param list<Package> $packages
+     * @return list<string>
      */
     private static function onlyNames(array $packages): array {
-        return array_map(fn($itm) => $itm->name, $packages);
+        return array_map(fn(object $itm): string => $itm->name, $packages);
     }
 }

@@ -22,8 +22,8 @@ use Sivujetti\Update\Updater;
 use Sivujetti\UserTheme\UserThemeAPI;
 
 /**
- * @psalm-import-type StyleChunk from \Sivujetti\Block\Entities\Block
- * @psalm-import-type StylesBundle from \Sivujetti\Theme\Entities\Theme
+ * @phpstan-import-type StyleChunk from \Sivujetti\Block\Entities\Block
+ * @phpstan-import-type StylesBundle from \Sivujetti\Theme\Entities\Theme
  */
 final class PagesController {
     /**
@@ -484,7 +484,7 @@ final class PagesController {
         return "http{$s}://{$req->attr("HTTP_HOST")}";
     }
     /**
-     * @param \Sivujetti\Block\Entities\Block[] $branch
+     * @param list<\Sivujetti\Block\Entities\Block> $branch
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      * @param \Pike\Injector $di
      */
@@ -502,10 +502,8 @@ final class PagesController {
     }
     /**
      * @param string $slug
-     * @param ?object $reqUser
-     * @psalm-param ?object{id: string, role: int} $reqUser
-     * @return array
-     * @psalm-return array{filters: array<int, [sring, string|int]>}
+     * @param ?object{id: string, role: int} $reqUser
+     * @return array{filters: list<array{0: string, 1: string|int}>}
      */
     public static function createGetPublicPageFilters(string $slug, ?object $reqUser): array {
         return ["filters" => [
@@ -519,8 +517,7 @@ final class PagesController {
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
      * @param ?string $layoutId = null
-     * @return array
-     * @psalm-return [\Sivujetti\Page\Entities\Page, array]
+     * @return array{0: \Sivujetti\Page\Entities\Page, 1: list<StyleChunk>}
      */
     private static function createEmptyPageWithBlocksAndStyles(PageType $pageType,
                                                                LayoutsRepository $layoutsRepo,
@@ -544,8 +541,7 @@ final class PagesController {
     /**
      * @param array $layoutStructure
      * @param array $blockBlueprints
-     * @return array
-     * @psampl-return [array<int, \Sivujetti\Block\Entities\Block>, StyleChunk]
+     * @return array{0: list<\Sivujetti\Block\Entities\Block>, 1: list<StyleChunk>}
      */
     private static function createInitalBlocksAndStyles(array $layoutStructure,
                                                         array $blockBlueprints): array {
@@ -595,8 +591,7 @@ final class PagesController {
      * @param \Pike\Db\FluentDb2 $db2
      * @param string $themeId
      * @param \Sivujetti\Page\Entities\Page $page
-     * @return \stdClass|null
-     * @psalm-return object{globalStyleChunkBundlesJson: string, pageStyleChunksJson: string|null}|null
+     * @return (object{globalStyleChunkBundlesJson: string, pageStyleChunksJson: string|null} & \stdClass)|null
      */
     private static function fetchThemeStyles(FluentDb2 $db2, string $themeId, Page $page): \stdClass|null {
         return $db2->select("\${p}themes t")
@@ -609,7 +604,7 @@ final class PagesController {
      * @param \Sivujetti\Page\Entities\Page $page
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param bool $isPlaceholderPage
-     * @return object
+     * @return (object & \stClass)
      */
     private static function pageToRaw(Page $page,
                                       PageType $pageType,
@@ -635,7 +630,7 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Layout\Entities\Layout $layout
-     * @return object
+     * @return (object & \stClass)
      */
     private static function layoutToRaw(Layout $layout): object {
         return (object) [
@@ -645,8 +640,7 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Theme\Entities\Theme $theme
-     * @return object
-     * @psalm-return object{id: string, styles: StylesBundle|array<int, \Sivujetti\Theme\Entities\Style>}
+     * @return (object{id: string, styles: StylesBundle|list<\Sivujetti\Theme\Entities\Style>} & \stClass)
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [
@@ -656,7 +650,7 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-     * @return object
+     * @return (object & \stClass)
      */
     private static function theWebsiteToRaw(TheWebsite $theWebsite): object {
         return (object) [

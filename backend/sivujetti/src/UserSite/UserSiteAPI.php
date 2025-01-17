@@ -50,7 +50,7 @@ class UserSiteAPI extends BaseAPI {
     /**
      * @param string $url
      * @param string $key = "editApp"
-     * @psalm-param "editApp"|"previewApp" $key = "editApp"
+     * @param "editApp"|"previewApp" $key = "editApp"
      */
     protected function enqueueDevJsFile(string $url, string $key = "editApp"): void {
         $this->apiCtx->devJsFiles->{$key}[] = $url;

@@ -57,8 +57,7 @@ final class ShortIdGenerator {
     }
     /**
      * @param string $shortId
-     * @return object
-     * @phpstan-return object{timestampWithMillis: int, randomPart: string}
+     * @return array{timestampWithMillis: int, randomPart: string}
      */
     public static function toComponents(string $shortId): array {
         $timePart = substr($shortId, 0, strlen($shortId) - 4);

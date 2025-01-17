@@ -7,7 +7,7 @@ use Sivujetti\JsonUtils;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 /**
- * @psalm-import-type Packge from \Sivujetti\Update\Updater
+ * @phpstan-import-type Package from \Sivujetti\Update\Updater
  */
 final class UpdatesController {
     /**
@@ -111,7 +111,7 @@ final class UpdatesController {
     /**
      * @param string $packageName "sivujetti-0.16.0", "JetForms-0.16.0"
      * @param ?string $pendingUpdatesJson
-     * @psalm-return array{0: Package[], 1: int} [$packages, $packageIdx]
+     * @return array{0: list<Package>, 1: int} [$packages, $packageIdx]
      */
     private static function findPackage(string $packageName, ?string $pendingUpdatesJson): array {
         $arr = self::getPackages($pendingUpdatesJson);
@@ -119,7 +119,7 @@ final class UpdatesController {
     }
     /**
      * @param ?string $pendingUpdatesJson
-     * @psalm-return Package[]
+     * @return list<Package>
      */
     private static function getPackages(?string $pendingUpdatesJson): array {
         return $pendingUpdatesJson ? JsonUtils::parse($pendingUpdatesJson) : [];

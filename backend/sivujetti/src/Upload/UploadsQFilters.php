@@ -5,7 +5,7 @@ namespace Sivujetti\Upload;
 use Pike\PikeException;
 
 final class UploadsQFilters {
-    /** @var ?array{0: string, 1: string[]} */
+    /** @var ?array{0: string, 1: list<string>} */
     private $byMimeFilter;
     /**
      * @param string $mime e.g. "image/*"
@@ -19,7 +19,7 @@ final class UploadsQFilters {
         return $out;
     }
     /**
-     * @return array{0: string, 1: string[]}
+     * @return array{0: string, 1: list<string>}
      */
     public function toQParts(): array {
         if ($this->byMimeFilter)

@@ -8,7 +8,7 @@ use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
 
 class GlobalBlockReferenceBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterface {
     public const EMPTY_OVERRIDES = "{}";
-    /** @var array<int, \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree|null> */
+    /** @var array<string, \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree> */
     private static array $trees = [];
     /**
      * @inheritdoc

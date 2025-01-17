@@ -8,7 +8,7 @@ use Sivujetti\Page\{PagesController, PagesRepository2};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 /**
- * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
+ * @phpstan-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
  */
 class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterface {
     /**
@@ -108,7 +108,7 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
     }
     /**
      * @param object $filtersIn Example: {tokens: ["p.categories", "LIKE", ":b1", "AND", "p.slug", "LIKE", ":b2"], paramMap: [":b1" => "%id-here%", ":b2" => "/slug"]}
-     * @param array<int, RawPageTypeField> $ownCols
+     * @param list<RawPageTypeField> $ownCols
      * @return array [sql, bindParams]
      */
     private static function createWhereSqlBundleOrThrow(object $filtersIn, array $ownCols): array {
@@ -126,33 +126,27 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
 }
 
 class SqlGenerator {
-    /** @var string[] */
+    /** @var list<string> */
     private array $tokensIn = [];
     /** @var int */
     private int $cursor = 0;
     /** @var object {key: val} */
     private object $paramsIn;
-    /**
-     * @var \Closure
-     * @psalm-var \Closure(string):bool
-     */
+    /** @var \Closure(string): bool */
     private \Closure $validateCol;
-    /** @var string[] */
+    /** @var list<string> */
     private array $sqlOut = [];
-    /** @var mixed[] */
+    /** @var list<mixed> */
     private array $paramsOut = [];
     /**
-     * @param \Closure $validateCol
-     * @psalm-param \Closure(string):bool $validateCol
+     * @param \Closure(string): bool $validateCol
      */
     public function __construct(\Closure $validateCol) {
         $this->validateCol = $validateCol;
     }
     /**
-     * @param object $filters 
-     * @psalm-param object{tokens: string[], paramMap: array<string, mixed>} $filters
-     * @return array
-     * @psalm-return array{0: string, 1: mixed[]}
+     * @param object{tokens: list<string>, paramMap: array<string, mixed>} $filters
+     * @return array{0: string, 1: list<mixed>}
      */
     public function generateBundle(object $filters): array {
         $this->tokensIn = $filters->tokens;

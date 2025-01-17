@@ -16,8 +16,8 @@ use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\{JsonUtils, SharedAPIContext};
 
 /**
- * @psalm-import-type SelectFilters from \Sivujetti\Page{PagesRepository
-*/
+ * @phpstan-import-type SelectFilters from \Sivujetti\Page\PagesRepository
+ */
 final class PageTestUtils {
     public const TEST_LAYOUT_FILENAME = "layout.default.tmpl.php";
     /** @var \Sivujetti\Tests\Utils\LayoutTestUtils */
@@ -112,7 +112,7 @@ final class PageTestUtils {
         return $pageType;
     }
     /**
-     * @param ?array<int, \Sivujetti\Block\Entities\Block> $blocks = null
+     * @param ?list<\Sivujetti\Block\Entities\Block> $blocks = null
      * @param ?string $pageTypeName = null
      * @param ?string $id = null
      * @return object
@@ -245,7 +245,7 @@ final class PageTestUtils {
         ];
     }
     /**
-     * @return \Sivujetti\Block\Entities\Block[]
+     * @return list<\Sivujetti\Block\Entities\Block>
      */
     private static function makeDefaultBlockTree(): array {
         $btu = new BlockTestUtils();
@@ -262,7 +262,7 @@ final class PageTestUtils {
         )];
     }
     /**
-     * @psalm-param SelectFilters $filters
+     * @param SelectFilters $filters
      * @param ?\Sivujetti\PageType\Entities\PageType $pageType = null
      * @return ?\Sivujetti\Page\Entities\Page
      */

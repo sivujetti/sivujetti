@@ -131,12 +131,11 @@ final class UserPluginAPI extends UserSiteAPI {
         return SIVUJETTI_UI_LANG;
     }
     /**
+     * @template Cls
      * @param string $name
      * @param array $args = []
-     * @throws PikeException
-     * @psalm-template Cls
-     * @return object
-     * @psalm-return Cls
+     * @throws \Pike\PikeException
+     * @return Cls
      */
     public function createService(string $name, array $args = []) {
         if (in_array($name, [CaptchaSettingsDataFetcher::class, StoredObjectsRepository::class], true))

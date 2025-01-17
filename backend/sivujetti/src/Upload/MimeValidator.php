@@ -16,7 +16,7 @@ final class MimeValidator {
      * (see. https://github.com/WordPress/WordPress/blob/facdf664c9f01d4f37e4abecb62b9accbdbd2e63/wp-includes/functions.php#L3053).
      *
      * @param array{name: string, tmp_name: string} $inputFile $_FILES["some-file"]
-     * @param string[] $allowed = null
+     * @param list<string> $allowed = null
      * @return array{0: string|null, 1: string|null} [mime, ext]
      * @throws \Pike\PikeException If $inputFile has not extension, or finfo_open() fails
      */
@@ -44,8 +44,8 @@ final class MimeValidator {
             : [null, null];
     }
     /**
-     * @param string[] $mimes ["png","jpg","jpe"]
-     * @return string[] ["image/png", "image/jpeg"]
+     * @param list<string> $mimes ["png","jpg","jpe"]
+     * @return list<string> ["image/png", "image/jpeg"]
      * @throws \Pike\PikeException
      */
     public static function extsToMimes(array $exts): array {

@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Tests\GlobalBlockTree;
 
-use Sivujetti\Block\BlockTree;
+use Sivujetti\JsonUtils;
 
 final class GetGlobalBlockTreesTest extends GlobalBlockTreesControllerTestCase {
     public function testGetGlobalBlockTreeByIdReturnsGlobalBlockTreeFromDb(): void {
@@ -18,11 +18,11 @@ final class GetGlobalBlockTreesTest extends GlobalBlockTreesControllerTestCase {
         $state->testGlobalBlockTree = (object) [
             "id" => "-1234567890abcdefghi",
             "name" => $state->inputData->name,
-            "blocks" => BlockTree::toJson($state->inputData->blocks)
+            "blocks" => JsonUtils::stringify($state->inputData->blocks)
         ];
         return $state;
     }
-    protected function insertTestGlobalBlockTreeToDb(\TestState $state, object $d = null): void {
+    protected function insertTestGlobalBlockTreeToDb(\TestState $state, ?object $d = null): void {
         $this->dbDataHelper->insertData($d ?? $state->testGlobalBlockTree, "globalBlockTrees");
     }
     private function sendGetGlobalBlockTreeByIdRequest(\TestState $state): void {

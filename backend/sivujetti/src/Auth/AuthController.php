@@ -49,7 +49,7 @@ final class AuthController {
     }
     /**
      * @param object $input
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     private function validateLoginFormInput(object $input): array {
         return Validation::makeObjectValidator()

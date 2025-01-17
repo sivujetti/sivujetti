@@ -5,16 +5,16 @@ namespace Sivujetti\Theme\Entities;
 use Sivujetti\JsonUtils;
 
 /**
- * @psalm-type ThemeStyleUnit = object{title: string, id: string, scss: string, generatedCss: string, optimizedScss: string|null, optimizedGeneratedCss: string|null, origin: string, specifier: string, isDerivable: bool, derivedFrom: string|null}
+ * @phpstan-type ThemeStyleUnit object{title: string, id: string, scss: string, generatedCss: string, optimizedScss: string|null, optimizedGeneratedCss: string|null, origin: string, specifier: string, isDerivable: bool, derivedFrom: string|null}
  */
 final class Style extends \stdClass {
-    /** @psalm-var object[] array<int, ThemeStyleUnit> */
+    /** @var list<ThemeStyleUnit> */
     public array $units;
     /** @var string e.g. "Text" */
     public string $blockTypeName;
     /**
      * @param object $row
-     * @return self
+     * @return $this
      */
     public static function fromParentRs(object $row): Style {
         $out = new self;

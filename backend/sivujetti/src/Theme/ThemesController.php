@@ -9,8 +9,8 @@ use Pike\Validation\ObjectValidator;
 use Sivujetti\{JsonUtils, ValidationUtils};
 
 /**
- * @psalm-import-type ThemeStyleUnit from \Sivujetti\Theme\Entities\Style
- * @psalm-import-type StyleChunk from \Sivujetti\Block\Entities\Block
+ * @phpstan-import-type ThemeStyleUnit from \Sivujetti\Theme\Entities\Style
+ * @phpstan-import-type StyleChunk from \Sivujetti\Block\Entities\Block
  */
 final class ThemesController {
     /**
@@ -110,7 +110,7 @@ final class ThemesController {
         $res->json(["ok" => "ok"]);
     }
     /**
-     * @psalm-param array<int, ThemeStyleUnit> $units
+     * @param list<ThemeStyleUnit> $units
      * @param string $blockTypeName
      * @return string `@import "foo";<separator>@layer body-units { .j-_body {color:red;} }`
      */
@@ -178,10 +178,8 @@ final class ThemesController {
     }
     /**
      * @param string $newCompiledCss
-     * @param object $currentTheme
-     * @psalm-param object{name: string, cachedScreenSizesCssHashes: string[], stylesLastUpdatedAt: int[]} $currentTheme
-     * @return array[]
-     * @psalm-return [[string], [array{filePath: string, contents: string}|null], [int]]
+     * @param object{name: string, cachedScreenSizesCssHashes: list<string>, stylesLastUpdatedAt: list<int>} $currentTheme
+     * @return array{0: array{0: string}, 1: array{0: array{filePath: string, contents: string}|null}, 2: array{0: int}}
      */
     private static function createNewBundle(string $newCompiledCss,
                                              object $currentTheme): array {
@@ -261,10 +259,8 @@ final class ThemesController {
         return null;
     }
     /**
-     * @param object[] $allChunks
-     * @psalm-param StyleChunk[] $allChunks
-     * @return array
-     * @psalm-return [StyleChunk[], StyleChunk[]]
+     * @param list<StyleChunk> $allChunks
+     * @return array{0: list<StyleChunk>, 1: list<StyleChunk>}
      */
     private static function splitChunksToStorageGoups(array $allChunks): array {
         $global = [];
@@ -277,8 +273,8 @@ final class ThemesController {
     }
     /**
      * @param int $i
-     * @param string[] $newCompiledScreenHashes
-     * @param string[] $curCompiledScreenHashes
+     * @param list<string> $newCompiledScreenHashes
+     * @param list<string> $curCompiledScreenHashes
      * @return bool
      */
     private static function mediaScopeCssHasChanged(int $i,

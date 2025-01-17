@@ -6,11 +6,10 @@ use DiDom\Document;
 use MySite\Theme;
 use Pike\ArrayUtils;
 use Sivujetti\Auth\ACL;
-use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
+use Sivujetti\{JsonUtils, Template};
 use Sivujetti\Page\Entities\Page;
-use Sivujetti\Template;
 use Sivujetti\Tests\Utils\{BlockTestUtils, TestData};
 use Sivujetti\Theme\ThemesController;
 
@@ -36,7 +35,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $state->testGlobalBlockData = (object) [
             "id" => "1",
             "name" => "Footer",
-            "blocks" => BlockTree::toJson($state->testGlobalBlockTree),
+            "blocks" => JsonUtils::stringify($state->testGlobalBlockTree),
         ];
         $state->testPageData->createdAt = time();
         $state->testPageData->lastUpdatedAt = $state->testPageData->createdAt;

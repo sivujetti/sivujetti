@@ -2,15 +2,13 @@
 
 namespace Sivujetti\Block;
 
-use Sivujetti\JsonUtils;
-
 /**
  * @template BlockCls
  */
 final class BlockTree {
     /**
      * @param string $id
-     * @param BlockCls[] $branch
+     * @param list<BlockCls> $branch
      * @return ?BlockCls
      */
     public static function findBlockById(string $id, array $branch): ?object {
@@ -24,7 +22,7 @@ final class BlockTree {
         return null;
     }
     /**
-     * @param BlockCls[] $blocks
+     * @param list<BlockCls> $blocks
      * @param callable $predicate callable(BlockCls $block): bool
      * @return ?BlockCls
      */
@@ -32,10 +30,10 @@ final class BlockTree {
         return self::findBlockAndTree($branch, $predicate)[0];
     }
     /**
-     * @param BlockCls[] $blocks
+     * @param list<BlockCls> $blocks
      * @param callable $predicate callable(BlockCls $block): bool
-     * @param ?object{id: string, blocks: BlockCls[]} $tree = null
-     * @return array{0: BlockCls|null, 1: object{id: string, blocks: BlockCls[]}}
+     * @param ?object{id: string, blocks: list<BlockCls>} $tree = null
+     * @return array{0: BlockCls|null, 1: object{id: string, blocks: list<BlockCls>}}
      */
     public static function findBlockAndTree(array $branch, callable $predicate, ?object $tree = null): array {
         foreach ($branch as $block) {
@@ -51,7 +49,7 @@ final class BlockTree {
         return [null, $tree ?? (object) ["id" => "main", "blocks" => $branch]];
     }
     /**
-     * @param BlockCls[] $blocks
+     * @param list<BlockCls> $blocks
      * @param callable $predicate callable(BlockCls $block): bool
      */
     public static function traverse(array $branch, callable $fn): void {
@@ -63,10 +61,10 @@ final class BlockTree {
         }
     }
     /**
-     * @param BlockCls[] $blocks
+     * @param list<BlockCls> $blocks
      * @param callable $predicate callable(BlockCls $block): bool
      * @param bool $recursive = true
-     * @return BlockCls[]
+     * @return list<BlockCls>
      */
     public static function filterBlocks(array $branch, callable $predicate, bool $recursive = true): array {
         $out = [];
@@ -78,13 +76,5 @@ final class BlockTree {
             }
         }
         return $out;
-    }
-    /**
-     * @deprecated Use JsonUtils::stringify() instead
-     * @param BlockCls[] $branch
-     * @return string
-     */
-    public static function toJson(array $blocks): string {
-        return JsonUtils::stringify($blocks);
     }
 }

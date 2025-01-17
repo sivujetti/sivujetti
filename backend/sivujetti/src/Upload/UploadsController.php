@@ -113,7 +113,7 @@ final class UploadsController {
     }
     /**
      * @param object $input
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     private static function validateUploadInput(object $input): array {
         return self::makeCommonValidator()
@@ -132,7 +132,7 @@ final class UploadsController {
     }
     /**
      * @param int $userRole
-     * @return string[]
+     * @return list<string>
      */
     private static function getAllowedMimesFor(int $userRole): array {
         $exts = ["jpg","jpeg","png","gif","pdf","doc","ppt","odt","pptx","docx","pps","ppsx","xls","xlsx","key","webp","asc","ogv","mp4","m4v","mov","wmv","avi","mpg"];

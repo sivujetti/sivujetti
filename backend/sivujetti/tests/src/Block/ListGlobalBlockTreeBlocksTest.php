@@ -2,8 +2,8 @@
 
 namespace Sivujetti\Tests\Block;
 
-use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\JsonUtils;
 use Sivujetti\Tests\Utils\DbDataHelper;
 
 final class ListGlobalBlockTreeBlocksTest extends RenderBlocksTestCase {
@@ -31,7 +31,7 @@ final class ListGlobalBlockTreeBlocksTest extends RenderBlocksTestCase {
         $state->testGlobalBlockTree = (object) [
             "id" => "-2345678901abcdefghi",
             "name" => "Irrelevant",
-            "blocks" => BlockTree::toJson($state->testBlocks)
+            "blocks" => JsonUtils::stringify($state->testBlocks)
         ];
         return $state;
     }

@@ -5,7 +5,7 @@ namespace Sivujetti\BlockType;
 use Pike\Injector;
 
 /**
- * @phpstan-type RawStorableBlock object{type: string, title: string, renderer: string, id: string, children: array, propsData: array<int, object{key: string, value: string}>, styleClasses: string}
+ * @phpstan-type RawStorableBlock object{type: string, title: string, renderer: string, id: string, children: array, propsData: list<object{key: string, value: string}>, styleClasses: string}
  */
 interface SaveAwareBlockTypeInterface {
     /**

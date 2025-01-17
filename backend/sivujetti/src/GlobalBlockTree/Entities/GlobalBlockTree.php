@@ -7,6 +7,6 @@ final class GlobalBlockTree extends \stdClass {
     public string $id;
     /** @var string e.g. "Header", "Default footer" */
     public string $name;
-    /** @var ?array<int, \Sivujetti\Block\Entities\Block> */
+    /** @var ?list<\Sivujetti\Block\Entities\Block> */
     public ?array $blocks;
 }

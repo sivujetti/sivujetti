@@ -3,7 +3,7 @@
 namespace Sivujetti\Layout;
 
 use Pike\{Db};
-use Sivujetti\Block\BlockTree;
+use Sivujetti\JsonUtils;
 use Sivujetti\Layout\Entities\Layout;
 
 final class LayoutsRepository {
@@ -21,9 +21,9 @@ final class LayoutsRepository {
     }
     /**
      * @param ?string $id = null
-     * @return \Sivujetti\Layout\Entities\Layout[]
+     * @return list<\Sivujetti\Layout\Entities\Layout>
      */
-    public function getMany(string $id = null): array {
+    public function getMany(?string $id = null): array {
         [$whereSql, $whereVals] = !$id ? ["", []] : [" WHERE l.`id` = ?", [$id]];
         $all = $this->db->fetchAll("SELECT " . self::FIELDS . " FROM `\${p}layouts` l{$whereSql}",
             $whereVals,
@@ -50,7 +50,7 @@ final class LayoutsRepository {
                                array $columns = ["structure"]): int {
         if (count($columns) !== 1 || $columns[0] !== "structure")
             throw new \RuntimeException("Not implemented yet.");
-        $updateData = ["structure" => BlockTree::toJson(
+        $updateData = ["structure" => JsonUtils::stringify(
             array_map(fn($obj) => (object) array_merge(
                 ["type" => $obj->type],
                 $obj->type === "globalBlockTree"

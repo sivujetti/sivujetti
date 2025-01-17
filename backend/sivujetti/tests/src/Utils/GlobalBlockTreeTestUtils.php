@@ -6,9 +6,9 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\PushIdGenerator;
 
 /**
- * @x-psalm-type RawBlock = object{type: string, title: string, renderer: string, id: string, children: array<int, object>, propsData: array<int, object{key: string, value: mixed}>}
- * @x-psalm-type RawGlobalBlockTree = object{id: string, name: string, block: array<int, RawBlock>}
- * @x-psalm-type RawGlobalBlockStyles = object{id: string, styles: string, globalBlockTreeId: string}
+ * @phpstan-type RawBlock object{type: string, title: string, renderer: string, id: string, children: list<object>, propsData: list<object{key: string, value: mixed}>}
+ * @phpstan-type RawGlobalBlockTree object{id: string, name: string, block: list<RawBlock>}
+ * @phpstan-type RawGlobalBlockStyles object{id: string, styles: string, globalBlockTreeId: string}
  */
 final class GlobalBlockTreeTestUtils {
     /** @var \Sivujetti\Tests\Utils\BlockTestUtils */
@@ -20,7 +20,7 @@ final class GlobalBlockTreeTestUtils {
         $this->blockTestUtils = $blockTestUtils;
     }
     /**
-     * @return object RawGlobalBlockTree
+     * @return RawGlobalBlockTree
      */
     public function makeGlobalBlockTreeData(): object {
         $btu = $this->blockTestUtils;
@@ -35,7 +35,7 @@ final class GlobalBlockTreeTestUtils {
     /**
      * @param object $globalBlockTree See $this->makeGlobalBlockTreeData()
      * @param string $themeId
-     * @return object RawGlobalBlockStyles
+     * @return RawGlobalBlockStyles
      */
     public function makeGlobalBlockStylesData(object $globalBlockTree, string $themeId): object {
         $sectionBlock = $globalBlockTree->blocks[0];

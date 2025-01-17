@@ -24,7 +24,7 @@ final class BlockTestUtils {
      * @param ?string $type = null
      * @param ?string $title = null
      * @param ?string $renderer = null
-     * @param object[]|null $children = null
+     * @param list<object>|null $children = null
      * @param array<string, mixed>|object|null $propsData = null
      * @param ?string $id = null
      * @param ?string $styleClasses = null

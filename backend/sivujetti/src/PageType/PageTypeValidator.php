@@ -24,7 +24,7 @@ final class PageTypeValidator {
     }
     /**
      * @param object $input
-     * @return string[] A list of error messages or []
+     * @return list<string> A list of error messages or []
      */
     public function validate(object $input): array {
         $validator = Validation::makeObjectValidator()
@@ -87,7 +87,7 @@ final class PageTypeValidator {
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param object $input
      * @param bool $doValidateBlocks = false
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     public function validateInsertData(PageType $pageType,
                                        object $input,
@@ -104,7 +104,7 @@ final class PageTypeValidator {
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param object $input
      * @param bool $doValidateBlockTypes = false
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     public function validateUpdateData(PageType $pageType,
                                        object $input,

@@ -180,8 +180,7 @@ final class TheWebsiteController {
     /**
      * @param object $serverHost
      * @param \Sivujetti\AppEnv $appEnv
-     * @return \Closure
-     * @psalm-return \Closure(string):string
+     * @return \Closure(string): string
      */
     private static function createFetchFn(string $serverHost, AppEnv $appEnv): \Closure {
         static $fetch;

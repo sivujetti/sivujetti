@@ -222,7 +222,7 @@ final class Bundler {
      * Constructs a list of files that will be included to the output package,
      * tagged as a backend file.
      *
-     * @return \Sivujetti\Cli\FileGroup[]
+     * @return list<\Sivujetti\Cli\FileGroup>
      */
     private function makeBackendFilesFileListGroups(): array {
         $base1 = $this->backendDirPath;
@@ -273,7 +273,7 @@ final class Bundler {
      * Constructs a list of files that will be included to the output package,
      * tagged as a frontend file.
      *
-     * @return \Sivujetti\Cli\FileGroup[]
+     * @return list<\Sivujetti\Cli\FileGroup>
      */
     private function makePublicFilesFileListGroups(): array {
         $base1 = $this->indexDirPath;
@@ -304,7 +304,7 @@ final class Bundler {
     /**
      * Writes $fileGroups.* and their file lists to $out.
      *
-     * @param \Sivujetti\Cli\FileGroup[] $fileGroups
+     * @param list<\Sivujetti\Cli\FileGroup> $fileGroups
      * @param string $dirName "backend" or "index"
      * @param \Sivujetti\Update\PackageStreamInterface $out
      */
@@ -343,7 +343,7 @@ final class Bundler {
                                     PikeException::FAILED_FS_OP);
     }
     /**
-     * @param object{backendFiles: string[], indexFiles: string[]} $map
+     * @param object{backendFiles: list<string>, indexFiles: list<string>} $map
      * @throws \Pike\PikeException
      */
     private static function validatePatchFileLists(object $map): void {

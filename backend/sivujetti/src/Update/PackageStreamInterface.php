@@ -29,7 +29,7 @@ interface PackageStreamInterface {
                             int $length = 0): bool;
     /**
      * @param string $localName
-     * @param string[] $localNames
+     * @param list<string> $localNames
      * @return bool
      * @throws \Pike\PikeException
      */
@@ -49,7 +49,7 @@ interface PackageStreamInterface {
     public function read(string $localName): string;
     /**
      * @param string $destinationPath
-     * @param string[]|string|null $localNames = []
+     * @param list<string>|string|null $localNames = []
      * @param ?string $prefixToStripFromLocalNames = null
      * @return bool
      * @throws \Pike\PikeException

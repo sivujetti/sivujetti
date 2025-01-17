@@ -3,12 +3,12 @@
 namespace Sivujetti\StoredObjects\Entities;
 
 /**
- * @psalm-template DataShape
+ * @template DataShape of array<string, mixed>
  */
 final class Entry extends \stdClass {
     /** @var string e.g. "JetForms:mailSendSettings" */
     public string $objectName;
-    /** @psalm-var DataShape */
+    /** @var DataShape */
     public array $data;
     /** @var string */
     public string $dataJson;

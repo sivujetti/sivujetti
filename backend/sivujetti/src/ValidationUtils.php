@@ -7,7 +7,7 @@ use Pike\Validation\ObjectValidator;
 use Sivujetti\BlockType\Entities\BlockProperty;
 
 /**
- * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
+ * @phpstan-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
  */
 abstract class ValidationUtils {
     public const HARD_SHORT_TEXT_MAX_LEN = 1024;
@@ -100,7 +100,7 @@ abstract class ValidationUtils {
         }
     }
     /**
-     * @psalm-param array<int, RawPageTypeField>|\ArrayObject $properties pageType->ownFields or $blockType->defineProperties()
+     * @param list<RawPageTypeField>|\ArrayObject $properties pageType->ownFields or $blockType->defineProperties()
      * @param \Pike\Validation\ObjectValidator $to
      * @return \Pike\Validation\ObjectValidator
      */
@@ -131,9 +131,9 @@ abstract class ValidationUtils {
         return $to;
     }
     /**
-     * @param array<int, array<int, mixed> $userRules e.g. [ ["", "required"], ["%s.foo", "min", 4] ]
-     * @param array<int, array<int, mixed> $defaultRules
-     * @return array<int, array<int, mixed>
+     * @param list<list<mixed>> $userRules e.g. [ ["", "required"], ["%s.foo", "min", 4] ]
+     * @param list<list<mixed>> $defaultRules
+     * @return list<list<mixed>>
      */
     private static function createMergedRules(array $userRules, array $defaultRules): array {
         if (!$userRules) return $defaultRules;

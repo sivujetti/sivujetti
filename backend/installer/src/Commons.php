@@ -129,6 +129,7 @@ return [
                                    PikeException::FAILED_FS_OP);
     }
     /**
+     * @param string $which = "site"
      * @return string
      */
     public function getTargetSitePath(string $which = "site"): string {
@@ -185,7 +186,7 @@ return [
         $package->extractMany($this->targetSiteIndexPath, $localFileNames, PackageStreamInterface::FILE_NS_INDEX);
     }
     /**
-     * @param string[] $statements
+     * @param list<string> $statements
      * @param bool $isSqlite
      */
     private function runManyDbStatements(array $statements, bool $isSqlite): void {
@@ -196,7 +197,7 @@ return [
         $this->db->exec("COMMIT{$tail}");
     }
     /**
-     * @psalm-param array<int, array{tableName: string, entities: array<int, object>}> $bundles
+     * @param list<object{tableName: string, entities: list<object>}> $bundles
      * @param bool $isSqlite
      */
     private function insertManyTableBundles(array $bundles, array $config): void {

@@ -95,7 +95,7 @@ final class BlocksController {
         return $out;
     }
     /**
-     * @param object[] $branch
+     * @param list<object> $branch
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      * @return array
      */
@@ -112,7 +112,7 @@ final class BlocksController {
     }
     /**
      * @param object $input
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     private static function validateRenderBlockInput(object $input): array {
         return Validation::makeObjectValidator()

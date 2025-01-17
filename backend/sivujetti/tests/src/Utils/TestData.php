@@ -4,7 +4,7 @@ namespace Sivujetti\Tests\Utils;
 
 class TestData {
     /**
-     * @return array<int, object> [{units: string, themeId: string, blockTypeName: string}]
+     * @return list<object{units: string, themeId: string, blockTypeName: string}>
      */
     public static function getThemeStyles(): array {
         return [(object) [

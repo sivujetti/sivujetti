@@ -27,7 +27,7 @@ final class PagesRepository2 {
     }
     /**
      * @param string $pageTypeName = "Pages"
-     * @param string[] $fields = [] array<int, "@simple"|"@blocks">
+     * @param list<string> $fields = [] array<int, "@simple"|"@blocks">
      * @return \Pike\Db\Query
      */
     public function select(string $pageTypeName = "Pages", array $fields = []): Query {
@@ -95,9 +95,9 @@ final class PagesRepository2 {
         throw new PikeException("Unknown page type `{$candidate}`.");
     }
     /**
-     * @param string[] $fields ["@simple"]
+     * @param list<string> $fields ["@simple"]
      * @param \Sivujetti\PageType\Entities\PageType
-     * @return string[]
+     * @return list<string>
      */
     private static function createSelectFields(array $fields, PageType $pageType): array {
         $out = [

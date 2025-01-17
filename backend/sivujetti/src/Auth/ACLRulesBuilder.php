@@ -5,13 +5,13 @@ namespace Sivujetti\Auth;
 use Pike\{PikeException};
 
 final class ACLRulesBuilder {
-    /** @var object[] {resourceName: string, actions: string[], rolePerms: array<string, array{0: int, 1: string|string[]}>}[] */
+    /** @var list<object> {resourceName: string, actions: list<string>, rolePerms: array<string, array{0: int, 1: string|list<string>}>}[] */
     private array $items;
-    /** @var ?object {resourceName: string, actions: string[], rolePerms: array<string, array{0: int, 1: string|string[]}>}|null */
+    /** @var ?object {resourceName: string, actions: list<string>, rolePerms: array<string, array{0: int, 1: string|list<string>}>}|null */
     private ?object $head;
     /** @var string e.g. "plugins/JetForms:" or "" */
     private string $resourcePrefix;
-    /** @var int[] */
+    /** @var list<int> */
     private const VALID_ROLES = [
         1 << 1,
         1 << 2,
@@ -29,7 +29,7 @@ final class ACLRulesBuilder {
     }
     /**
      * @param string $name e.g. "mailSendSettings"
-     * @param string[] e.g. ["read", "update"]
+     * @param list<string> e.g. ["read", "update"]
      * @return $this
      */
     public function defineResource(string $name, array $actions): ACLRulesBuilder {
@@ -44,7 +44,7 @@ final class ACLRulesBuilder {
      * Sets permissions for the previous resource.
      *
      * @param int $role \Sivujetti\Auth\ACL::ROLE_*
-     * @param string|string[] "*" or ["action1", "action2"]
+     * @param string|list<string> "*" or ["action1", "action2"]
      * @return $this
      */
     public function setPermissions(int $role, string|array $rolePerms): ACLRulesBuilder {
@@ -83,7 +83,7 @@ final class ACLRulesBuilder {
         return (object) ["resources" => $resources, "userPermissions" => $userPerms];
     }
     /**
-     * @param string[]
+     * @param list<string>
      * @return object {read: 6, update: 8}
      */
     private static function actionsToActionsMasks(array $actions): object {

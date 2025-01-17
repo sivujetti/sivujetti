@@ -10,7 +10,7 @@ use Sivujetti\Block\BlockValidator;
 use Sivujetti\Theme\ThemesController;
 
 /**
- * @psalm-import-type BlockBlueprint from \Sivujetti\Block\Entities\Block
+ * @phpstan-import-type BlockBlueprint from \Sivujetti\Block\Entities\Block
  */
 final class ReusableBranchesController {
     private const T = "\${p}reusableBranches";
@@ -59,8 +59,7 @@ final class ReusableBranchesController {
     }
     /**
      * @param object $input
-     * @return object
-     * @psalm-return BlockBlueprint
+     * @return BlockBlueprint
      */
     public static function objectToBlueprint(object $input): object {
         $defaults = $input->initialDefaultsData;
@@ -79,7 +78,7 @@ final class ReusableBranchesController {
     /**
      * @param object $input
      * @param \Sivujetti\Block\BlockValidator $blockValidator
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     private static function validateUpsertInput(object $input, BlockValidator $blockValidator): array {
         $errors1 = Validation::makeObjectValidator()
@@ -93,7 +92,7 @@ final class ReusableBranchesController {
      * @param object $input
      * @param \Sivujetti\Block\BlockValidator $blockValidator
      * @param string $propPath = "blockBlueprints"
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     public static function validateBlockBlueprints(object $input,
                                                    BlockValidator $blockValidator,
@@ -114,9 +113,9 @@ final class ReusableBranchesController {
         return self::doValidateBlockBlueprints($input->{$propPath}, $v);
     }
     /**
-     * @param object[] $input
+     * @param list<object> $input
      * @param \Pike\Validation\ObjectValidator $v
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     private static function doValidateBlockBlueprints(array $input, ObjectValidator $v): array {
         foreach ($input as $bb) {

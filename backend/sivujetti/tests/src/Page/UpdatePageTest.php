@@ -5,7 +5,7 @@ namespace Sivujetti\Tests\Page;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\PageType\Entities\PageType;
 use Pike\PikeException;
-use Sivujetti\Block\BlockTree;
+use Sivujetti\JsonUtils;
 use Sivujetti\Tests\Utils\PageTestUtils;
 
 final class UpdatePageTest extends PagesControllerTestCase {
@@ -130,7 +130,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
     public function testUpdatePageDoesNotUpdateIdOrBlocks(): void {
         $state = $this->setupTest();
         $state->inputData->id = "-ppppppppppppppppppp";
-        $state->inputData->blocks = BlockTree::toJson([$state->testPageData->blocks[0]->children[0]]);
+        $state->inputData->blocks = JsonUtils::stringify([$state->testPageData->blocks[0]->children[0]]);
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->sendUpdatePageRequest($state);

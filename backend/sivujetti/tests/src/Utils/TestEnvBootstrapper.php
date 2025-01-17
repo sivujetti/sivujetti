@@ -18,7 +18,7 @@ class TestEnvBootstrapper extends BootModule {
     public array $mockConfigs;
     /** @var ?\Pike\Db */
     protected ?Db $db;
-    /** @var array<int, \Closure> */
+    /** @var list<\Closure(\Pike\Injector): void> */
     protected array $customAlterers;
     /**
      * @param ConfigBundle $configBundle

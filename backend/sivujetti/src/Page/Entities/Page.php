@@ -23,7 +23,7 @@ final class Page extends \stdClass {
     public string $id;
     /** @var string */
     public string $type;
-    /** @var \Sivujetti\Block\Entities\Block[] */
+    /** @var list<\Sivujetti\Block\Entities\Block> */
     public array $blocks;
     /** @var int self::STATUS_* */
     public int $status;

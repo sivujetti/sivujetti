@@ -5,30 +5,27 @@ namespace Sivujetti\Theme\Entities;
 use Sivujetti\JsonUtils;
 
 /**
- * @psalm-import-type StyleChunk from \Sivujetti\Block\Entities\Block
- * @psalm-type StylesBundle {styleChunks: array<int, StyleChunk>, cachedCompiledCss: string, cachedCompiledScreenSizesCssHashes: array<int, string>}
+ * @phpstan-import-type StyleChunk from \Sivujetti\Block\Entities\Block
+ * @phpstan-type StylesBundle {styleChunks: list<StyleChunk>, cachedCompiledCss: string, cachedCompiledScreenSizesCssHashes: list<string>}
  */
 final class Theme extends \stdClass {
     /** @var string */
     public string $id;
     /** @var string */
     public string $name;
-    /** @var object[] [{name: string, friendlyName: string, value: {type: "color", value: string[]}}] */
+    /** @var list<object{name: string, friendlyName: string, value: object{type: "color", value: list<string>}}> */
     public array $globalStyles;
-    /**
-     * @var object
-     * @psalm-var StylesBundle
-     */
+    /** @var StylesBundle */
     public object $styles;
-    /** @var string[] ["_body_", "j-Text" ...] */
+    /** @var list<string> ["_body_", "j-Text" ...] */
     public array $stylesOrder;
-    /** @var int[] An array of unix timestamps */
+    /** @var list<int> An array of unix timestamps */
     public array $stylesLastUpdatedAt;
-    /** @var object[] */
+    /** @var list<object> */
     private array $__stash;
     /**
      * @param object $row
-     * @param object[] $rows
+     * @param list<object> $rows
      * @return self
      */
     public static function fromParentRs(object $row, array $rows): Theme {
@@ -50,8 +47,7 @@ final class Theme extends \stdClass {
         return $out;
     }
     /**
-     * @param ?object $stylesRow = null
-     * @psalm-param ?object{globalStyleChunkBundlesJson: string, pageStyleChunksJson: string|null} $stylesRow = null
+     * @param ?object{globalStyleChunkBundlesJson: string, pageStyleChunksJson: string|null} $stylesRow = null
      */
     public function loadStyles(?object $stylesRow = null): void {
         if (!$this->__stash) return;
@@ -62,11 +58,11 @@ final class Theme extends \stdClass {
             $this->globalStyles = JsonUtils::parse($themeRow->themeGlobalStylesJson);
             $this->stylesOrder = [];
 
-            /** @psalm-var object{styleChunks: StyleChunk[], cachedCompiledCss: string}|null */
+            /** @var object{styleChunks: list<StyleChunk>, cachedCompiledCss: string}|null */
             $parsed = JsonUtils::parse($stylesRow->globalStyleChunkBundlesJson);
             $this->styles->cachedCompiledCss = $parsed->cachedCompiledCss;
 
-            /** @psalm-var array<int, StyleChunk>|null */
+            /** @var list<StyleChunk>|null */
             $parsed2 = $stylesRow->pageStyleChunksJson ? JsonUtils::parse($stylesRow->pageStyleChunksJson) : null;
             $this->styles->styleChunks = $parsed2
                 ? [...$parsed->styleChunks, ...$parsed2]

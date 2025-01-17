@@ -8,7 +8,7 @@ use Pike\{PikeException, Validation};
 use Pike\Validation\ObjectValidator;
 
 final class BlockValidator {
-    /** @var string[] */
+    /** @var list<string> */
     private array $validBlockRenderers;
     /** @var object */
     private object $blockTypes;
@@ -28,7 +28,7 @@ final class BlockValidator {
     /**
      * @param \Sivujetti\BlockType\BlockTypeInterface|string $blockType
      * @param object $input
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      * @throws \Pike\PikeException If $blockType (string) wasn't valid
      */
     public function validateInsertOrUpdateData(BlockTypeInterface|string $blockType,
@@ -51,8 +51,8 @@ final class BlockValidator {
         )->validate($input);
     }
     /**
-     * @param object[] $branch
-     * @return string[] Error messages or e[]
+     * @param list<object> $branch
+     * @return list<string> Error messages or e[]
      */
     public function validateMany(array $branch): array {
         foreach ($branch as $blockData) {
@@ -77,13 +77,13 @@ final class BlockValidator {
             ->rule("{$pathPrefix}styleClasses", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN);
     }
     /**
-     * @return string[]
+     * @return list<string>
      */
     public function getValidBlockTypeNames(): array {
         return array_keys(get_object_vars($this->blockTypes));
     }
     /**
-     * @return string[]
+     * @return list<string>
      */
     public function getValidBlockRenderers(): array {
         return $this->validBlockRenderers;

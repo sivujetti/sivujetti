@@ -5,7 +5,7 @@ namespace Sivujetti\Db;
 use Pike\Db\{MongoFilters, Query};
 
 class TempJsonCompatQuery extends Query {
-    /** @var \Closure[] */
+    /** @var list<\Closure> */
     private array $jsonFilters = [];
     /**
      * @inheritdoc
@@ -53,9 +53,9 @@ class TempJsonCompatQuery extends Query {
         return $filtered;
     }
     /**
-     * @param string[] $whereSql
-     * @param mixed[] $whereVals
-     * @return array{0: string[], 1: mixed[], 2: \Closure[]} [$newWhereSql, $newWhereVals, $jsonFilterFuncs]
+     * @param list<string> $whereSql
+     * @param list<mixed> $whereVals
+     * @return array{0: list<string>, 1: list<mixed>, 2: list<\Closure>} [$newWhereSql, $newWhereVals, $jsonFilterFuncs]
      */
     private static function stripJsonExpressions(array $whereSql, array $whereVals): array {
         if (count($whereSql) !== count($whereVals))

@@ -11,14 +11,14 @@ final class UpdateBackendSourceFilesTask implements UpdateProcessTaskInterface {
     private FileSystem $fs;
     /** @var string */
     private string $targetPathBase;
-    /** @var string[] */
+    /** @var list<string> */
     private array $filesToOverwriteNsd;
-    /** @var string[] */
+    /** @var list<string> */
     private array $fileContentsBefore;
     /**
      * @param \Sivujetti\Update\ZipPackageStream $zip
      * @param \Pike\FileSystem $fs
-     * @param string[] $nsdRelFilePaths e.g ["$backend/assets/templates/block-auto.tmpl.php", "$backend/sivujetti/src/App.php"]
+     * @param list<string> $nsdRelFilePaths e.g ["$backend/assets/templates/block-auto.tmpl.php", "$backend/sivujetti/src/App.php"]
      * @param string $targetDirPath e.g. "/var/www/sivujetti-backend/"
      */
     function __construct(ZipPackageStream $zip,

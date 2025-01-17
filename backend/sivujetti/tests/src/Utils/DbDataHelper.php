@@ -14,7 +14,7 @@ final class DbDataHelper {
         $this->db = $db;
     }
     /**
-     * @param object[]|object $data
+     * @param list<object>|object $data
      * @param string $tableName @allow raw sql
      * @return string|false $lastInsertId
      */
@@ -35,7 +35,7 @@ final class DbDataHelper {
     /**
      * @param string $tableName @allow raw sql
      * @param string $whereExpr = "1=1" @allow raw sql
-     * @param array<int, mixed> $whereVals = []
+     * @param list<mixed> $whereVals = []
      * @return array<string, mixed>|null
      */
     public function getRow(string $tableName,

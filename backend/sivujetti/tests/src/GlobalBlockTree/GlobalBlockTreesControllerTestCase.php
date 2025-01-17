@@ -4,7 +4,7 @@ namespace Sivujetti\Tests\GlobalBlockTree;
 
 use Sivujetti\Tests\Utils\{BlockTestUtils, DbDataHelper, GlobalBlockTreeTestUtils, HttpApiTestTrait};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
-use Sivujetti\Block\BlockTree;
+use Sivujetti\JsonUtils;
 
 abstract class GlobalBlockTreesControllerTestCase extends DbTestCase {
     use HttpTestUtils;
@@ -26,9 +26,9 @@ abstract class GlobalBlockTreesControllerTestCase extends DbTestCase {
         $state->app = null;
         return $state;
     }
-    protected function insertTestGlobalBlockTreeToDb(\TestState $state, object $data = null): void {
+    protected function insertTestGlobalBlockTreeToDb(\TestState $state, ?object $data = null): void {
         $globalBlockTreeData = clone ($data ?? $state->originalData);
-        $globalBlockTreeData->blocks = BlockTree::toJson($globalBlockTreeData->blocks);
+        $globalBlockTreeData->blocks = JsonUtils::stringify($globalBlockTreeData->blocks);
         $insertId = $this->dbDataHelper->insertData($globalBlockTreeData, "globalBlockTrees");
         $globalBlockTreeData->id = $insertId;
     }

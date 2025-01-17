@@ -20,17 +20,17 @@ final class SharedAPIContext {
     public const PHASE_READY_TO_EXECUTE_ROUTE_CONTROLLER = 2;
     /** @var int */
     private int $appPhase;
-    /** @var array<string, callable[]> */
+    /** @var array<string, list<callable>> */
     private array $eventListeners;
-    /** @var array<string, callable[]> */
+    /** @var array<string, list<callable>> */
     private array $filters;
     /** @var object @see Sivujetti\Boot\BootModule->loadEssentialsIfNotLoaded()  */
     public BlockTypes $blockTypes;
     /** @var UserDefinedAssets @see also \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
     public object $userDefinedAssets;
-    /** @var array<int, array{fileId: string, impl: \Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface|null, friendlyName: string|null, associatedWith: string|null}> \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */
+    /** @var list<array{fileId: string, impl: \Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface|null, friendlyName: string|null, associatedWith: string|null}> \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */
     public array $blockRenderers;
-    /** @var object{editApp: string[], previewApp: string[]} @see also \Sivujetti\UserSite\UserSiteAPI->enqueueEdit|PreviewAppJsFile() */
+    /** @var object{editApp: list<string>, previewApp: list<string>} @see also \Sivujetti\UserSite\UserSiteAPI->enqueueEdit|PreviewAppJsFile() */
     public object $devJsFiles;
     /** @var array<string, \Sivujetti\UserPlugin\UserPluginInterface> */
     public array $userPlugins;

@@ -45,7 +45,7 @@ final class LayoutsController {
     }
     /**
      * @param object $input
-     * @return string[] Error messages or []
+     * @return list<string> Error messages or []
      */
     private function validateUpdateBlocksInput(object $input): array {
         if (($errors = Validation::makeObjectValidator()

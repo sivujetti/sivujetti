@@ -13,12 +13,12 @@ use Sivujetti\PageType\PageTypeValidator;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 /**
- * @psalm-type SelectFilter = array{0: string, 1: string}
- * @psalm-type SelectFilters = array{filters: array<int, SelectFilter>, order?: string, limit?: string}
- * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
+ * @phpstan-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
+ * @phpstan-type SelectFilter array{0: string, 1: string}
+ * @phpstan-type SelectFilters array{filters: list<SelectFilter>, order?: string, limit?: string}
  */
 final class PagesRepository {
-    /** @var string[] Fields that all page types share */
+    /** @var list<string> Fields that all page types share */
     private const DEFAULT_FIELDS = ["id", "slug", "path", "level", "title",
                                     "meta", "layoutId", "status", "createdAt",
                                     "lastUpdatedAt"];
@@ -48,7 +48,7 @@ final class PagesRepository {
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
-     * @psalm-param SelectFilters $filters
+     * @param SelectFilters $filters
      * @return \Sivujetti\Page\Entities\Page|null
      */
     public function getSingle(string|PageType $pageTypeOrPageTypeName,
@@ -58,8 +58,8 @@ final class PagesRepository {
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
-     * @psalm-param SelectFilters $filters
-     * @return \Sivujetti\Page\Entities\Page[]
+     * @param SelectFilters $filters
+     * @return list<\Sivujetti\Page\Entities\Page>
      */
     public function getMany(string|PageType $pageTypeOrPageTypeName,
                             array $filters): array {
@@ -135,8 +135,8 @@ final class PagesRepository {
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
      * @param bool $doIncludeLayouts
-     * @psalm-param SelectFilters $filters
-     * @return \Sivujetti\Page\Entities\Page[]
+     * @param SelectFilters $filters
+     * @return list<\Sivujetti\Page\Entities\Page>
      */
     private function doGetMany(string|PageType $pageTypeOrPageTypeName,
                                bool $doIncludeLayouts,
@@ -190,8 +190,8 @@ final class PagesRepository {
         return $this->normalizeRs($rows);
     }
     /**
-     * @param \Sivujetti\Page\Entities\Page[] $rows
-     * @return \Sivujetti\Page\Entities\Page[]
+     * @param list<\Sivujetti\Page\Entities\Page> $rows
+     * @return list<\Sivujetti\Page\Entities\Page>
      */
     private function normalizeRs(array $rows): array {
         $doIncludeLayouts = ($rows[0]?->layoutId ?? null) !== null;
@@ -240,7 +240,7 @@ final class PagesRepository {
     /**
      * @param string $key
      * @param object $row
-     * @return \Sivujetti\Block\Entities\Block[]
+     * @return list<\Sivujetti\Block\Entities\Block>
      */
     private static function blocksFromRs(string $key, object $row): array {
         $arr = [];
@@ -282,7 +282,7 @@ final class PagesRepository {
     }
     /**
      * @param \stdClass $data
-     * @psalm-param array<int, RawPageTypeField> $fields
+     * @param list<RawPageTypeField> $fields
      * @return string
      */
     private static function makeSnapshot(\stdClass $data, array $fields): string {

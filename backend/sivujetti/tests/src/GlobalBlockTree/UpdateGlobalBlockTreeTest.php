@@ -5,8 +5,9 @@ namespace Sivujetti\Tests\GlobalBlockTree;
 use Pike\Interfaces\SessionInterface;
 use Pike\PikeException;
 use Sivujetti\Auth\ACL;
-use Sivujetti\Block\{BlocksController, BlockTree};
+use Sivujetti\Block\BlocksController;
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\JsonUtils;
 use Sivujetti\Tests\Utils\{BlockTestUtils, PageTestUtils};
 
 final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase {
@@ -43,7 +44,7 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
             "Shouldn't update name");
         $normalized = BlocksController::makeStorableBlocksDataFromValidInput($state->inputData->blocks,
             PageTestUtils::createTestApiCtx()->blockTypes);
-        $this->assertEquals(BlockTree::toJson($normalized),
+        $this->assertEquals(JsonUtils::stringify($normalized),
                             $actual["blocks"]);
     }
 

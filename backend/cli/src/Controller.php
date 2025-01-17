@@ -115,7 +115,7 @@ final class Controller {
      * Signs $fileContents with $secretKey and writes the signature to $filePath
      * (as hex-encoded).
      *
-     * @param string[] $args
+     * @param list<string> $vals
      * @param \Pike\Auth\Crypto $crypto
      * @return array{db.driver: string, db.database: string, db.host?: string, db.user?: string, db.pass?: string, db.tablePrefix?: string, db.charset?: string, baseUrl: string, mainQueryVar: string, secret: string, updateKey: string, initialUserId: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string}
      * @throws \Pike\PikeException

@@ -21,6 +21,7 @@ import {
     events,
     translator,
 } from './edit-app-singletons.js';
+import FilterablePagesList from './FilterablePagesList.jsx';
 import {
     FormGroup,
     FormGroupInline,
@@ -83,6 +84,7 @@ export {
     events,
     Events,
     FileUploader,
+    FilterablePagesList,
     floatingDialog,
     FloatingDialog,
     FormGroup,

@@ -2,9 +2,8 @@ import {
     __,
     api,
     env,
-    http,
+    FilterablePagesList,
     Icon,
-    LoadingSpinner
 } from '@sivujetti-commons-for-edit-app';
 import toasters from '../../includes/toasters.jsx';
 import OverlayView from '../OverlayView.jsx';
@@ -16,34 +15,24 @@ const pageTypeNamePages = 'Pages';
  * #/pages.
  */
 class PagesListView extends preact.Component {
-    // infoOfPageWithNavOpened;
-    /**
-     */
-    constructor(props) {
-        super(props);
-        this.infoOfPageWithNavOpened = null;
-        this.state = {pages: undefined};
-    }
     /**
      * @access protected
      */
     componentWillMount() {
+        this.infoOfPageWithNavOpened = null;
         this.setState({pages: null});
-        http.get(`/api/pages/${pageTypeNamePages}`)
-            .then(pages => { this.setState({pages}); })
-            .catch(env.window.console.error);
     }
     /**
      * @access protected
      */
-    render(_, {pages}) {
+    render() {
         return <OverlayView>
             <h2>{ __('Pages') }</h2>
             <a href="#/pages/create" class="with-icon-inline" style="margin: -.2rem 0 1.2rem;">
                 <Icon iconId="circle-plus" className="color-dimmed3 size-sm mr-2"/>
                 <span>{ __('Create new %s', __('page')) }</span>
             </a>
-            { pages ? <ul class="list table-list">{ pages.length ? pages.map(({title, slug}) =>
+            <FilterablePagesList>{ pages => <ul class="list table-list">{ pages.length ? pages.map(({title, slug}) =>
                 <li class="p-0 p-relative">
                     <button
                         onClick={ e => this.openMoreMenu(slug, title, e) }
@@ -60,7 +49,7 @@ class PagesListView extends preact.Component {
                         <i class="color-dimmed">{ slug }</i>
                     </a>
                 </li>
-            ) : <li>{ __('No pages') }</li> }</ul> : <LoadingSpinner/> }
+            ) : <li>{ __('No pages') }</li> }</ul>}</FilterablePagesList>
         </OverlayView>;
     }
     /**

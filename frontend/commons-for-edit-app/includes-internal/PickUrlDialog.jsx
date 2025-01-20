@@ -1,8 +1,9 @@
-import {env, http, urlUtils, urlAndSlugUtils} from '@sivujetti-commons-for-web-pages';
+import {env, urlUtils, urlAndSlugUtils} from '@sivujetti-commons-for-web-pages';
 import FileUploader from '../FileUploader.jsx';
 import setFocusTo from '../auto-focusers.js';
 import {validationConstraints} from '../constants.js';
 import {__, api} from '../edit-app-singletons.js';
+import FilterablePagesList, {EMPTY_SLUG} from '../FilterablePagesList.jsx';
 import {
     FormGroup,
     hasErrors,
@@ -12,12 +13,8 @@ import {
     unhookForm,
 } from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
-import LoadingSpinner from '../LoadingSpinner.jsx';
 import {determineModeFrom, doubleNormalizeUrl, getLabel} from '../pick-url-utils.js';
-import {timingUtils} from '../utils.js';
 import {urlValidatorImpl} from '../validation.js';
-
-const EMPTY_SLUG = '';
 
 class PickUrlDialog extends preact.Component {
     /**
@@ -298,145 +295,32 @@ class CurrentUrlDisplay extends preact.Component {
 
 // ----
 
-const INITIAL_PAGES_LIST_BACKEND_HARD_LIMIT = 200;
-
 class PickPageTab extends preact.Component {
     /**
      * @access protected
      */
-    componentWillMount() {
-        this.filterInput = preact.createRef();
-        this.backendSearchCache = {
-            // '@initial':   array,
-            // 'searchTerm1': array,
-            // 'searchTerm2': array,
-            // '...':         array,
-        };
-        this.useLocalSearch = true;
-        this.handleBackendSearchThrottled = null;
-        this.setState({allPages: null, filteredPages: null, selectedIdx: null});
-        //
-        this.fetchOrGetPageSearchResults('@initial', true)
-            .then(pages => {
-                this.useLocalSearch = pages.length < INITIAL_PAGES_LIST_BACKEND_HARD_LIMIT;
-                this.handleBackendSearchThrottled = this.useLocalSearch ? null : timingUtils.debounce(async (input) => {
-                    const results = await this.fetchOrGetPageSearchResults(input);
-                    this.setState({allPages: results, filteredPages: results});
-                }, env.normalTypingDebounceMillis);
-                this.setState({allPages: pages, filteredPages: getFilteredPages(pages, '')});
-            })
-            .catch(env.window.console.error);
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        setFocusTo(this.filterInput);
-    }
-    /**
-     * @access protected
-     */
-    render({onPickurl, currentPageSlug}, {filteredPages, selectedIdx, currentFilterStr}) {
-        const p = !currentFilterStr && filteredPages && currentPageSlug
-            ? [
-                ...[{slug: EMPTY_SLUG, title: __('This page')}],
-                ...filteredPages
-            ]
-            : filteredPages;
-        const filterInput = <input
-            onInput={ this.handleFilterTyped.bind(this) }
-            value={ currentFilterStr }
-            class="form-input mb-2"
-            placeholder={ __('Filter') }
-            ref={ this.filterInput }/>;
-        return [
-            <div class={ !currentFilterStr ? '' : 'has-icon-right' } style="margin-right: 1.1rem">
-                { !currentFilterStr
-                    ? filterInput
-                    : [
-                        filterInput,
-                        <button
-                            onClick={ () => this.handleFilterTyped(null) }
-                            class="sivujetti-form-icon btn no-color"
-                            type="button">
-                            <Icon iconId="x" className="size-xs color-dimmed"/>
-                        </button>
-                    ]
-                }
-            </div>,
-            Array.isArray(p)
-                ? <ul class={ `list table-list selectable-items${selectedIdx !== null ? ' has-first-item-selected' : '' }` }>{
-                    p.map(({title, slug}) => <li class="p-0"><button
-                        class="btn btn-link my-0 col-12 text-left text-ellipsis"
-                        onClick={ () => onPickurl(slug) }
-                        title={ title }
-                        style="height: 2.2rem">
-                            <span class="h6 my-0 mr-1">{ title }</span>
-                            <i class="color-dimmed">{ slug || currentPageSlug }</i>
-                        </button>
-                    </li>
-                    )
-                }</ul>
-                : <LoadingSpinner/>
-        ];
-    }
-    /**
-     * @param {Event?} e
-     * @access private
-     */
-    handleFilterTyped(e) {
-        const input = e ? e.target.value : '';
-        if (this.state.currentFilterStr === input ||
-            !this.state.allPages) return;
-        //
-        if (this.useLocalSearch)
-            this.setState({
-                filteredPages: getFilteredPages(this.state.allPages, input),
-                currentFilterStr: input,
-            });
-        else {
-            this.setState({currentFilterStr: input});
-            if (input)
-                this.handleBackendSearchThrottled(input);
-            else {
-                const allPages = this.backendSearchCache['@initial'];
-                this.setState({allPages, filteredPages: getFilteredPages(allPages, ''), currentFilterStr: ''});
+    render({onPickurl, currentPageSlug}) {
+        return <FilterablePagesList
+            createFilterablePages={ (from, currentFilterStr) =>
+                !currentFilterStr && from && currentPageSlug
+                ? [
+                    {slug: EMPTY_SLUG, title: __('This page')},
+                    ...from
+                ]
+                : from
             }
-        }
+            filterDivMarginRight="1.1">{ p => <ul class="list table-list selectable-items">{
+            p.map(({title, slug}) => <li class="p-0"><button
+                class="btn btn-link my-0 col-12 text-left text-ellipsis"
+                onClick={ () => onPickurl(slug) }
+                title={ title }
+                style="height: 2.2rem">
+                    <span class="h6 my-0 mr-1">{ title }</span>
+                    <i class="color-dimmed">{ slug || currentPageSlug }</i>
+                </button>
+            </li>)
+        }</ul> }</FilterablePagesList>;
     }
-    /**
-     * @param {string} searchTerm = ''
-     * @param {string} isInitial = false
-     * @returns {Promise<UploadsEntry[]>}
-     * @access private
-     */
-    async fetchOrGetPageSearchResults(searchTerm = '', isInitial = false) {
-        const k = searchTerm;
-        const fetched = this.backendSearchCache[k];
-        if (fetched) return Promise.resolve(fetched);
-        //
-        const searchTermPart = !searchTerm || isInitial ? '' : `?searchTerm=${encodeURIComponent(searchTerm)}`;
-        try {
-            const files = await http.get(`/api/pages/Pages${searchTermPart}`);
-            this.backendSearchCache[k] = files;
-            return this.backendSearchCache[k];
-        } catch (message) {
-            env.window.console.error(message);
-        }
-    }
-}
-
-/**
- * @param {Array<RelPage>} from
- * @param {string} filterStr = ''
- * @returns {Array<RelPage>}
- */
-function getFilteredPages(from, filterStr = '') {
-    if (!filterStr) return from.slice(0, 20);
-    //
-    return window.fuzzysort
-        .go(filterStr, from, {keys: ['title', 'slug']})
-        .map(({obj}) => obj);
 }
 
 // ----

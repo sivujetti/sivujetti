@@ -78,7 +78,7 @@ class QuillEditor extends preact.Component {
                                                           // '/sivujetti/index.php?q=/_edit' -> ''
                floatingDialog.open(PickUrlDialog, {
                    width: 480,
-                   height: getHeight('default', true)[0],
+                   height: getHeight('default')[0],
                    title: __('Choose a link')
                }, {
                    mode,

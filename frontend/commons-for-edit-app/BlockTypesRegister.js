@@ -62,7 +62,7 @@ class BlockTypesRegister {
         return type.icon || fallback;
     }
     /**
-     * @returns {IterableIterator<string, BlockTypeDefinition>}
+     * @returns {IterableIterator<[string, BlockTypeDefinition]>}
      * @access public
      */
     entries() {

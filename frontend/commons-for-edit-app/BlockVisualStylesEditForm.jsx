@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {mediaScopes} from '../shared-inline.js';
 import BackgroundImageValueInput from './styles/BackgroundImageValueInput.jsx';
 import ColorValueInput from './styles/ColorValueInput.jsx';
@@ -19,6 +20,9 @@ import {
     getValidDefs,
 } from './BlockVisualStylesEditFormFuncs.js';
 
+/**
+ * @deprecated
+ */
 class BlockVisualStylesEditForm extends preact.Component {
     // cssVarDefs;
     // userStyleChunks;

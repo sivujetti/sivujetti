@@ -13,21 +13,16 @@ import GridColumnsValueInput from './GridColumnsValueInput.jsx';
 import LengthValueInput from './LengthValueInput.jsx';
 import OptionValueInput from './OptionValueInput.jsx';
 
-/** @extends {preact.Component<DefaultStyleCustomizatorForm, any>} */
+/** @extends {preact.Component<DefaultStyleCustomizatorFormProps, any>} */
 class DefaultStyleCustomizatorForm extends preact.Component {
-    // cssVarDefs;
-    // styleChunks;
-    // varInputToScssCodeFn;
     /**
-     * @param {DefaultStyleCustomizatorForm} props
      * @access protected
      */
     constructor(props) {
         super(props);
-
         const reduced = DefaultStyleCustomizatorForm.getConfigurableVarsList(null, props.checkIsChunkActive);
-
         this.cssVarDefs = createNormalizedDefs(getValidDefs(reduced));
+        this.styleChunks = [];
         this.varInputToScssCodeFn = createVarInputToScssCodeAuto(this.cssVarDefs);
     }
     /**
@@ -39,7 +34,7 @@ class DefaultStyleCustomizatorForm extends preact.Component {
         this.setState({styleScreens: scopes, curScreenSizeTabIdx: 0});
     }
     /**
-     * @param {DefaultStyleCustomizatorForm} props
+     * @param {DefaultStyleCustomizatorFormProps} props
      * @access protected
      */
     componentWillReceiveProps(props) {
@@ -119,7 +114,7 @@ class DefaultStyleCustomizatorForm extends preact.Component {
         api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
     }
     /**
-     * @param {string|Event} input
+     * @param {string} val
      * @param {string} varName
      * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
      * @access protected
@@ -191,7 +186,7 @@ class DefaultStyleCustomizatorForm extends preact.Component {
         }
     }
     /**
-     * @param {DefaultStyleCustomizatorForm} props
+     * @param {DefaultStyleCustomizatorFormProps} props
      * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
      */
     createCssVarsMapsInternal(props) {
@@ -226,7 +221,7 @@ function getAllCustomClassChunks() {
 }
 
 /**
- * @typedef {{blockId: string; blockIsStoredToTreeId: 'main'|string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean; styleClasses: string;}} DefaultStyleCustomizatorForm
+ * @typedef {{blockId: string; blockIsStoredToTreeId: 'main'|string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean; styleClasses: string;}} DefaultStyleCustomizatorFormProps
  */
 
 export default DefaultStyleCustomizatorForm;

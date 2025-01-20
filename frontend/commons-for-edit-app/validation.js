@@ -38,11 +38,11 @@ const mediaUrlValidatorImpl = {doValidate: (val, hints = {}) => {
 
 /**
  * @param {string} input
- * @returns {string}
+ * @returns {[string, boolean]} [canonicalized, isLocalUrl]
  */
 function createCanonicalUrl(input) {
     if (!input.length)
-        return '';
+        return ['', false];
     const noDot = input.indexOf('.') < 0;
     const noColon = input.indexOf(':') < 0;
     if (noDot && noColon) { // treat as local

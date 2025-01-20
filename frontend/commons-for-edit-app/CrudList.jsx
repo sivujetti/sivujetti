@@ -1,5 +1,5 @@
 import {env} from '@sivujetti-commons-for-web-pages';
-import {__, api, events} from './edit-app-singletons.js';
+import {__, api} from './edit-app-singletons.js';
 import {Icon} from './Icon.jsx';
 import Sortable from './Sortable.js';
 
@@ -13,7 +13,7 @@ class CrudList extends preact.Component {
     // sortable; // public
     // itemWithNavOpened; // public
     /**
-     * @param {{items: Array<T>; onListMutated: (newList: Array<T>, prop: string = null, subProp: string = null) => void; createNewItem: (...varArgs: any) => T; editForm: preact.AnyComponent; editFormProps?: {[key: string]: any;}; itemTypeFriendlyName?: string; itemTitleKey?: string; getTitle?: (item: T) => preact.ComponentChild; contextMenuPos?: string; contextMenuZIndex?: number; onCreateCtxMenuCtrl?: (ctrl: ContextMenuController) => ContextMenuController; renderAddItemButton?: () => preact.ComponentChild;}} props
+     * @param {{items: Array<T>; onListMutated: (newList: Array<T>, prop?: string, subProp?: string) => void; createNewItem: (...varArgs: any) => T; editForm: preact.AnyComponent; editFormProps?: {[key: string]: any;}; itemTypeFriendlyName?: string; itemTitleKey?: string; getTitle?: (item: T) => preact.ComponentChild; contextMenuPos?: string; contextMenuZIndex?: number; onCreateCtxMenuCtrl?: (ctrl: ContextMenuController) => ContextMenuController; renderAddItemButton?: () => preact.ComponentChild;}} props
      */
     constructor(props) {
         super(props);
@@ -135,7 +135,7 @@ class CrudList extends preact.Component {
         }
     }
     /**
-     * @param {Array<T && {key: string;}>} items
+     * @param {Array<T & {key: string;}>} items
      * @param {string} prop = null
      * @param {string} subProp = null
      * @access private
@@ -173,7 +173,7 @@ class CrudList extends preact.Component {
         }}));
     }
     /**
-     * @param {any[]} ...varArgs
+     * @param {any[]} varArgs
      * @access private
      */
     addNewItem(...varArgs) {
@@ -186,7 +186,8 @@ class CrudList extends preact.Component {
 }
 
 /**
- * @param {Array<T && {key: string;}>} items
+ * @template T
+ * @param {Array<T & {key: string;}>} items
  * @returns {Array<Object>}
  */
 function removeKeys(items) {

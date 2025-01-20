@@ -49,7 +49,7 @@ function doCreateCssVarsMaps(cssVarDefs, scopeKind, scopeSpecifier = undefined, 
 /**
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
  * @param {string|null} scss
- * @returns {Array<CssVarsMap>}
+ * @returns {CssVarsMap}
  */
 function createVarsMapAuto(cssVarDefs, scss) {
     /* Create map for non-existing chunk. Example: {
@@ -165,8 +165,9 @@ function createNormalizedSubSelector(input) {
 }
 
 /**
+ * @deprecated
  * @param {string} prefix Examples: 'text', 'button'
- * @returns {Array<VisualStylesFormVarDefinition>}
+ * @returns {VisualStylesFormVarDefinition}
  */
 function createJustifyContentVarDef(prefix) {
     return {
@@ -194,6 +195,7 @@ function createJustifyContentVarDef(prefix) {
 }
 
 /**
+ * @deprecated
  * @param {string} prefix Examples: 'text', 'button'
  * @returns {Array<VisualStylesFormVarDefinition>}
  */

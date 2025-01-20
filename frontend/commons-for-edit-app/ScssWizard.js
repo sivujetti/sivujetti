@@ -53,7 +53,7 @@ class ScssWizard {
     /**
      * @param {styleScopeKind} scopeKind
      * @param {string} scopeSpecifier = undefined
-     * @param {(style: StyleChunk) => boolean} predicate = true
+     * @param {(style: StyleChunk) => boolean} fn = true
      * @returns {Array<StyleChunk>}
      * @access public
      */
@@ -65,7 +65,7 @@ class ScssWizard {
     /**
      * @param {string} scopeKind
      * @param {string} scopeSpecifier
-     * @param {mediaScope} mediaScopeId = 'all'
+     * @param {any} mediaScopeId = 'all'
      * @param {stylesLayer} layer = 'user-styles'
      * @returns {StyleChunk|null}
      * @access public
@@ -110,7 +110,7 @@ class ScssWizard {
      * @param {scssCodeInput} codeTemplate Examples 'color: red;', '> sub-selector {\n  color: red;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {string} val
      * @param {StyleChunk} currentStyle
-     * @param {mediaScope} mediaScopeId = 'all'
+     * @param {any} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
@@ -121,7 +121,7 @@ class ScssWizard {
     /**
      * @param {scssCodeInput} newScss
      * @param {StyleChunk} currentStyle
-     * @param {mediaScope} mediaScopeId = 'all'
+     * @param {any} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
@@ -153,7 +153,7 @@ class ScssWizard {
      * @param {scssCodeInput} codeTemplate
      * @param {string} val
      * @param {StyleChunk} currentStyle
-     * @param {mediaScope} mediaScopeId = 'all'
+     * @param {any} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
@@ -288,11 +288,11 @@ class ScssWizard {
         return this.tryToCommitAll(optimized, affectedMediaScopeIds)[0];
     }
     /**
-     * @param {scssCodeInput} codeTemplate
+     * @param {scssCodeInput} inputCodeTemplate
      * @param {string} val
      * @param {string} blockId
      * @param {'main'|string} blockTreeId
-     * @returns {StylesBundleWithId}
+     * @returns {Array<StyleChunk>}
      * @access private
      */
     doAddFirstScssChunk(inputCodeTemplate, val, blockId, blockTreeId) {
@@ -321,7 +321,7 @@ class ScssWizard {
     }
     /**
      * @param {styleScopeKind} scopeKind
-     * @param {(style: StyleChunk) => boolean} predicate = true
+     * @param {(style: StyleChunk) => boolean} fn = true
      * @returns {Array<StyleChunk>}
      * @access private
      */
@@ -333,7 +333,7 @@ class ScssWizard {
     /**
      * @param {styleScopeKind} scopeKind
      * @param {string} scopeSpecifier
-     * @param {(style: StyleChunk) => boolean} predicate = true
+     * @param {(style: StyleChunk) => boolean} fn = true
      * @returns {Array<StyleChunk>}
      * @access private
      */
@@ -409,7 +409,7 @@ class ScssWizard {
     }
     /**
      * @param {Array<StyleChunk>} newStylesArr
-     * @param {mediaScope|{[key: mediaScope]: any;}} mediaScopeIdOrIds
+     * @param {any} mediaScopeIdOrIds
      * @returns {[StylesBundleWithId|null, string|null]}
      * @access private
      */

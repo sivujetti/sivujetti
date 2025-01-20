@@ -38,7 +38,7 @@ class PathIcon extends preact.Component {
  * @param {string?} className
  * @returns {string}
  */
-function iconAsString(iconId, className) {
+function iconAsString(iconId, className = null) {
     return '<svg class="icon-tabler' + (!className ? '' : ` ${className}`) + '" width="24" height="24">' +
         `<use xlink:href="${hrefFull(iconId)}"/>` +
     '</svg>';

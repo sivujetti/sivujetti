@@ -97,7 +97,7 @@ interface BlockType {
 interface BlockTypeDefinition {
     name: string;         // Examples 'Text'
     friendlyName: string; // Examples 'Text'
-    editForm: preact.Component|null;
+    editForm: preact.ComponentConstructor|null;
     stylesEditForm: 'default'|preact.Component|null;
     createOwnProps(defProps: {[key: string]: any;}): {[propName: string]: any};
     icon?: string;        // Examples 'blockquote'
@@ -557,7 +557,7 @@ interface StyleChunk extends StyleChunkWithoutId {
 
 interface CustomClassStyleChunkData {
     title?: string;
-    customizationSetting?: {
+    customizationSettings?: {
         varDefs: Array<VisualStylesFormVarDefinition>;
     };
     associatedBlockTypes?: Array<string>;
@@ -642,6 +642,6 @@ interface BlockBehaviourEditPopupProps {
 
 type scssCodeInput = string|Array<string>;
 
-type translateVarInputToScssCodeTemplateFn = (varName: string, value: string, valueNorm: string) => scssCodeInput;
+type translateVarInputToScssCodeTemplateFn = (varName: string, value: string) => scssCodeInput;
 
 type globalBlockReferenceBlockId = string;

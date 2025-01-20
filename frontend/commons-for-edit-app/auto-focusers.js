@@ -1,7 +1,7 @@
 import {env} from '@sivujetti-commons-for-web-pages';
 
 /**
- * @param {preact.Ref} ref
+ * @param {preact.RefObject<any>} ref
  */
 function setFocusTo(ref) {
     const elOrCmp = ref.current;

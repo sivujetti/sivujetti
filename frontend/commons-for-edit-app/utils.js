@@ -70,7 +70,7 @@ const objectUtils = {
     cloneDeep,
     /**
      * @param {Object} obj
-     * @param {(newCopyFreeToMutate: Object) => any} mutator
+     * @param {(newCopyFreeToMutate: Object) => any} doTheChanges
      * @returns {Object} Mutated $obj
      */
     cloneDeepWithChanges(obj, doTheChanges) {

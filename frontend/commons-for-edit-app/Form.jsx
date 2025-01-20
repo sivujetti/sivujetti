@@ -87,7 +87,7 @@ function unhookForm(cmp) {
  * @param {preact.Component} cmp
  * @param {string} k
  * @param {InputDef} inp
- * @returns {todo2}
+ * @returns {InputApi}
  */
 function createApi(cmp, k, inp) {
     const out = {};
@@ -311,6 +311,8 @@ class FormGroupInline extends preact.Component {
  * @prop {string=} type e.g. 'number'
  * @prop {((value: string, numErrors: boolean, source: 'undo'|'redo'|'default'|string) => any)=} onAfterValueChanged
  * other props
+ *
+ * @typedef {{name: string; type: string; className: string; doValidate(value: any): Array<string>; triggerInput(value: any, source: 'undo'|'redo'|'default'|string, newState: Object): void; onInput(e: Event): void; onBlur(e: Event): void;}} InputApi
  */
 
 export {

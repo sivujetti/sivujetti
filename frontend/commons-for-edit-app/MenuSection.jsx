@@ -2,7 +2,7 @@ import {Icon} from './Icon.jsx';
 
 class MenuSection extends preact.Component {
     /**
-     * @param {{title: string; subtitle: string; iconId: string; colorClass: string; outerClass?: string; buttonClass?: string; onIsCollapsedChanged?: (to: boolean) => void; initiallyIsCollapsed?: boolean;}} props
+     * @param {{title: string; subtitle: string; iconId: string; icon?: string; colorClass: string; outerClass?: string; buttonClass?: string; onIsCollapsedChanged?: (to: boolean) => void; initiallyIsCollapsed?: boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -28,10 +28,11 @@ class MenuSection extends preact.Component {
     /**
      * @access protected
      */
-    render({title, subtitle, iconId, colorClass, outerClass, buttonClass, children}, {isCollapsed}) {
+    render({title, subtitle, icon, iconId, colorClass, outerClass, buttonClass, children}, {isCollapsed}) {
+        if (!icon) icon = iconId;
         return <section class={ ['panel-section', outerClass ? ` ${outerClass}` : '', isCollapsed ? '' : ' open'].join('') } ref={ this.el }>
             <button class={ `flex-centered pr-2 section-title col-12${buttonClass || ''}` } onClick={ this.collapseOrUncollapse.bind(this) }>
-                <Icon iconId={ iconId } className={ `p-absolute size-sm mr-2 ${colorClass}` }/>
+                { typeof icon === 'string' ? <Icon iconId={ icon } className={ `p-absolute size-sm mr-2 ${colorClass}` }/> : icon }
                 <span class="pl-1 d-block col-12 color-default">
                     { title }
                     <span class="text-ellipsis text-tiny col-12">{ subtitle }</span>
@@ -45,7 +46,7 @@ class MenuSection extends preact.Component {
 
 class MenuSectionAbstract extends preact.Component {
     /**
-     * @param {{initiallyIsCollapsed?: boolean; sections: Array<string>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;} && {loadedPageSlug?: string; loadingPageSlug*?: string;}} props
+     * @param {{initiallyIsCollapsed?: boolean; sections: Array<string>; startAddPageMode: () => void; startAddPageTypeMode: () => void; currentWebPage: EditAppAwareWebPage;} & {loadedPageSlug?: string; loadingPageSlug?: string;}} props
      */
     constructor(props) {
         super(props);

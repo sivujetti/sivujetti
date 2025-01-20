@@ -2,7 +2,7 @@ import scssUtils, {compile, serialize, stringify} from './styles/scss-utils.js';
 
 /**
  * @param {string} scss
- * @returns {{extractVal(prop: string, scope?: string): StylisAstNode|null; getAst(): Array<StylisAstNode>;}}
+ * @returns {{extractVal(prop: string, scope?: string, propTemplate?: string): string|null; getAst(): Array<StylisAstNode>;}}
  */
 function createCssDeclExtractor(scss) {
     const ast = compile(scss);
@@ -10,9 +10,9 @@ function createCssDeclExtractor(scss) {
     return {
         /**
          * @param {string} prop
-         * @param {string=} scope = rootScope
-         * @param {string=} propTmpl = null
-         * @returns {StylisAstNode|null}
+         * @param {string?} scope = rootScope
+         * @param {string?} propTmpl = null
+         * @returns {string|null}
          */
         extractVal(prop, scope = rootScope, propTmpl = null) {
             scope = scope.replace('&:', '&\f:');
@@ -35,7 +35,6 @@ function createCssDeclExtractor(scss) {
             }
 
             return cand1;
-
         },
         /**
          * @returns {Array<StylisAstNode>}
@@ -209,8 +208,9 @@ function createScssInspectorInternal(scss) {
     const ast = compile(scss);
     return {
         /**
+         * @deprecated
          * @param {string} declName Example 'color', 'grid-template-columns'
-         * @returns {StylisAstNode|null}
+         * @returns {[StylisAstNode|null, StylisAstNode|null]} [node, parentNode]
          */
         findNodeByDeclName(declName) {
             return findRecursively(ast, node =>
@@ -218,9 +218,10 @@ function createScssInspectorInternal(scss) {
             );
         },
         /**
+         * @deprecated
          * @param {string} declName Example 'color', 'grid-template-columns'
          * @param {string} scope Example 'ul li', 'ul li a:hover'
-         * @returns {StylisAstNode|null}
+         * @returns {[StylisAstNode|null, StylisAstNode|null]} [node, parentNode]
          */
         findNodeByDeclNameFromScope(declName, scope) {
             return findRecursively(ast, (node, parentNode) =>
@@ -269,6 +270,7 @@ function findRecursively(ast, fn, parentNode = null) {
 }
 
 /**
+ * @deprecated
  * @param {Array<StylisAstNode>} ast
  * @param {(node: StylisAstNode, parentNode: StylisAstNode) => any} fn
  * @param {StylisAstNode|null} parentNode = null
@@ -338,7 +340,7 @@ function findEmptyBlockClosingTagIndex(lines) {
 
 /**
  * @param {string} scssTo
- * @param {string} codeTemplate
+ * @param {scssCodeInput} codeTemplate
  * @param {any} val
  * @returns {string}
  */
@@ -400,7 +402,7 @@ const EMPTY_LINE = '^::empty::^';
 
 /**
  * @param {string} scssFrom
- * @param {string} codeTemplate
+ * @param {scssCodeInput} codeTemplate
  * @param {any} val
  * @returns {string}
  */

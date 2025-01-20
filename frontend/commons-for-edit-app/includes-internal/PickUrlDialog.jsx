@@ -14,6 +14,7 @@ import {
 import {Icon} from '../Icon.jsx';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import {determineModeFrom, doubleNormalizeUrl, getLabel} from '../pick-url-utils.js';
+import {timingUtils} from '../utils.js';
 import {urlValidatorImpl} from '../validation.js';
 
 const EMPTY_SLUG = '';
@@ -40,12 +41,6 @@ class PickUrlDialog extends preact.Component {
      */
     componentDidMount() {
         this.props.dialog.setHeight(getHeight(this.state.mode));
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        PickPageTab.clearCurrentFilterStr();
     }
     /**
      * @access protected
@@ -138,11 +133,11 @@ class PickUrlDialog extends preact.Component {
      * @returns {preact.ComponentChild}
      * @access private
      */
-    renderPopup(pop) {
-        if (pop === null) return null;
+    renderPopup(popupName) {
+        if (popupName === null) return null;
         let content;
         let arrowLeft;
-        if (pop === 'pick-url') {
+        if (popupName === 'pick-url') {
             const currentPageSlug = api.saveButton.getInstance().getChannelState('currentPageData').slug;
             [content, arrowLeft] = [<PickPageTab
                 url={ this.state.url }
@@ -151,13 +146,13 @@ class PickUrlDialog extends preact.Component {
                 } }
                 currentPageSlug={ currentPageSlug }/>, 138];
         }
-        if (pop === 'pick-file')
+        if (popupName === 'pick-file')
             [content, arrowLeft] = [<FileUploader
                 mode="pick"
                 onEntryClicked={ entry => { this.commitLocally(urlUtils.makeAssetUrl(`/public/uploads${entry.baseDir}/${entry.fileName}`), 'pick-file'); } }
                 numColumns="3"
                 hideUploadButton/>, 247];
-        if (pop === 'type-external-url')
+        if (popupName === 'type-external-url')
             [content, arrowLeft] = [<DefineExternalUrlTab
                 url={ this.state.url.split('#')[0] }
                 onUrlChanged={ validUrl => {
@@ -188,8 +183,6 @@ class PickUrlDialog extends preact.Component {
         this.props.dialog.setHeight(getHeight(newMode));
     }
     /**
-     * @param {string} url
-     * @param {urlMode} newMode
      * @access private
      */
     commitAndClose() {
@@ -305,27 +298,32 @@ class CurrentUrlDisplay extends preact.Component {
 
 // ----
 
+const INITIAL_PAGES_LIST_BACKEND_HARD_LIMIT = 200;
+
 class PickPageTab extends preact.Component {
-    // static currentFilterStr;
-    // filterInput;
-    // allPages;
     /**
      * @access protected
      */
     componentWillMount() {
         this.filterInput = preact.createRef();
-        this.setState({pages: null, filteredPages: null, currentFilterStr: PickPageTab.currentFilterStr});
-        http.get('/api/pages/Pages')
+        this.backendSearchCache = {
+            // '@initial':   array,
+            // 'searchTerm1': array,
+            // 'searchTerm2': array,
+            // '...':         array,
+        };
+        this.useLocalSearch = true;
+        this.handleBackendSearchThrottled = null;
+        this.setState({allPages: null, filteredPages: null, selectedIdx: null});
+        //
+        this.fetchOrGetPageSearchResults('@initial', true)
             .then(pages => {
-                if (this.props.url) {
-                    const short = this.props.url.substring(urlUtils.baseUrl.length - 1);
-                    this.allPages = pages.sort(({slug}, _b) => slug === short ? -1 : 0);
-                    this.setState({filteredPages: getFilteredPages(pages, this.state.currentFilterStr),
-                                   selectedIdx: 0});
-                } else {
-                    this.allPages = pages;
-                    this.setState({filteredPages: getFilteredPages(pages, this.state.currentFilterStr), selectedIdx: null});
-                }
+                this.useLocalSearch = pages.length < INITIAL_PAGES_LIST_BACKEND_HARD_LIMIT;
+                this.handleBackendSearchThrottled = this.useLocalSearch ? null : timingUtils.debounce(async (input) => {
+                    const results = await this.fetchOrGetPageSearchResults(input);
+                    this.setState({allPages: results, filteredPages: results});
+                }, env.normalTypingDebounceMillis);
+                this.setState({allPages: pages, filteredPages: getFilteredPages(pages, '')});
             })
             .catch(env.window.console.error);
     }
@@ -339,13 +337,12 @@ class PickPageTab extends preact.Component {
      * @access protected
      */
     render({onPickurl, currentPageSlug}, {filteredPages, selectedIdx, currentFilterStr}) {
-        const p = filteredPages === null
-            ? null
-            : currentPageSlug && filteredPages ? [
-                ...filteredPages.slice(0, 1),
+        const p = !currentFilterStr && filteredPages && currentPageSlug
+            ? [
                 ...[{slug: EMPTY_SLUG, title: __('This page')}],
-                ...filteredPages.slice(1)
-            ] : filteredPages;
+                ...filteredPages
+            ]
+            : filteredPages;
         const filterInput = <input
             onInput={ this.handleFilterTyped.bind(this) }
             value={ currentFilterStr }
@@ -367,17 +364,20 @@ class PickPageTab extends preact.Component {
                     ]
                 }
             </div>,
-            Array.isArray(p) ? <ul class={ `list table-list selectable-items${selectedIdx !== null ? ' has-first-item-selected' : '' }` }>{ p.map(({title, slug}) =>
-                <li class="p-0"><button
-                    class="btn btn-link my-0 col-12 text-left text-ellipsis"
-                    onClick={ () => onPickurl(slug) }
-                    title={ title }
-                    style="height: 2.2rem">
-                        <span class="h6 my-0 mr-1">{ title }</span>
-                        <i class="color-dimmed">{ slug || currentPageSlug }</i>
-                    </button>
-                </li>
-            ) }</ul> : <LoadingSpinner/>
+            Array.isArray(p)
+                ? <ul class={ `list table-list selectable-items${selectedIdx !== null ? ' has-first-item-selected' : '' }` }>{
+                    p.map(({title, slug}) => <li class="p-0"><button
+                        class="btn btn-link my-0 col-12 text-left text-ellipsis"
+                        onClick={ () => onPickurl(slug) }
+                        title={ title }
+                        style="height: 2.2rem">
+                            <span class="h6 my-0 mr-1">{ title }</span>
+                            <i class="color-dimmed">{ slug || currentPageSlug }</i>
+                        </button>
+                    </li>
+                    )
+                }</ul>
+                : <LoadingSpinner/>
         ];
     }
     /**
@@ -386,35 +386,57 @@ class PickPageTab extends preact.Component {
      */
     handleFilterTyped(e) {
         const input = e ? e.target.value : '';
-        if (this.state.currentFilterStr !== input) {
-            PickPageTab.currentFilterStr = input;
+        if (this.state.currentFilterStr === input ||
+            !this.state.allPages) return;
+        //
+        if (this.useLocalSearch)
             this.setState({
-                filteredPages: getFilteredPages(this.allPages, PickPageTab.currentFilterStr),
-                currentFilterStr: PickPageTab.currentFilterStr,
+                filteredPages: getFilteredPages(this.state.allPages, input),
+                currentFilterStr: input,
             });
+        else {
+            this.setState({currentFilterStr: input});
+            if (input)
+                this.handleBackendSearchThrottled(input);
+            else {
+                const allPages = this.backendSearchCache['@initial'];
+                this.setState({allPages, filteredPages: getFilteredPages(allPages, ''), currentFilterStr: ''});
+            }
+        }
+    }
+    /**
+     * @param {string} searchTerm = ''
+     * @param {string} isInitial = false
+     * @returns {Promise<UploadsEntry[]>}
+     * @access private
+     */
+    async fetchOrGetPageSearchResults(searchTerm = '', isInitial = false) {
+        const k = searchTerm;
+        const fetched = this.backendSearchCache[k];
+        if (fetched) return Promise.resolve(fetched);
+        //
+        const searchTermPart = !searchTerm || isInitial ? '' : `?searchTerm=${encodeURIComponent(searchTerm)}`;
+        try {
+            const files = await http.get(`/api/pages/Pages${searchTermPart}`);
+            this.backendSearchCache[k] = files;
+            return this.backendSearchCache[k];
+        } catch (message) {
+            env.window.console.error(message);
         }
     }
 }
 
-PickPageTab.currentFilterStr = '';
-
 /**
- * @access public
- */
-PickPageTab.clearCurrentFilterStr = () => {
-    PickPageTab.currentFilterStr = '';
-};
-
-/**
- * @param {Array<RelPage>} allPages
+ * @param {Array<RelPage>} from
  * @param {string} filterStr = ''
  * @returns {Array<RelPage>}
  */
-function getFilteredPages(allPages, filterStr = '') {
-    if (!filterStr) return allPages.slice(0, 20);
+function getFilteredPages(from, filterStr = '') {
+    if (!filterStr) return from.slice(0, 20);
     //
-    const lookFor = filterStr ? `/${filterStr}` : filterStr;
-    return allPages.filter(({slug}) => slug.startsWith(lookFor));
+    return window.fuzzysort
+        .go(filterStr, from, {keys: ['title', 'slug']})
+        .map(({obj}) => obj);
 }
 
 // ----

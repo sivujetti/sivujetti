@@ -11,15 +11,19 @@ trait HttpApiTestTrait {
      * @see \Pike\Request::__construct
      */
     public function createApiRequest(string $path,
-                                     string $method = 'GET',
+                                     string $method = "GET",
                                      ?object $body = null,
                                      ?object $files = null,
                                      ?array $serverVars = null,
                                      ?array $queryVars = null,
                                      ?array $cookies = null): Request {
+        if (parse_url($path, PHP_URL_QUERY))
+            throw new \InvalidArgumentException('Pass ' .
+                '`createApiRequest("/path", ... queryVars: ["var" => "val"])` instead of ' .
+                '`createApiRequest("/path?var=val", ...)`');
         return new Request($path, $method, $body, $files,
-            array_merge(['HTTP_X_REQUESTED_WITH' => 'Loving kindness',
-                         'CONTENT_TYPE' => 'application/json'],
+            array_merge(["HTTP_X_REQUESTED_WITH" => "Loving kindness",
+                         "CONTENT_TYPE" => "application/json"],
                         $serverVars ?? []), $queryVars, $cookies);
     }
     /**

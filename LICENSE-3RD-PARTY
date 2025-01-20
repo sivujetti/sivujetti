@@ -40,6 +40,10 @@ Library: Floating UI (Popper.js)
 License: MIT
 Link: https://github.com/floating-ui/floating-ui/blob/master/LICENSE
 
+Library: fuzzysort
+License: MIT
+Link: https://github.com/farzher/fuzzysort/blob/master/LICENSE
+
 Library: jsPanel
 License: MIT
 Link: https://raw.githubusercontent.com/Flyer53/jsPanel4/master/LICENSE

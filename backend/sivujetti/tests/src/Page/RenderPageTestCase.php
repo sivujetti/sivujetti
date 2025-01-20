@@ -3,7 +3,6 @@
 namespace Sivujetti\Tests\Page;
 
 use Pike\Request;
-use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\Tests\Utils\PluginTestCase;
 
 abstract class RenderPageTestCase extends PagesControllerTestCase {
@@ -14,8 +13,6 @@ abstract class RenderPageTestCase extends PagesControllerTestCase {
         $testEnvBootModule = $state->app->getApp()->getModules()[0];
         $state->spyingResponse = $state->app->sendRequest(
             new Request($state->testPageData->slug, "GET",
-                body: null,
-                files: null,
                 serverVars: ["HTTP_HOST" => "localhost"],
                 queryVars: !$inEditMode ? null : ["in-edit" => ""],
                 // For skipAuthButLoadRequestUser

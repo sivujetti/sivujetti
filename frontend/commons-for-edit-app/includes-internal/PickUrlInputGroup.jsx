@@ -37,7 +37,7 @@ class PickUrlInputGroup extends preact.Component {
         const mode = determineModeFrom(normalized)[0];
         floatingDialog.open(PickUrlDialog, {
             width: 480,
-            height: getHeight(mode, true)[0],
+            height: getHeight(mode)[0],
             title: __('Choose a link')
         }, {
             mode,

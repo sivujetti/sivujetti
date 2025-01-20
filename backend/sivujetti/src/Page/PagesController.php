@@ -313,8 +313,8 @@ final class PagesController {
         $res->status($page ? 200 : 404)->json($page);
     }
     /**
-     * GET /api/pages/w:pageType[?order-default]: Lists all $req->params->pageType's
-     * pages.
+     * GET /api/pages/w:pageType/[?searchTerm=*][&order-default]: Returns all pages
+     * of type $req->params->pageType, or those that match $req->queryVar("searchTerm").
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
@@ -323,11 +323,17 @@ final class PagesController {
     public function listPages(Request $req,
                               Response $res,
                               PagesRepository2 $pagesRepo): void {
-        $pages = $pagesRepo
+        $searchTerm = urldecode($req->queryVar("searchTerm", ""));
+        $q = $pagesRepo
             ->select($req->params->pageType)
             ->orderBy(($req->queryVar("order-default") === null ? "`createdAt`" : "`id`") . " DESC")
-            ->limit($pagesRepo::HARD_LIMIT)
-            ->fetchAll();
+            ->limit(!$searchTerm ? $pagesRepo::HARD_LIMIT : 20);
+        if ($searchTerm)
+            $q = $q->where("`slug` LIKE ? OR `title` LIKE ?", [
+                "%/{$searchTerm}%",
+                "%" . $searchTerm . "%"
+            ]);
+        $pages = $q->fetchAll();
         $res->json($pages);
     }
     /**

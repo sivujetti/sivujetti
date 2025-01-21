@@ -10,55 +10,52 @@ import Tabs from './Tabs.jsx';
 import {timingUtils} from './utils.js';
 
 const UPLOADS_DIR_PATH = 'public/uploads/';
+const INITIAL_FILES_LIST_BACKEND_HARD_LIMIT = 200;
 
-const fetchedFiles = {
-    // 'onlyImages':             array,
-    // 'onlyImages:searchTerm1': array,
-    // 'onlyImages:searchTerm2': array,
-    // 'onlyImages:...':         array,
-    // 'nonImages':              array,
-    // 'nonImages:searchTerm1':  array,
-    // 'nonImages:searchTerm2':  array,
-    // 'nonImages:...':          array,
-};
-
+/** @extends {preact.Component<{onEntryClicked?: (entry: UploadsEntry|null) => void; mode?: 'pick'; showInitially?: 'images'|'files'; onlyImages?: boolean; numColumns?: number; hideUploadButton?: boolean; showClearItem?: boolean; autoFocusToFilterInput?: boolean;}, any>} */
 class FileUploader extends preact.Component {
-    // initialTabIdx;
-    // dropAreaEl;
-    // uploadButton;
-    // fetchOrGetUploadsThrottled;
-    /**
-     * @param {{onEntryClicked?: (entry: UploadsEntry|null) => void; mode?: 'pick'; showInitially?: 'images'|'files'; onlyImages?: boolean; numColumns?: number; hideUploadButton?: boolean; showClearItem?: boolean; autoFocusToFilterInput?: boolean;}} props
-     */
-    constructor(props) {
-        super(props);
-        this.dropAreaEl = preact.createRef();
-        this.uploadButton = preact.createRef();
-    }
     /**
      * @access protected
      */
     componentWillMount() {
+        this.dropAreaEl = preact.createRef();
+        this.uploadButton = preact.createRef();
         this.initialTabIdx = (this.props.showInitially || 'images') === 'images' ? 0 : 1;
+        this.backendFetchCache = {
+            // 'onlyImages:':            array, // initial
+            // 'onlyImages:searchTerm1': array,
+            // 'onlyImages:searchTerm2': array,
+            // 'onlyImages:...':         array,
+            // 'nonImages:':             array, // initial
+            // 'nonImages:searchTerm1':  array,
+            // 'nonImages:searchTerm2':  array,
+            // 'nonImages:...':          array,
+        };
+        this.useLocalSearch = true;
+        this.handleBackendSearchThrottled = null;
         const tabName = tabIdxToName(this.initialTabIdx);
         this.setState({
-            files: null,
+            fileGroupAll: null,
+            fileGroupFiltered: null,
             currentTabName: tabName,
             displayAsGrid: getAndPutAndGetToLocalStorage('grid', 'sivujettiDisplayImageListAs') === 'grid',
             currentFilterStr: '',
             fetchingResults: false,
         });
-        this.fetchSelectedFileGroupAndSetToState(tabName);
-        this.fetchOrGetUploadsThrottled = timingUtils.debounce(async (input) => {
-            this.setState({fetchingResults: true});
-            const files = await this.fetchOrGetUploads(this.state.currentTabName, input);
-            this.setState({files, fetchingResults: false});
-        }, env.normalTypingDebounceMillis);
+        this.fetchInitialFileGroup(tabName, fileGroup => {
+            this.useLocalSearch = fileGroup.length < INITIAL_FILES_LIST_BACKEND_HARD_LIMIT;
+            this.handleBackendSearchThrottled = this.useLocalSearch ? null : timingUtils.debounce(async (input) => {
+                this.setState({fetchingResults: true});
+                const results = await this.fetchOrGetUploads(this.state.currentTabName, input);
+                this.setState({fileGroupAll: results, fileGroupFiltered: results, fetchingResults: false});
+            }, env.normalTypingDebounceMillis);
+            this.setState({fileGroupAll: fileGroup, fileGroupFiltered: getFilteredFiles(fileGroup, '')});
+        });
     }
     /**
      * @access protected
      */
-    render({mode, hideUploadButton, onlyImages, showClearItem}, {files, displayAsGrid, currentFilterStr}) {
+    render({mode, hideUploadButton, onlyImages, showClearItem}, {fileGroupAll, fileGroupFiltered, displayAsGrid, currentFilterStr}) {
         const itemSettings = getListItemSettings(displayAsGrid, mode);
         const showCrudButtons = mode !== 'pick';
         return [
@@ -102,17 +99,17 @@ class FileUploader extends preact.Component {
                     onClick={ () => this.setGetDisplayAsGrid(true) }
                     class={ `btn btn-sm with-icon-inline${displayAsGrid ? ' btn-selected' : ''} ml-1` }><Icon iconId="layout-grid" className="size-sm"/></button>
             </div>
-            <div style={ hideUploadButton !== true ? '' : 'margin-top: 1rem;' }>{ files
+            <div style={ hideUploadButton !== true ? '' : 'margin-top: 1rem;' }>{ fileGroupFiltered
                 ? [
-                    files.length || currentFilterStr
-                        ? this.printFilterInput(files)
+                    fileGroupAll.length || currentFilterStr
+                        ? this.printFilterInput(fileGroupAll)
                         : null,
-                    files.length
+                    fileGroupFiltered.length
                         ? displayAsGrid
                             ? this.printItemsAsGrid(itemSettings, showClearItem, showCrudButtons)
                             : this.printItemsAsList(mode, itemSettings, showClearItem, showCrudButtons):
                         null,
-                    !files.length
+                    !fileGroupFiltered.length
                         ? <div>
                             <p style="margin-top: 1rem">{ !currentFilterStr
                                 ? __('No uploads yet.')
@@ -128,26 +125,27 @@ class FileUploader extends preact.Component {
     }
     /**
      * @param {tabName} tabName
+     * @param {(fileGroup: Array<UploadsEntry>) => void} then
      * @access private
      */
-    async fetchSelectedFileGroupAndSetToState(tabName) {
-        const fileGroup = await this.fetchOrGetUploads(tabName);
-        this.setState({files: fileGroup});
+    async fetchInitialFileGroup(tabName, then) {
+        const fileGroup = await this.fetchOrGetUploads(tabName, '');
+        then(fileGroup);
     }
     /**
-     * @param {Array<UploadsEntry>} files
+     * @param {Array<UploadsEntry>} fileGroupAll
      * @returns {preact.ComponentChild}
      * @access private
      */
-    printFilterInput(files) {
+    printFilterInput(fileGroupAll) {
         const {currentFilterStr} = this.state;
-        if (!currentFilterStr && files.length < 5)
+        if (fileGroupAll.length < 5)
             return null;
 
         const filterInput = <input
             onInput={ this.handleFilterTyped.bind(this) }
             value={ currentFilterStr }
-            class="form-input mb-2"
+            class="form-input mb-2 pt-1"
             placeholder={ __('Filter') }
             ref={ el => {
                 if (!el || !this.props.autoFocusToFilterInput || this.filterAutofocusedPerformed)
@@ -200,7 +198,7 @@ class FileUploader extends preact.Component {
                 </button>
                 <div class="text-ellipsis my-2 px-2"><b>({ __('No image').toLowerCase() })</b></div>
             </article>,
-            this.state.files.map(f => {
+            this.state.fileGroupFiltered.map(f => {
                 const {friendlyName, fileName, baseDir, ext, mime, createdAt} = f;
                 const isUploaded = createdAt > 0;
                 const isImage = mime.startsWith('image/');
@@ -264,7 +262,7 @@ class FileUploader extends preact.Component {
                     <span class="h6 text-ellipsis mx-1 my-0 pr-0">({ __('No image').toLowerCase() })</span>
                 </button>
             </li>,
-            this.state.files.map(f => {
+            this.state.fileGroupFiltered.map(f => {
                 const {friendlyName, fileName, baseDir, ext, mime, createdAt} = f;
                 const isUploaded = createdAt > 0;
                 const isImage = mime.startsWith('image/');
@@ -323,11 +321,12 @@ class FileUploader extends preact.Component {
      */
     addNewFile(file) {
         const fileType = this.props.onlyImages || file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
-        const k = `${fileType}:${this.state.currentFilterStr}`;
-        if (fetchedFiles[k]) fetchedFiles[k].unshift(file);
-
-        if (this.state.currentTabName === fileType)
-            this.setState({files: cloneArrShallow(fetchedFiles[k])});
+        const keys = [`${fileType}:`, ...(this.useLocalSearch ? [] : [`${fileType}:${this.state.currentFilterStr}`])];
+        keys.forEach(key => {
+            this.backendFetchCache[key].unshift(file);
+        });
+        const fileGroupAll = cloneArrShallow(this.backendFetchCache[keys.at(-1)]);
+        this.setState({fileGroupAll, fileGroupFiltered: getFilteredFiles(fileGroupAll, this.state.currentFilterStr)});
     }
     /**
      * @param {UploadsEntry} file
@@ -336,14 +335,16 @@ class FileUploader extends preact.Component {
      */
     markFileAsUploaded(file, ok) {
         const fileType = this.props.onlyImages || file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
-        const k = `${fileType}:${this.state.currentFilterStr}`;
-        if (fetchedFiles[k])
-            fetchedFiles[k] = ok
-                ? fetchedFiles[k].map(f => f.friendlyName !== file.friendlyName ? f : {...file})
-                : fetchedFiles[k].filter(({friendlyName}) => friendlyName !== file.friendlyName);
-
-        if (this.state.currentTabName === fileType)
-            this.setState({files: cloneArrShallow(fetchedFiles[k])});
+        const keys = [`${fileType}:`, ...(this.useLocalSearch ? [] : [`${fileType}:${this.state.currentFilterStr}`])];
+        keys.forEach(key => {
+            if (!this.backendFetchCache[key]) return;
+            this.backendFetchCache[key] = ok
+                ? this.backendFetchCache[key].map(f => f.friendlyName !== file.friendlyName ? f : {...file})
+                : this.backendFetchCache[key].filter(({friendlyName}) => friendlyName !== file.friendlyName);
+        });
+        if (this.state.currentTabName !== fileType) return;
+        const fileGroupAll = cloneArrShallow(this.backendFetchCache[keys.at(-1)] || []);
+        this.setState({fileGroupAll, fileGroupFiltered: getFilteredFiles(fileGroupAll, this.state.currentFilterStr)});
     }
     /**
      * @param {tabName} tabName
@@ -353,17 +354,18 @@ class FileUploader extends preact.Component {
      */
     async fetchOrGetUploads(tabName, searchTerm = '') {
         const k = `${tabName}:${searchTerm}`;
-        const fetched = fetchedFiles[k];
+        const fetched = this.backendFetchCache[k];
         if (fetched) return Promise.resolve(fetched);
         //
         const type = tabName === 'onlyImages' ? 'images' : 'files';
         const fileNameFilterSeg = !searchTerm ? '' : `/${encodeURIComponent(searchTerm)}`;
         try {
             const files = await http.get(`/api/uploads/${type}${fileNameFilterSeg}`);
-            fetchedFiles[k] = files.map(completeBackendUploadsEntry);
-            return fetchedFiles[k];
+            this.backendFetchCache[k] = files.map(completeBackendUploadsEntry);
+            return this.backendFetchCache[k];
         } catch (message) {
-            return env.window.console.error(message);
+            env.window.console.error(message);
+            return [];
         }
     }
     /**
@@ -401,9 +403,10 @@ class FileUploader extends preact.Component {
     async handleTabChanged(toIdx) {
         const next = tabIdxToName(toIdx);
         if (this.state.currentTabName !== next) {
-            this.setState({currentTabName: next});
-            const fileGroup = await this.fetchOrGetUploads(next);
-            this.setState({files: fileGroup});
+            this.setState({currentTabName: next, currentFilterStr: '', fetchingResults: true});
+            this.fetchInitialFileGroup(next, fileGroup => {
+                this.setState({fileGroupAll: fileGroup, fileGroupFiltered: getFilteredFiles(fileGroup, ''), fetchingResults: false});
+            });
         }
     }
     /**
@@ -472,22 +475,47 @@ class FileUploader extends preact.Component {
      * @access private
      */
     handleFilterTyped(e) {
-        if (this.fetchingResults)
-            return;
-
         const input = e ? e.target.value : '';
-        if (this.state.currentFilterStr !== input)
+        if (this.state.currentFilterStr === input ||
+            this.state.fetchingResults) return;
+        //
+        if (this.useLocalSearch)
+            this.setState({
+                fileGroupFiltered: getFilteredFiles(this.state.fileGroupAll, input),
+                currentFilterStr: input,
+            });
+        else {
             this.setState({currentFilterStr: input});
-
-        this.fetchOrGetUploadsThrottled(input);
+            if (input)
+                this.handleBackendSearchThrottled(input);
+            else {
+                const fileGroupAll = this.backendFetchCache[''];
+                this.setState({fileGroupAll, fileGroupFiltered: getFilteredFiles(fileGroupAll, ''), currentFilterStr: ''});
+            }
+        }
     }
     /**
      * @access private
      */
     clearFilter() {
         this.setState({currentFilterStr: '', fetchingResults: false});
-        this.fetchSelectedFileGroupAndSetToState(this.state.currentTabName);
+        this.fetchInitialFileGroup(this.state.currentTabName, fileGroup => {
+            this.setState({fileGroupAll: fileGroup, fileGroupFiltered: getFilteredFiles(fileGroup, '')});
+        });
     }
+}
+
+/**
+ * @param {Array<UploadsEntry>} from
+ * @param {string} filterStr = ''
+ * @returns {Array<UploadsEntry>}
+ */
+function getFilteredFiles(from, filterStr = '') {
+    if (!filterStr) return from.slice(0, 40);
+    //
+    return window.fuzzysort
+        .go(filterStr, from, {keys: ['fileName', 'friendlyName']})
+        .map(({obj}) => obj);
 }
 
 /**

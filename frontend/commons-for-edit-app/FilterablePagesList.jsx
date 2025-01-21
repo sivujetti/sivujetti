@@ -16,7 +16,7 @@ class FilterablePagesList extends preact.Component {
     componentWillMount() {
         this.filterInput = preact.createRef();
         this.backendSearchCache = {
-            // '@initial':   array,
+            // '':            array, // initial
             // 'searchTerm1': array,
             // 'searchTerm2': array,
             // '...':         array,
@@ -25,7 +25,7 @@ class FilterablePagesList extends preact.Component {
         this.handleBackendSearchThrottled = null;
         this.setState({allPages: null, filteredPages: null});
         //
-        this.fetchOrGetPageSearchResults('@initial', true)
+        this.fetchOrGetPageSearchResults('')
             .then(pages => {
                 this.useLocalSearch = pages.length < INITIAL_PAGES_LIST_BACKEND_HARD_LIMIT;
                 this.handleBackendSearchThrottled = this.useLocalSearch ? null : timingUtils.debounce(async (input) => {
@@ -94,23 +94,22 @@ class FilterablePagesList extends preact.Component {
             if (input)
                 this.handleBackendSearchThrottled(input);
             else {
-                const allPages = this.backendSearchCache['@initial'];
+                const allPages = this.backendSearchCache[''];
                 this.setState({allPages, filteredPages: getFilteredPages(allPages, ''), currentFilterStr: ''});
             }
         }
     }
     /**
      * @param {string} searchTerm = ''
-     * @param {boolean} isInitial = false
      * @returns {Promise<UploadsEntry[]>}
      * @access private
      */
-    async fetchOrGetPageSearchResults(searchTerm = '', isInitial = false) {
+    async fetchOrGetPageSearchResults(searchTerm = '') {
         const k = searchTerm;
         const fetched = this.backendSearchCache[k];
         if (fetched) return Promise.resolve(fetched);
         //
-        const searchTermPart = !searchTerm || isInitial ? '' : `?searchTerm=${encodeURIComponent(searchTerm)}`;
+        const searchTermPart = !searchTerm ? '' : `?searchTerm=${encodeURIComponent(searchTerm)}`;
         try {
             const files = await http.get(`/api/pages/Pages${searchTermPart}`);
             this.backendSearchCache[k] = files;

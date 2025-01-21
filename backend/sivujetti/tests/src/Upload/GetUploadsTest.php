@@ -34,6 +34,8 @@ final class GetUploadsTest extends UploadsControllerTestCase {
         $this->makeSivujettiAppForUploadsTest($state);
         $this->sendGetUploadsRequest($state, "images", "cat");
         $this->verifyListedTheseFiles(array_slice($state->testFiles, 0, 1), $state);
+        $this->sendGetUploadsRequest($state, "images", "Everdeen");
+        $this->verifyListedTheseFiles([$state->testFiles[1]], $state);
         $this->sendGetUploadsRequest($state, "files", "foo");
         $this->verifyListedTheseFiles([], $state);
     }

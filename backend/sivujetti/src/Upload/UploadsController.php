@@ -22,17 +22,17 @@ final class UploadsController {
                                Response $res,
                                FluentDb2 $db2): void {
         $fileNameContains = $req->params->fileNameFilter ?? null;
+        $likeStr = $fileNameContains ? "%" . urldecode($req->params->fileNameFilter) . "%" : "";
+        [$sql, $bind, $limit] = $fileNameContains
+            ? [" AND (`fileName` LIKE ? OR `friendlyName` LIKE ?)", [$likeStr, $likeStr], 40]
+            : ["",                                                  [],                   200];
         $files = $db2->select(self::FILES_TABLE_NAME)
             ->where(
-                ("`mime` " . ($req->params->fileType === "images" ? "" : "NOT ") . "LIKE ?") .
-                ($fileNameContains? " AND `fileName` LIKE ?" : ""),
-                [
-                    "image/%",
-                    ...($fileNameContains? ["%" . urldecode($req->params->fileNameFilter) . "%"] : [])
-                ]
+                "`mime` " . ($req->params->fileType === "images" ? "" : "NOT ") . "LIKE ?{$sql}",
+                ["image/%", ...$bind]
             )
             ->orderBy("id DESC")
-            ->limit(40)
+            ->limit($limit)
             ->fetchAll(\PDO::FETCH_CLASS, UploadsEntry::class);
         $res->json($files);
     }

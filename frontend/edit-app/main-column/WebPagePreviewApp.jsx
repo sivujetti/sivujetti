@@ -208,13 +208,17 @@ class WebPagePreviewApp extends preact.Component {
         historyInstance.listen(path => {
             const newUrl = getFullUrl(path);
             if (!isMainColumnViewUrl(newUrl) && this.urlFromRouter !== newUrl) {
-                if (isEditAppNonDefaultStateUrl(newUrl) || !isEditAppNonDefaultStateUrl(this.urlFromRouter))
-                    this.setOrReplacePreviewIframeUrl(newUrl, null);
-                else
+                const prevUrlIsPageUrl = !isMainColumnViewUrl(this.urlFromRouter) &&
+                                            !isEditAppNonDefaultStateUrl(this.urlFromRouter);
+                const newUrlIsPageUrl = !isEditAppNonDefaultStateUrl(newUrl);
+                if (prevUrlIsPageUrl && newUrlIsPageUrl) {
                     this.sendMessageToReRendererWithReturn(['getMouseState']).then(data => {
                         const [_, state] = data; // [_, ReRenderingWebPageMouseState]
                         this.setOrReplacePreviewIframeUrl(newUrl, state);
                     });
+                } else {
+                    this.setOrReplacePreviewIframeUrl(newUrl, null);
+                }
             }
         });
 

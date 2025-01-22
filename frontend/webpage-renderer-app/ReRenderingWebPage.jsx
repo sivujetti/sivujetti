@@ -340,6 +340,10 @@ class RenderAll extends preact.Component {
                 document.getElementById(hrefAsAuthored.substring(1))?.scrollIntoView();
                 return;
             }
+            if (!hrefAsAuthored) {
+                // `href=""`, Do nothing
+                return;
+            }
             const noOrigin = el.href.substring(el.origin.length); // http://domain.com/foo -> /foo
                                                                   // http://domain.com/foo/index.php?q=/foo -> /foo/index.php?q=/foo
             const noBase = `/${noOrigin.substring(this.baseUrl.length)}`; // /foo -> /foo

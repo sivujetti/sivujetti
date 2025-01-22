@@ -37,8 +37,8 @@ class ViewAndContextMenuLayer extends preact.Component {
         } }/>,
         <div id="view">
             <MainColumnViews rootEl={ rootEl }/>
-            <FloatingDialog/>
         </div>,
+        <FloatingDialog/>,
         <Toaster id="editAppMain"/>
     ]; }
 }

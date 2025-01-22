@@ -316,7 +316,7 @@ class PickPageTab extends preact.Component {
                 title={ title }
                 style="height: 2.2rem">
                     <span class="h6 my-0 mr-1">{ title }</span>
-                    <i class="color-dimmed">{ slug || currentPageSlug }</i>
+                    <i class="color-dimmed">{ slug || `href=""` }</i>
                 </button>
             </li>)
         }</ul> }</FilterablePagesList>;

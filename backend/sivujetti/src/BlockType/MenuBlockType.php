@@ -72,7 +72,7 @@ class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInte
                                     "fill" => "none",
                                     "stroke-linecap" => "round",
                                     "stroke-linejoin" => "round",
-                                ], "<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><polyline points=\"6 9 12 15 18 9\"></polyline>")
+                                ], "<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><polyline points=\"6 9 12 15 18 9\"/>")
                             )]),
                             self::renderBranch($itm->children, $block, $depth + 1, $tmpl)
                         ]

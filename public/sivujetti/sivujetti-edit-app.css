@@ -928,9 +928,6 @@ a.popup-close-area {
 .styles-list.style-tweak-settings-list > li > button:last-child {
     right: 2.2em;
 }
-.styles-list.style-tweak-settings-list > li > button:last-child .icon-tabler {
-    stroke-width: 2px;
-}
 .form-horizontal.text-tinyish ul.table-list > li {
     padding: .1rem .2rem;
 }
@@ -1907,7 +1904,7 @@ span.highlight-rect[data-label-position="bottom-inside"]:before {
     color: currentColor;
     width: 1.2rem;
     height: 1.2rem;
-    stroke-width: 1.25;
+    stroke-width: 2;
 }
 .icon-tabler.size-sm {
     width: 1rem;

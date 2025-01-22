@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unknown-property */ // for <svg stroke-*="foo"/>
-import {__, api, MenuSection, Icon, floatingDialog} from '@sivujetti-commons-for-edit-app';
+import {__, api, MenuSection, Icon, floatingDialog, PathIcon} from '@sivujetti-commons-for-edit-app';
 import WebsiteDiagnoseIssuesDialog from '../../main-column/popups/WebsiteDiagnoseIssuesDialog.jsx';
 
 class WebsiteSection extends preact.Component {
@@ -37,7 +37,14 @@ class WebsiteSection extends preact.Component {
                     <span class="color-dimmed">{ __('Updates') }</span>
                 </a>
                 { this.userCanRunHealthCheck ? <a onClick={ openDiagnoseIssuesDialog } href="#/website/run-health-check" class="with-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler mt-0 icon-tabler-stethoscope size-sm color-blue color-saturated" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6 4h-1a2 2 0 0 0 -2 2v3.5h0a5.5 5.5 0 0 0 11 0v-3.5a2 2 0 0 0 -2 -2h-1"></path><path d="M8 15a6 6 0 1 0 12 0v-3"></path><path d="M11 3v2"></path><path d="M6 3v2"></path><circle cx="20" cy="10" r="2"></circle></svg>
+                    <PathIcon className="mt-0 icon-tabler-stethoscope size-sm color-blue color-saturated">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M6 4h-1a2 2 0 0 0 -2 2v3.5h0a5.5 5.5 0 0 0 11 0v-3.5a2 2 0 0 0 -2 -2h-1"/>
+                        <path d="M8 15a6 6 0 1 0 12 0v-3"/>
+                        <path d="M11 3v2"/>
+                        <path d="M6 3v2"/>
+                        <circle cx="20" cy="10" r="2"/>
+                    </PathIcon>
                     <span class="color-dimmed">{ __('Site status') }</span>
                 </a> : null }
             </nav>

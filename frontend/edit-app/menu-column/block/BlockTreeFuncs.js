@@ -52,8 +52,8 @@ function createTreeState(tree, previousState) {
 
 /**
  * @param {Array<Block>} branch
- * @param {(blockId: string, isPartOf: globalBlockReferenceBlockId = null) => UiStateEntry|null} findPrev
- * @param {{[key: keyof LiUiState]: boolean|string;}} parentProps
+ * @param {(blockId: string, isPartOf?: globalBlockReferenceBlockId) => UiStateEntry|null} findPrev
+ * @param {Partial<LiUiState>} parentProps
  * @param {Array<number>|null} collectNewRootItemIndicesTo
  * @returns {Array<UiStateEntry>}
  */
@@ -84,7 +84,7 @@ function createBranchFromPrev(branch, findPrev, parentProps, collectNewRootItemI
 
 /**
  * @param {Array<Block>} branch
- * @param {{[key: keyof LiUiState]: boolean|string;}} parentProps = {}
+ * @param {Partial<LiUiState>} parentProps = {}
  * @returns {Array<UiStateEntry>}
  */
 function createBranch(branch, parentProps = {}) {
@@ -114,7 +114,7 @@ function createFindPrevUiStateEntryFn(fromsState) {
 
 /**
  * @param {boolean} asCollapsed
- * @param {UiStateEntry} entry
+ * @param {UiStateEntry} entryMut
  * @param {boolean} recursive = true
  */
 function setAsCollapsed(asCollapsed, entryMut, recursive = true) {
@@ -153,7 +153,7 @@ function findVisibleLi(li, ul, def) {
 }
 
 /**
- * @template {T}
+ * @template {{children: Array<T>}} T
  * @param {Array<T>} blocks
  * @param {(idxPath: string, i: number, itm: T) => any} fn
  * @param {string} idxPath
@@ -217,15 +217,15 @@ function getShortFriendlyName(block, type) {
 }
 
 /**
- * @param {{[key: keyof LiUiState]: boolean|string;}} overrides = {}
+ * @param {({blockId: string; isPartOf: string;} & Partial<LiUiState>)?} merge
  * @returns {LiUiState}
  */
-function createTreeStateItem(overrides = {}) {
+function createTreeStateItem(merge) {
     return {
         isSelected: false,
         isCollapsed: false,
         isHidden: false,
-        ...overrides,
+        ...merge,
     };
 }
 
@@ -282,7 +282,7 @@ function duplicateDeepAndReAssignIds(block) {
 /**
  * @param {HTMLLIElement} li
  * @param {dropPosition} pos
- * @returns {[Array<Block>, Array<Block>]}
+ * @returns {[HTMLButtonElement, boolean]}
  */
 function createAddContentPlacementCfg(li, pos) {
     if (pos === 'as-child' &&
@@ -600,7 +600,7 @@ function showBlockTreeHelpPopup() {
 }
 
 /**
- * @typedef {{item: LiUiState; children: Array<LiUiState>;}} UiStateEntry
+ * @typedef {{item: LiUiState; children: Array<UiStateEntry>;}} UiStateEntry
  *
  * @typedef {{isSelected: boolean; isCollapsed: boolean; isHidden: boolean; blockId: string; isPartOf: globalBlockReferenceBlockId|null;}} LiUiState
  */

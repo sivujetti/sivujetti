@@ -61,7 +61,7 @@ class Http {
 }
 
 /**
- * @param {RequestInit} settings
+ * @param {RequestInit & {headers: HeadersInit|'@auto';}} settings
  * @returns {RequestInit}
  */
 function completeSettings(settings, data) {

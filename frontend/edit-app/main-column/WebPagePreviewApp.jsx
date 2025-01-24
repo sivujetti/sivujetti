@@ -59,10 +59,9 @@ class WebPagePreviewApp extends preact.Component {
         events.emit('highlight-rect-revealed', block.id, nthOfId, origin);
     }
     /**
-     * @param {string} blockId
      * @access public
      */
-    unHighlightBlock(/*blockId*/) {
+    unHighlightBlock() {
         this.doHideHighlightRect(0);
     }
     /**
@@ -89,11 +88,13 @@ class WebPagePreviewApp extends preact.Component {
     /**
      * @param {Block} block
      * @param {number} nthOfId
+     * @param {Window?} win
+     * @param {ScrollBehavior?} behavior = 'smooth'
      * @returns {boolean} didScroll
      * @access public
      */
     scrollToBlock(block, nthOfId, win = this.getEl().contentWindow, behavior = 'smooth') {
-        if (isMetaBlock(block)) return;
+        if (isMetaBlock(block)) return false;
         const blockEl = this.getBlockEl(block.id, nthOfId);
         if (!blockEl) return false;
         return this.scrollToBlockEl(blockEl, win, behavior);
@@ -101,6 +102,8 @@ class WebPagePreviewApp extends preact.Component {
     /**
      * @param {Block} block
      * @param {number} nthOfId
+     * @param {Window?} win
+     * @param {ScrollBehavior?} behavior = 'smooth'
      * @access public
      */
     scrollToBlockAsync(block, nthOfId, win = this.getEl().contentWindow, behavior = 'smooth') {
@@ -114,7 +117,7 @@ class WebPagePreviewApp extends preact.Component {
     }
     /**
      * @param {number} childElemIdx
-     * @param {string} textBlockId
+     * @param {string} textBlockBlockId
      * @param {boolean} center = true
      * @access public
      */
@@ -571,7 +574,7 @@ function attachGlobalBlockTreesAndClone(blocks, gbts) {
 }
 
 /**
- * @param {Array<StyleChunkWithoutId>} bundle
+ * @param {Array<StyleChunkWithoutId>} styleChunks
  * @returns {Array<StyleChunk>}
  */
 function addIds(styleChunks) {

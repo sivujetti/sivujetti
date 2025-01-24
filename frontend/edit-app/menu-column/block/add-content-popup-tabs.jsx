@@ -84,7 +84,7 @@ function createGbtBlockSpawnDescriptor(gbt) {
 }
 
 /**
- * @param {Block} rootBlock
+ * @param {BlockBlueprint} rootBlock
  * @returns {SpawnDescriptor}
  */
 function createReusableBlockSpawnDescriptor(rootBlock) {
@@ -177,8 +177,8 @@ const ordinals = [
 , {});
 
 /**
- * @param {Array<[blockTypeName, BlockTypeDefinition]>} selectableBlockTypes
- * @returns {Array<[blockTypeName, BlockTypeDefinition]>}
+ * @param {Array<[string, BlockTypeDefinition]>} selectableBlockTypes
+ * @returns {Array<[string, BlockTypeDefinition]>}
  */
 function sort(selectableBlockTypes) {
     selectableBlockTypes.sort(([a], [b]) => {
@@ -253,7 +253,7 @@ function fetchContentTemplates() {
 
 /**
  * @param {ContentTemplate} template
- * @param {AddContentTabProps} props
+ * @param {AddTemplateContentTabProps} props
  * @returns {SpawnDescriptor}
  */
 function createContentTemplateSpawnDescriptor(template, props) {
@@ -315,7 +315,7 @@ function createContentTemplateSpawnDescriptor(template, props) {
  * }} AddContentTabProps
  *
  * @typedef {{
- *   onContentPicked: (todo: todo) => void;
+ *   onContentPicked: (descr: SpawnDescriptor) => void;
  *   getIsInsertAfterOrBeforeRootLevelBlock: () => boolean;
  * }} AddTemplateContentTabProps
  */

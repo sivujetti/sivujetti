@@ -10,8 +10,8 @@ import {
  * @param {string} targetBlockId
  * @param {dropPosition} insertPos
  * @param {boolean} isReplace = false
- * @param {wasCurrentlySelectedBlock} wasCurrentlySelectedBlock = false
- * @returns {[['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree, StateChangeUserContext], (() => void)|null]}
+ * @param {boolean} wasCurrentlySelectedBlock = false
+ * @returns {['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree>, StateChangeUserContext]}
  */
 function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, targetTrid, targetBlockId, insertPos, isReplace = false, wasCurrentlySelectedBlock = false) {
     const eventName = !isReplace ? 'insert-block-at' : 'replace-block';
@@ -288,7 +288,7 @@ function insertTo(block, branchMut, refBlock, pos, replace = 0) {
 /**
  * @param {Block} block Block to replace with
  * @param {Array<Block>} arrMut Array in which to replace
- * @param {Block} refBlockId Id of the block in $arrMut
+ * @param {string} refBlockId Id of the block in $arrMut
  */
 function replaceAt(block, arrMut, refBlockId) {
     const [refBlock, branchMut] = blockTreeUtils.findBlock(refBlockId, arrMut);
@@ -296,7 +296,7 @@ function replaceAt(block, arrMut, refBlockId) {
 }
 
 /**
- * @param {Block|number} block Block to remove or index
+ * @param {Block|number} blockOrIdx Block to remove or index
  * @param {Array<Block>} branchMut Array to remove from
  */
 function removeFrom(blockOrIdx, branchMut) {

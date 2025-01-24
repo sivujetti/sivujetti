@@ -18,7 +18,7 @@ class VerticalTabs extends preact.Component {
                 { tabs.map(({text, title}, i) => <button
                     onClick={ () => this.setState({curTabIdx: i}) }
                     class={ `btn btn-link text-tiny${curTabIdx !== i ? '' : ' current'}` }
-                    title={ title }>
+                    title={ title || text }>
                     <span class="color-dimmed3">{ text }</span>
                 </button>) }
             </div>
@@ -39,7 +39,7 @@ class VerticalTabs extends preact.Component {
  *
  * @typedef {{
  *   text: string;
- *   title: string;
+ *   title?: string;
  * }} VerticalTabsTab
  */
 

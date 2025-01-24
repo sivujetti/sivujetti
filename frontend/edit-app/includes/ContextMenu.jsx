@@ -5,8 +5,6 @@ let isGlobalEscKeyPressListenerHookedUp = false;
 let openInstance = null;
 
 class ContextMenu extends preact.Component {
-    // controller;
-    // pos;
     /**
      * @param {any} props
      */
@@ -14,6 +12,7 @@ class ContextMenu extends preact.Component {
         super(props);
         this.state = {isOpen: false};
         this.pos = {left: 0, top: 0};
+        /** @type ContextMenuController */
         this.controller = null;
         if (!isGlobalEscKeyPressListenerHookedUp) {
             env.window.addEventListener('keydown', e => {
@@ -102,7 +101,7 @@ class ContextMenu extends preact.Component {
     emitItemClick(link, e) {
         e.preventDefault();
         if (this.controller.onItemClicked(link, e) !== false)
-            this.close();
+            this.close(null);
     }
 }
 

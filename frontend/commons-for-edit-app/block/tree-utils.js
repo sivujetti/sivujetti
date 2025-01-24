@@ -110,7 +110,7 @@ const blockTreeUtils = {
     },
     /**
      * @param {Array<Object>} branch
-     * @param {(item: Object, i: number) => any} fn
+     * @param {(item: Object, i: number, child: Object) => any} fn
      * @returns {Array<Object>}
      * @access public
      */
@@ -173,7 +173,7 @@ const blockTreeUtils = {
     },
     /**
      * @param {Array<Block>} theTree
-     * @param {(newTreeCopyFreeToMutate: Array<Block>) => Array<Block>} mutator
+     * @param {(newTreeCopyFreeToMutate: Array<Block>) => void} mutator
      * @returns {Array<Block>} Mutated $newTreeCopyFreeToMutate
      * @access public
      */

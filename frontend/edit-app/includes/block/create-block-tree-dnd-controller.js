@@ -28,7 +28,7 @@ function createDndController(saveButton) {
         },
         /**
          * @param {DragDropInfo} cand
-         * @param {DragDropInfo|null} startLi
+         * @param {HTMLLIElement|null} startLi
          */
         drop(cand, startLi) {
             if (!extDragData) {
@@ -58,8 +58,7 @@ function createDndController(saveButton) {
             dropped = true;
         },
         /**
-         * @param {DragDropInfo|null} info
-         * @returns {boolean}
+         * @param {DragDropInfo|null} _info
          */
         dragOut(_info) {
             // Do nothing
@@ -82,7 +81,7 @@ function createDndController(saveButton) {
             api.webPagePreview.getEl().style.pointerEvents = '';
         },
         /**
-         * @param {SpawnDescriptor|null}
+         * @param {SpawnDescriptor|null} data
          */
         setExternalOriginData(data) {
             extDragData = data;

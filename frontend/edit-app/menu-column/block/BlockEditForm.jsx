@@ -320,7 +320,7 @@ function createIsChunkStyleEnabledChecker(currentClasses) {
 
 /**
  * @param {Block} block
- * @param {Array<TabInfo>} block
+ * @param {Array<TabInfo>} tabsInfo
  * @returns {boolean}
  * @access private
  */

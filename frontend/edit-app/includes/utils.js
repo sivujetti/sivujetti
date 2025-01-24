@@ -7,7 +7,7 @@
  * @param {number} tryEveryMillis = 200
  * @param {number} stopTryingAfterNTimes = 5
  * @param {string} messageTmpl = 'fn() did not return true after %sms'
- * @returns {fn() => void}
+ * @returns {() => void}
  */
 function createTrier(fn,
                      tryEveryMillis = 200,

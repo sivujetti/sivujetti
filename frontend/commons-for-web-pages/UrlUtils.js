@@ -1,17 +1,15 @@
 class UrlUtils {
-    // baseUrl; For pages (may contain index.php)
-    // assetBaseUrl; For assets
-    // currentPageSlug;
-    // cacheBustStr; website.versionId by default
-    // env;
     /**
-     * @param {EnvConfig|{baseUrl?: string; assetBaseUrl?: string; currentPageSlug?: string; cacheBustStr?: string;}} envSettings
-     * @param {Env} env
+     * @param {(EnvConfig|{baseUrl?: string; assetBaseUrl?: string; cacheBustStr?: string;}) & {currentPageSlug?: string;}} envSettings
+     * @param {{window: Window}} env
      */
     constructor({baseUrl, assetBaseUrl, currentPageSlug, cacheBustStr}, env = {window}) {
+        /** @type {string} For pages (may contain index.php) */
         this.baseUrl = baseUrl || '';
+        /** @type {string} For assets */
         this.assetBaseUrl = assetBaseUrl || '';
         this.currentPageSlug = currentPageSlug || '';
+        /** @type {string} website.versionId by default */
         this.cacheBustStr = cacheBustStr || '';
         this.env = env;
     }

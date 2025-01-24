@@ -9,7 +9,7 @@ import {
  * @param {(blockRefMut: Block) => {[key: string]: any;}} getChanges
  * @param {blockPropValueChangeFlags} flags = null
  * @param {SaveButton} saveButton = api.saveButton.getInstance()
- * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]|['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext]}
+ * @returns {['theBlockTree', Array<Block>, StateChangeUserContext, blockPropValueChangeFlags]|['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext, blockPropValueChangeFlags]}
  */
 function createUpdateBlockPropOp(blockId, getChanges, flags = null, saveButton = api.saveButton.getInstance()) {
     const root1 = blockTreeUtils.findBlockMultiTree(blockId, saveButton.getChannelState('theBlockTree'))[3];
@@ -43,9 +43,8 @@ function createUpdateBlockPropOp(blockId, getChanges, flags = null, saveButton =
 
 /**
  * @param {string} blockId
- * @param {{[key: string]: any;}|(blockRefMut: Block) => {[key: string]: any;}} changesOrGetChanges
+ * @param {{[key: string]: any;}|((blockRefMut: Block) => {[key: string]: any;})} changesOrGetChanges
  * @param {blockPropValueChangeFlags} flags = null
- * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
  */
 function pushBlockChanges(blockId, changesOrGetChanges, flags = null) {
     const saveButton = api.saveButton.getInstance();

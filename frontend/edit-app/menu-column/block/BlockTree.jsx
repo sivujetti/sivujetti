@@ -155,7 +155,7 @@ class BlockTree extends preact.Component {
     /**
      * @param {Array<Block>} branch
      * @param {Array<UiStateEntry>} uiStateArr
-     * @param {(gbtRefBlock: Block) => Array<GlobalBlockTree>} getTreeBlocks
+     * @param {(gbtRefBlock: Block) => Array<Block>} getTreeBlocks ? 
      * @param {string} nth2DepthCls
      * @param {number} depth = 1
      * @param {Block} parent = null
@@ -613,7 +613,7 @@ class BlockTree extends preact.Component {
      * @access private
      */
     unHighlighCurrentlyHoveredLi() {
-        api.webPagePreview.unHighlightBlock(this.currentlyHoveredLi.getAttribute('data-block-id'));
+        api.webPagePreview.unHighlightBlock();
         this.currentlyHoveredLi = null;
     }
     /**

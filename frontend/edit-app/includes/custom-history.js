@@ -1,10 +1,6 @@
 import {env, Events} from '@sivujetti-commons-for-edit-app';
 
 class HashHistory {
-    // path;
-    // events;
-    // confirmNextNavMessage;
-    // doRevertNextHashChange;
     /**
      */
     constructor() {
@@ -69,7 +65,7 @@ class HashHistory {
     }
     /**
      * https://github.com/remix-run/history/blob/c9bc27dfcf81f540ee275978f651d3fed27e93a9/packages/history/index.ts#L1069
-     * @param {string} path
+     * @param {string} url
      * @returns {Path}
      */
     parsePath(url = env.window.location.hash.substr(1)) {

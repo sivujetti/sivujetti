@@ -64,7 +64,7 @@ class Toaster extends preact.Component {
         this.setState({messages: this.state.messages});
     }
     /**
-     * @param {{message: preact.ComponentChild; level: messageLevel; timeoutId: number;}?} message
+     * @param {{message: preact.ComponentChild; level: messageLevel; addedAt: number; timeoutId: number; onDismissed?: () => void;}?} message
      * @access private
      */
     removeMessage(message) {

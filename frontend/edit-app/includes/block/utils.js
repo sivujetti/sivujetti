@@ -55,21 +55,19 @@ function getIsStoredToTreeIdFrom(blockId, from) {
 }
 
 /**
- * @param {{type: string; renderer: string; id?: string; title?: string;}} defProps
+ * @param {DefProps} defProps
  * @param {{[key: string]: any;}} ownProps
  * @returns {Block}
  */
 function createBlock(defProps, ownProps) {
     const out = {
-        ...{
-            id: defProps.id || generatePushID(true),
-            type: defProps.type,
-            title: defProps.title || '',
-            children: [],
-            renderer: defProps.renderer,
-            propsData: [],
-            styleClasses: '',
-        },
+        id: defProps.id || generatePushID(true),
+        type: defProps.type,
+        title: defProps.title || '',
+        children: [],
+        renderer: defProps.renderer,
+        propsData: [],
+        styleClasses: '',
         ...(Object.keys(defProps).reduce((cleaned, key) => {
             if (key === 'propsData' || key === 'children')
                 throw new Error(`defProps can't contain key ${key}`);
@@ -83,23 +81,20 @@ function createBlock(defProps, ownProps) {
 
 /**
  * @param {string|BlockTypeDefinition} blockType
- * @param {{[key: keyof]: any;}} defPropAdditions = {} title, id etc.
- * @param {{[key: keyof]: any;}} ownPropAdditions = {} block specific
+ * @param {Partial<DefProps>} defPropAdditions = {} title, id etc.
+ * @param {{[key: string]: any;}} ownPropAdditions = {} block specific
  * @returns {Block}
  */
 function createBlockFromType(blockType, defPropAdditions = {}, ownPropAdditions = {}) {
     const type = typeof blockType === 'string' ? api.blockTypes.get(blockType) : blockType;
     const defs = createDefProps(type, defPropAdditions);
     const own = {...type.createOwnProps(defs), ...ownPropAdditions};
-    return createBlock(
-        defs, // block.*
-        own   // block.propsData[*] & block.*
-    );
+    return createBlock(defs, own);
 }
 
 /**
  * @param {BlockBlueprint} blueprint
- * @param {(item: BlockBlueprint, block: Block) => BlockBlueprint} onEach
+ * @param {(item: BlockBlueprint, block: Block) => void} onEach
  * @returns {Block}
  */
 function createBlockFromBlueprint(blueprint, onEach) {
@@ -108,14 +103,9 @@ function createBlockFromBlueprint(blueprint, onEach) {
     const defs = createDefProps(type, initialDefaultsData);
     const own = {...type.createOwnProps(defs), ...initialOwnData};
     const block = {
-        ...createBlock(
-            defs, // block.*
-            own
-        ),
-        ...{
-            children: !Array.isArray(initialChildren) ? [] : initialChildren.map(blueprint =>
+        ...createBlock(defs, own),
+        children: !Array.isArray(initialChildren) ? [] : initialChildren.map(blueprint =>
             createBlockFromBlueprint(blueprint, onEach))
-        }
     };
     onEach(blueprint, block);
     return block;
@@ -123,18 +113,23 @@ function createBlockFromBlueprint(blueprint, onEach) {
 
 /**
  * @param {BlockTypeDefinition} type
- * @param {{[key: string]: any;}} additions
- * @returns {Block}
+ * @param {Partial<DefProps>} additions
+ * @returns {DefProps}
  */
 function createDefProps(type, additions) {
     return {
-        ...{
-            type: type.name,
-            renderer: type.defaultRenderer || 'jsx'
-        },
+        type: type.name,
+        renderer: type.defaultRenderer || 'jsx',
         ...additions
     };
 }
+
+/** @typedef {{
+    type: string;
+    renderer: string;
+    id?: string;
+    title?: string;
+}} DefProps */
 
 export {
     createBlock,

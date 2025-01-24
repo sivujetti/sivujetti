@@ -124,7 +124,7 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
         this.setState({idxOfItemInEditMode: idx});
     }
     /**
-     * @param {{cssProp: string; cssSubSelector: string|null; widgetSettings: {valueType: string; label: string;};}} newVarDefData
+     * @param {Partial<VisualStylesFormVarDefinition>} newVarDefData
      * @access private
      */
     handleEditEnded(newVarDefData) {
@@ -424,7 +424,7 @@ class OptionWidgetOptionEditForm extends preact.Component {
 }
 
 /**
- * @returns {{onKeyDown: (event: Event) => void; onKeyUp: (event: Event) => void;}}
+ * @returns {{onKeyDown: (event: KeyboardEvent) => void; onKeyUp: (event: KeyboardEvent) => void;}}
  */
 function createSaveButtonUndoHotkeyDisabler() {
     const saveButton = api.saveButton.getInstance();
@@ -449,7 +449,7 @@ function createSaveButtonUndoHotkeyDisabler() {
  *
  * @typedef {{
  *   item: VisualStylesFormVarDefinition;
- *   onEditEnded: (what: todo) => void;
+ *   onEditEnded: (varDefData: Partial<VisualStylesFormVarDefinition>|null) => void;
  *   widgetNamesTranslated: {[name: string]: string;};
  * }} EditConfigSettingsFormProps
  *

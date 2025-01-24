@@ -45,14 +45,20 @@ interface OpQueueOp {
 
 interface WebPagePreviewApp {
     getEl(): HTMLIFrameElement;
-    updateCss(/*compiledCss*/): todo;
-    updateCssFast(/*blockId, css*/): todo;
-    highlightBlock(block: Block): todo;
-    unHighlightBlock(blockId: string): todo;
+    updateCss(compiledCss: string): void;
+    updateCssFast(blockId: string, css: string): void;
+    highlightBlock(block: Block, nthOfId: number): void;
+    unHighlightBlock(): void;
     unHighlightTextBlockChildEl(): todo;
-    scrollToBlock(block: Block, nthOfId: number): todo;
-    highlightTextBlockChildEl(elIdx: number, textBlockBlockId: string, nthOfTextBlockBlockId: number): todo;
-    onReady(/*fn*/): todo;
+    scrollToBlock(block: Block, nthOfId: number, win?: Window, behavior?: ScrollBehavior = 'smooth'): boolean;
+    scrollToBlockAsync(block: Block, nthOfId: number, win?: Window, behavior?: ScrollBehavior = 'smooth'): void;
+    scrollToTextBlockChildEl(childElemIdx: number, textBlockBlockId: string, center?: boolean = true): void;
+    highlightTextBlockChildEl(elIdx: number, textBlockBlockId: string, nthOfTextBlockBlockId: number): void;
+    reRenderAllBlocks(theTree: Array<Block>, detachedTrees: Array<GlobalBlockTree>): void;
+    reRenderBlock(theTree: Array<Block>, detachedTrees: Array<GlobalBlockTree>, block: Block = null): void;
+    sendMessageToReRenderer(args: [string, ...any]): void;
+    sendMessageToReRendererWithReturn(args: [string, ...any]): Promise<any>;
+    onReady(runFn: () => any): void;
 }
 
 interface ReRenderingWebPageMouseState {
@@ -101,6 +107,9 @@ interface BlockTypeDefinition {
     stylesEditForm: 'default'|preact.Component|null;
     createOwnProps(defProps: {[key: string]: any;}): {[propName: string]: any};
     icon?: string;        // Examples 'blockquote'
+    on?: (event: 'addBlock'|'cloneBlock'|'moveBlock', args: Array<any>) => Object|null|undefined;
+    defaultRenderer?: string;
+    extends?: string;
 }
 
 interface ReusableBranch {
@@ -148,8 +157,8 @@ interface ContentTemplate {
 }
 
 interface Layout {
-    id: string;
     friendlyName: string;
+    structure: Array<{type: 'pageContents';}|{type: 'globalBlockTree'; globalBlockTreeId: string;}>;
 }
 
 interface Theme {
@@ -318,7 +327,7 @@ interface Env {
 
 interface ContextMenuController {
     getLinks(): Array<ContextMenuLink>;
-    onItemClicked(item: ContextMenuLink, e: Event): void;
+    onItemClicked(item: ContextMenuLink, e: Event): undefined|false;
     onMenuClosed(): void;
     placement?: 'right';
     zIndex?: number;
@@ -575,7 +584,7 @@ type stateChangeContext = 'initial'|'push'|'undo'|'redo';
 
 interface StateChangeUserContext {
     event?: string;
-    [otherData: string]; any;
+    [otherData: string]: any;
 }
 
 interface StateHistory<T = any> {

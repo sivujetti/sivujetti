@@ -43,7 +43,7 @@ class AddContentPopup extends preact.Component {
                         getIsInsertAfterOrBeforeRootLevelBlock={ () => {
                             if (this.props.insertPos === 'as-child' && !this.props.isReplace) // Not after|before
                                 return false;
-                            const [trid, blockId] = getRealTarget(this.props.targetInfo);
+                            const [trid, blockId] = getRealTarget(this.props.targetInfo, null);
                             if (trid !== 'main') // Inner gbt block, can't be a root level block
                                 return false;
                             const block = api.saveButton.getInstance().getChannelState('theBlockTree').find(({id}) => id === blockId);

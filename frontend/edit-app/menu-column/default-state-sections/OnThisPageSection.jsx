@@ -86,7 +86,6 @@ class OnThisPageSection extends MenuSectionAbstract {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{[key: string]: any;}} props
      */
     render(_, {isCollapsed, containingView, loadedPageBlocks, title, subtitle}) {
         return <section class={ `on-this-page panel-section mt-0 pl-0 ${isCollapsed ? 'collapsed' : 'open'}` }>
@@ -219,7 +218,7 @@ function createTitlesState(currentPageSlug) {
 /**
  * @param {string} slug
  * @param {'Default'|'CreatePage'|'CreatePageType'} containingView
- * @returns {[string, preact.VNode|null]}
+ * @returns {Array<string|preact.VNode<any>>}
  */
 function createSubtitle(slug, containingView) {
     if (containingView === 'Default') {

@@ -1,7 +1,4 @@
 class ScssEditor extends preact.Component {
-    // currentCode;
-    // editor;
-    // emitLockIsOn;
     /**
      * @access protected
      */

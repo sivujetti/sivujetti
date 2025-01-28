@@ -31,8 +31,8 @@ function createTabsInfo(tabsConfig, filter = false) {
 }
 
 /**
- * @param {Array<TabInfo>} allTabs
- * @returns {Array<TabInfo>}
+ * @param {Array<{kind: tabKind;}|TabInfo>} allTabs
+ * @returns {Array<{kind: tabKind;}|TabInfo>}
  */
 function filterTabsForLoggedInUser(allTabs) {
     initLocals();

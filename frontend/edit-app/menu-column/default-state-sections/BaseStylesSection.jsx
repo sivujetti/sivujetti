@@ -76,7 +76,6 @@ class BaseAndCustomClassStylesSection extends preact.Component {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {*} props
      * @access protected
      */
     render(_, {currentTabKind, stylesStateId, isCollapsed}) {

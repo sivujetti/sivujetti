@@ -1,4 +1,4 @@
-/** @extends {preact.Component<{behaviour: BlockBehaviour; behaviourDef: BlockBehaviourDefinition; onDataPropChanged(): todo;}, any>} */
+/** @extends {preact.Component<{behaviour: BlockBehaviour; behaviourDef: BlockBehaviourDefinition; onDataPropChanged(val: boolean, prop: string): void;}, any>} */
 class EditBehaviourPopup extends preact.Component {
     /**
      * @access protected
@@ -7,7 +7,6 @@ class EditBehaviourPopup extends preact.Component {
         this.setState({behaviourData: {...this.props.behaviour.data}});
     }
     /**
-     * @param {CustomClassStyleEditCustomizationsDialogProps} props
      * @access protected
      */
     componentWillReceiveProps(props) {

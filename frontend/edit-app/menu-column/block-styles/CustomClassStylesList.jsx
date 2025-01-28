@@ -22,7 +22,7 @@ let saveButtonInstance;
 /** @type {{kind: 'add-style';}|{kind: 'duplicate-style'; chunkIdx: number;}|null} */
 let prevAction = null;
 
-/** @extends {preact.Component<CustomClassStylesListProps, ({styleChunksVisible: Array<StyleChunk>} && {[key: string]: any;})>} */
+/** @extends {preact.Component<CustomClassStylesListProps, ({styleChunksVisible: Array<StyleChunk>} & {[key: string]: any;})>} */
 class CustomClassStylesList extends preact.Component {
     // emitChunksChangesThrottled;
     // listElRef;
@@ -173,8 +173,8 @@ class CustomClassStylesList extends preact.Component {
         );
     }
     /**
-     * @param {string} scss
-     * @param {scss?: string; data?: CustomClassStyleChunkData;}} changes
+     * @param {{scss?: string; data?: CustomClassStyleChunkData;}} changes
+     * @param {StyleChunk} chunkVisible
      * @access private
      */
     emitChunksChanges(changes, chunkVisible) {
@@ -311,7 +311,7 @@ class CustomClassStylesList extends preact.Component {
     /**
      * @param {'add'|'remove'} type
      * @param {string} chunkClass
-     * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]|['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext]}
+     * @returns {['theBlockTree', Array<Block>, StateChangeUserContext, blockPropValueChangeFlags]|['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext, blockPropValueChangeFlags]}
      * @access private
      */
     createAddOrRemoveBlockClassOp(type, chunkClass) {
@@ -359,7 +359,7 @@ function extractClassName({scss}, withDot = true) {
  * @returns {() => string}
  */
 function createCustomClassChunkClassNameCreator(curCustomClassChunks = null) {
-    let max = curCustomClassChunks || getAllCustomClassChunks().reduce((out, chunk) => {
+    let max = (curCustomClassChunks || getAllCustomClassChunks()).reduce((out, chunk) => {
         const cc = extractClassName(chunk);
         const c = parseInt(cc.split('-')[1], 10);
         return c > out ? c : out;
@@ -375,7 +375,7 @@ function createCustomClassChunkClassNameCreator(curCustomClassChunks = null) {
  * @returns {(chunk: StyleChunk) => string|false}
  */
 function createIsDuplicateCustomClassChunkChecker(curCustomClassChunks = null) {
-    const [current, clses] = curCustomClassChunks || getAllCustomClassChunks().reduce((out, {scss}) => {
+    const [current, clses] = (curCustomClassChunks || getAllCustomClassChunks()).reduce((out, {scss}) => {
         const cls = scss.match(/\.cc-[0-9]+/)[0];
         return [
             [...out[0], scssUtils.compileToString(scss.replace(cls, `.${ccPlaceholder}`))],

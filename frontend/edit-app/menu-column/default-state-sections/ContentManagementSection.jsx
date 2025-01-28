@@ -1,8 +1,6 @@
 import {__, api, Icon, MenuSection} from '@sivujetti-commons-for-edit-app';
 
 class ContentManagementSection extends preact.Component {
-    // userCanCreatePageTypes;
-    // userCanListUploads;
     /**
      * @param {{[key: string]: any;}} props
      */

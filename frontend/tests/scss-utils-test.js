@@ -18,7 +18,6 @@ QUnit.module('scss-utils.js', () => {
         const externalImp3 = `@import '${urlWithTwoFamilies}'  ; `;
         const externalImp4 = `@import "${urlWithTwoFamilies}";`;
         const testInput = `.foo{${externalImp1}${externalImp2}${externalImp3}\ncolor:blue;\n${externalImp4}}`;
-        console.log('test',testInput);
         //
         const uu = scssUtils.extractImports(testInput);
         const {externals, locals} = uu;

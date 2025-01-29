@@ -2,8 +2,6 @@ import {api} from '../edit-app-singletons.js';
 import {objectUtils} from '../utils.js';
 
 const blockTreeUtils = {
-    /** @type {Array<GlobalBlockTree>} */
-    _backendGlobalBlockTrees: [],
     /**
      * @param {string} id
      * @param {Array<Block>} branch
@@ -139,16 +137,13 @@ const blockTreeUtils = {
     },
     /**
      * @param {string} trid
-     * @param {Array<GlobalBlockTree>} storeState = null
+     * @param {Array<GlobalBlockTree>} gbtStoreState = null
      * @returns {Array<Block>|GlobalBlockTree|undefined}
      */
-    getTree(trid, storeState = null) {
+    getTree(trid, gbtStoreState = null) {
         if (trid === 'main')
             return api.saveButton.getInstance().getChannelState('theBlockTree');
-        const fromSaveButtonState = (storeState || api.saveButton.getInstance().getChannelState('globalBlockTrees')).find((({id}) => id === trid));
-        if (fromSaveButtonState) return fromSaveButtonState;
-        const fromBackend = this._backendGlobalBlockTrees.find((({id}) => id === trid));
-        return fromBackend;
+        return (gbtStoreState || api.saveButton.getInstance().getChannelState('globalBlockTrees')).find((({id}) => id === trid));
     },
     /**
      * @param {string} trid 'main' or 'id-of-some-global-block-tree'
@@ -163,13 +158,6 @@ const blockTreeUtils = {
             block.type === 'GlobalBlockReference' && block.globalBlockTreeId === trid
         );
         return refBlock ? this.getTree(refBlock.globalBlockTreeId).blocks : null;
-    },
-    /**
-     * @param {Array<GlobalBlockTree>} allTrees
-     * @access public
-     */
-    setBackendGlobalBlockTrees(allTrees) {
-        this._backendGlobalBlockTrees = allTrees;
     },
     /**
      * @param {Array<Block>} theTree

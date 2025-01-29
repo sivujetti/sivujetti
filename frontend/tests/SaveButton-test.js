@@ -1,5 +1,5 @@
 import {api, blockTreeUtils, writeBlockProps} from '@sivujetti-commons-for-edit-app';
-import SaveButton from '../edit-app/menu-column/SaveButton.jsx';
+import SaveButton from '../edit-app/menu-column/SaveButton.js';
 
 QUnit.module('SaveButton.jsx', hooks => {
     let origSaveButton;
@@ -15,6 +15,8 @@ QUnit.module('SaveButton.jsx', hooks => {
             setInstance(cmp) {   },
             getInstance() { return saveButton; }
         };
+        // @ts-ignore
+        saveButton.linkRenderer(new class extends preact.Component {});
         saveButton.initChannel('globalBlockTrees', []);
 
         const initialState = createTestTheBlockTreeState('Lorem ipsum');

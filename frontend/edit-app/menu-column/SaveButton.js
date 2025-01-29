@@ -156,14 +156,11 @@ class SaveButton {
     }
     /**
      * @param {string} channelName
-     * @param {fn(activeStates: Array<state>) => void} withFn
-     * @returns {Array<state>}
+     * @param {(channelState: Array<state>) => Array<state>} createNewState
      * @access public
      */
-    mutateActiveStates(channelName, fn) {
-        const activeStatesMut = this.getActiveState(channelName, 0);
-        fn(activeStatesMut);
-        return activeStatesMut;
+    replaceStateOf(channelName, createNewState) {
+        this.states[channelName] = createNewState([...this.states[channelName]]);
     }
     /**
      * @access public

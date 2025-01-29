@@ -1,7 +1,6 @@
 import {
     __,
     api,
-    blockTreeUtils,
     env,
     http,
     Icon,
@@ -29,10 +28,12 @@ class AddReusableContentTab extends preact.Component {
     componentWillMount() {
         http.get('/api/global-block-trees')
             .then(globalBlockTrees => {
-                blockTreeUtils.setBackendGlobalBlockTrees(globalBlockTrees);
-                const latest = api.saveButton.getInstance().getChannelState('globalBlockTrees');
-                const uniqueMerged = [...latest, ...globalBlockTrees].reduce((out, gbt) => !out.some(({id}) => id === gbt.id) ? [...out, gbt] : out, []);
-                this.setState({globalBlockTrees: uniqueMerged});
+                api.saveButton.getInstance().replaceStateOf('globalBlockTrees', stateArr =>
+                    // [ [], [<gbtPrev>] ] -> [ [<gbtFromBackend>], [<gbtFromBackend>, <gbtPrev>] ]
+                    stateArr.map(gbts => mergeGlobalBlockTrees(gbts, globalBlockTrees))
+                );
+                const replaced = api.saveButton.getInstance().getChannelState('globalBlockTrees');
+                this.setState({globalBlockTrees: replaced});
             })
             .catch(env.window.console.error);
         fetchOrGetReusableBranches()
@@ -310,6 +311,21 @@ function createContentTemplateSpawnDescriptor(template, props) {
 }
 
 /**
+ * @param {Array<GlobalBlockTree>} fromState
+ * @param {Array<GlobalBlockTree>} fromBackend
+ * @returns {Array<GlobalBlockTree>}
+ */
+function mergeGlobalBlockTrees(fromState, fromBackend) {
+    const out = [...fromState];
+    const addToTheBeginning = [];
+    for (const gbt of fromBackend) {
+        if (!out.some(({id}) => id === gbt.id))
+            addToTheBeginning.push(gbt);
+    }
+    return [...addToTheBeginning, ...out];
+}
+
+/**
  * @typedef {{
  *   onContentPicked: (descr: SpawnDescriptor) => void;
  * }} AddContentTabProps
@@ -324,4 +340,5 @@ export {
     AddReusableContentTab,
     AddSimpleContentBlocksTab,
     AddTemplateContentTab,
+    mergeGlobalBlockTrees,
 };

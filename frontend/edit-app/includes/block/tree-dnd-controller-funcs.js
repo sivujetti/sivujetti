@@ -16,22 +16,6 @@ import {
 function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, targetTrid, targetBlockId, insertPos, isReplace = false, wasCurrentlySelectedBlock = false) {
     const eventName = !isReplace ? 'insert-block-at' : 'replace-block';
 
-    const newGbts = new Map;
-    blockTreeUtils.traverseRecursivelyMultiTree([blockOrBranch], b => {
-        if (b.type === 'GlobalBlockReference' && !newGbts.get(b.globalBlockTreeId)) {
-            newGbts.set(b.globalBlockTreeId, blockTreeUtils.getTree(b.globalBlockTreeId));}
-    });
-    const patchedGbtStates = !newGbts.size ? null : (() => {
-    // Note: this call mutates SaveButton's internal state
-        return api.saveButton.getInstance().mutateActiveStates('globalBlockTrees', stateArrMut => {
-            const headStateGbtsMut = stateArrMut.at(-1);
-            for (const [newTrid, gbtFromBackend] of newGbts) {
-                if (!findGbt(newTrid, headStateGbtsMut))
-                    headStateGbtsMut.push(gbtFromBackend);
-            }
-        });
-    })();
-
     if (targetTrid === 'main')
         return [
             'theBlockTree',
@@ -45,7 +29,7 @@ function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, targetTrid, targetBlo
     else
         return [
             'globalBlockTrees',
-            objectUtils.cloneDeepWithChanges(patchedGbtStates?.at(-1) || api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
+            objectUtils.cloneDeepWithChanges(api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
                 const gbt = findGbt(targetTrid, newGbtsCopy);
                 // mutates gbt.blocks (and thus gbt and newGbtsCopy)
                 if (!isReplace) insertAfterBeforeOrAsChild(blockOrBranch, gbt.blocks, targetBlockId, insertPos);

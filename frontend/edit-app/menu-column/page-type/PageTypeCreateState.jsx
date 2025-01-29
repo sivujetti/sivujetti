@@ -144,12 +144,12 @@ class PageTypeCreateState extends preact.Component {
  *
  * @param {PageType} data
  * @param {Layout} layout
- * @returns {(out: Array<StateHistory>, _activeStates: todo) => Promise<Array<StateHistory>|null>}
+ * @returns {(out: Array<StateHistory>, _activeStates: any) => Promise<Array<StateHistory>|null>}
  */
 function createAddPageTypeSaveOpFilter(data, layout) {
     /**
      * @param {Array<StateHistory>} out
-     * @param {todo} _activeStates
+     * @param {any} _activeStates
      * @returns {Promise<Array<StateHistory>|null>}
      */
     return (out, _activeStates) => {

@@ -1,5 +1,6 @@
 import {env} from '@sivujetti-commons-for-web-pages';
 
+/** @type {Map<string, preact.AnyComponent>} */
 const sectionRenderers = new Map;
 
 class MainMenuPanelApi {
@@ -112,7 +113,7 @@ class MainMenuPanelApi {
         return out;
     }
     /**
-     * @returns {Map<preact.AnyComponent>}
+     * @returns {Map<string, preact.AnyComponent>}
      * @access public
      */
     getSections() {

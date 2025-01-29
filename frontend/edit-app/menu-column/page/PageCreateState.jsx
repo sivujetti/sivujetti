@@ -22,10 +22,6 @@ const STATUS_PUBLISHED = 0;
  * Menu column state for #/pages/create/:pageTypeName?/:layoutId?[?addToMenu='menuBlockId:menuBlockIsStoredToTreeId:pageSlug'].
  */
 class PageCreateState extends preact.Component {
-    // unregistrables;
-    // pageType;
-    // addToMenuIdInfo;
-    // addToMenuIsInCurrentPage;
     /**
      * @access protected
      */

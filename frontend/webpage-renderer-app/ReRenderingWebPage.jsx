@@ -195,7 +195,6 @@ class RenderAll extends preact.Component {
         };
         const stack = [];
         docBody.addEventListener('mouseenter', e => {
-            if (this.isMouseListenersDisabled) return;
             if (stack.indexOf(e.target) > -1) return;
             stack.push(e.target);
             const end = stack.at(-1);
@@ -210,7 +209,6 @@ class RenderAll extends preact.Component {
         }, true);
 
         docBody.addEventListener('mouseleave', e => {
-            if (this.isMouseListenersDisabled) return;
             if (stack.indexOf(e.target) < 0) return;
             const end = stack.at(-1);
             const endParent = stack.at(-2) || null;
@@ -257,12 +255,6 @@ class RenderAll extends preact.Component {
             if (!currentBlock)
                 return;
 
-            if (this.isMouseListenersDisabled) {
-                const {blockId, nthOfId} = currentBlock;
-                if (blockId) this.messagePortToEditApp.postMessage(['onClicked', blockId, nthOfId]);
-                return;
-            }
-
             const isLeftClick = e.button === 0;
             const a = isLeftClick ? e.target.nodeName === 'A' ? e.target : e.target.closest('a') : null;
             const b = a || (isLeftClick ? e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button') : null);
@@ -287,7 +279,7 @@ class RenderAll extends preact.Component {
         let lastDownLink = null;
         let lastDownLinkAlreadyHandled = false;
         document.body.addEventListener('mousedown', e => {
-            if (!(this.curHoveredBlock || this.isMouseListenersDisabled)) return;
+            if (!this.curHoveredBlock) return;
             isDown = true;
             const a = e.button !== 0 ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
             if (!a) return;
@@ -305,10 +297,6 @@ class RenderAll extends preact.Component {
             const currentBlock = this.curHoveredBlock;
             isDown = false;
             if (!lastDownLink) {
-                if (this.isMouseListenersDisabled) {
-                    this.messagePortToEditApp.postMessage(['onClicked', currentBlock.blockId, currentBlock.nthOfId]);
-                    return;
-                }
                 const b = e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button');
                 if (b) e.preventDefault();
                 this.messagePortToEditApp.postMessage(['onClicked', currentBlock.blockId, currentBlock.nthOfId]);

@@ -3,10 +3,6 @@ import {clamp} from '../includes/utils.js';
 import BlockEditForm from './block/BlockEditForm.jsx';
 
 class InspectorPanel extends preact.Component {
-    // rendererProps;
-    // rendererKey;
-    // resizeHandleEl;
-    // lastHeight;
     /**
      * @param {{rootEl: HTMLElement;}} props
      */

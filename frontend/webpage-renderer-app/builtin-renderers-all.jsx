@@ -127,7 +127,7 @@ class ListingBlock extends preact.Component {
     /**
      * @param {Block} block
      * @param {AbortController} abortCtrl
-     * @returns {Promise<Array<preact.ComponentChild>>|null}
+     * @returns {Promise<Array<preact.ComponentChild>|preact.ComponentChild>|null}
      * @access private
      */
     async renderInBackend(block, abortCtrl) {

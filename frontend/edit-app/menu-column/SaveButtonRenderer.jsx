@@ -25,9 +25,9 @@ class SaveButtonRenderer extends preact.Component {
         if (useStickiedClsChangeUpdater)
             this.props.editAppOuterEl.addEventListener('scroll', e => {
                 if (e.target.scrollTop > 21 && !this.state.isStickied)
-                    this.renderer.setState({isStickied: true});
+                    this.setState({isStickied: true});
                 else if (e.target.scrollTop < 21 && this.state.isStickied)
-                    this.renderer.setState({isStickied: false});
+                    this.setState({isStickied: false});
             });
     }
     /**

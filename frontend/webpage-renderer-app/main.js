@@ -15,7 +15,7 @@ function mountWebPageRendererApp(dataBundle) {
     const withNested__globalBlockTrees = cloneDeep(dataBundle.page.blocks);
     printBlockWarnings(withNested__globalBlockTrees);
 
-    /** @type {preact.Ref<RenderAllOuter>} */
+    /** @type {preact.RefObject<RenderAll>} */
     const reRenderingWebPage = preact.createRef();
     const outerEl = document.body;
     const ReRenderingWebPage = api.import('ReRenderingWebPage');
@@ -43,11 +43,11 @@ function mountWebPageRendererApp(dataBundle) {
 }
 
 /**
- * @param {ReRenderingWebPage} reRenderingWebPage
+ * @param {preact.RefObject<RenderAll>} reRenderingWebPageRef
  * @param {MessagePort} messagePortToEditApp
  * @returns {(e: MessageEvent) => void}
  */
-function createMessageChannelController(reRenderingWebPage, messagePortToEditApp) {
+function createMessageChannelController(reRenderingWebPageRef, messagePortToEditApp) {
     return e => {
         if (e.data[0] === 'updateBlocksStyles') {
             const cssCompiled = e.data[1];
@@ -63,16 +63,16 @@ function createMessageChannelController(reRenderingWebPage, messagePortToEditApp
             el.innerHTML = css;
         } else if (e.data[0] === 'reRenderAllBlocks') {
             const newBlocks = e.data[1];
-            reRenderingWebPage.current.exchangeBlocks(newBlocks);
+            reRenderingWebPageRef.current.exchangeBlocks(newBlocks);
         } else if (e.data[0] === 'reRenderBlock') {
             const newBlocks = e.data[2];
             const updatedBlock = e.data[1];
-            reRenderingWebPage.current.exchangeSingleBlock(updatedBlock, newBlocks);
+            reRenderingWebPageRef.current.exchangeSingleBlock(updatedBlock, newBlocks);
         } else if (e.data[0] === 'handleMetaKeyPressedOrReleased') {
             const isDown = e.data[1];
-            reRenderingWebPage.current.handleEditAppMetaKeyPressedOrReleased(isDown);
+            reRenderingWebPageRef.current.handleEditAppMetaKeyPressedOrReleased(isDown);
         } else if (e.data[0] === 'getMouseState') {
-            messagePortToEditApp.postMessage(['getMouseState-return', reRenderingWebPage.current.getMouseState()]);
+            messagePortToEditApp.postMessage(['getMouseState-return', reRenderingWebPageRef.current.getMouseState()]);
         }
     };
 }

@@ -11,7 +11,7 @@ final class Layout extends \stdClass {
     public string $friendlyName;
     /** @var string e.g. "layout.default.tmpl.php" */
     public string $relFilePath;
-    /** @var list<object{type: "pageContents"}|object{type: "globalBlockTree", globalBlockTree: string}> e.g. [{"type":"globalBlockTree","globalBlockTreeId":"20"}, {"type":"pageContents"}] */
+    /** @var list<object{type: "pageContents"}|object{type: "globalBlockTree", globalBlockTreeId: string}> e.g. [{"type":"globalBlockTree","globalBlockTreeId":"20"}, {"type":"pageContents"}] */
     public array $structure;
     /**
      * @param object $row

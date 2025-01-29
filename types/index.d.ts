@@ -158,7 +158,16 @@ interface ContentTemplate {
 
 interface Layout {
     friendlyName: string;
-    structure: Array<{type: 'pageContents';}|{type: 'globalBlockTree'; globalBlockTreeId: string;}>;
+    structure: Array<GlobalBlockLayoutPart|PageContentLayoutPart>;
+}
+
+interface GlobalBlockLayoutPart {
+    type: 'globalBlockTree';
+    globalBlockTreeId: string;
+}
+
+interface PageContentLayoutPart {
+    type: 'pageContents';
 }
 
 interface Theme {
@@ -170,7 +179,7 @@ interface CurrentPageData {
     initialPageBlocksStyles: Array<StyleChunkWithoutId>;
     layout: {
         friendlyName: string;
-        structure: Array<LayoutPart>;
+        structure: Array<GlobalBlockLayoutPart|PageContentLayoutPart>;
     };
     theme: Theme | (Theme & {
         styles: StylesBundle;
@@ -186,11 +195,6 @@ interface StylesBundle {
 interface StylesBundleWithId extends StylesBundle {
     id: number;
     styleChunks: Array<StyleChunk>;
-}
-
-interface LayoutPart {
-    type: 'globalBlockTree'|'pageContents';
-    globalBlockTreeId?: string;
 }
 
 interface PageTypeField {

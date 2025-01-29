@@ -116,8 +116,8 @@ function createReusableBranchesChannelHandler() {
 function createGlobalBlockTreesChannelHandler() {
     return {
         /**
-         * @param {any} _state
-         * @param {StateChangeUserContext|null} _userCtx
+         * @param {any} state
+         * @param {StateChangeUserContext|null} userCtx
          * @param {stateChangeContext} _context
          */
         handleStateChange(state, userCtx, _context) {
@@ -338,7 +338,7 @@ function createSaveableItems({initial, latest}, key = 'id') {
 
 /**
  * @param {Array<StateHistory>} queue
- * @returns {{[channelName: string]: state;}}
+ * @returns {StateMap}
  */
 function getLatestItemsOfEachChannel(queue) {
     const out = {};
@@ -366,7 +366,16 @@ function createEventName(channelName) {
 }
 
 /**
+ * @typedef {any} state
+ *
+ * @typedef {{[channelName: string]: Array<state>;}} StateMap
+ *
  * @typedef {(err: Error|Object, message: string, level: messageLevel) => [string, messageLevel]} adjustErrorToastArgsFn
+ *
+ * @typedef HistoryItem
+ * @prop {string} channelName
+ * @prop {any} userCtx
+ * @prop {blockPropValueChangeFlags} flags
  */
 
 export {

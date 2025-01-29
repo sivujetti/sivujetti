@@ -7,6 +7,9 @@ import {
     handlerFactoriesMap,
     normalizeItem,
 } from './SaveButtonFuncs.js';
+/** @typedef {import('./SaveButtonFuncs.js').HistoryItem} HistoryItem */
+/** @typedef {import('./SaveButtonFuncs.js').StateMap} StateMap */
+/** @typedef {import('./SaveButtonFuncs.js').state} state */
 
 const saveButtonEvents = new Events;
 const saveButtonEvents2 = new Events;
@@ -106,7 +109,7 @@ class SaveButton {
     /**
      * Pushes multiple ops to the history that will be undone/redone as a group when undo/redo is called.
      *
-     * @param {[string, state, StateChangeUserContext|null, blockPropValueChangeFlags]} ...ops
+     * @param {Array<[string, state, StateChangeUserContext|null, blockPropValueChangeFlags]>} ops
      * @access public
      */
     pushOpGroup(...ops) {
@@ -134,7 +137,7 @@ class SaveButton {
         this.syncQueueFilters = [];
     }
     /**
-     * @param {isOn: boolean} isOn
+     * @param {boolean} isOn
      * @access public
      */
     setHotkeyUndoLockIsOn(isOn) {
@@ -215,7 +218,7 @@ class SaveButton {
         return this;
     }
     /**
-     * @param {preact.Component} renderer
+     * @param {preact.Component & {resetState(): void;}} renderer
      * @access public
      */
     linkRenderer(renderer) {
@@ -298,7 +301,7 @@ class SaveButton {
         return Promise.resolve(out);
     }
     /**
-     * @returns {[Array<StateHistory>, todo]}
+     * @returns {[Array<StateHistory>, StateMap]}
      * @access private
      */
     createSyncQueuePre() {
@@ -317,7 +320,7 @@ class SaveButton {
         return [out, activeStates];
     }
     /**
-     * @param {{[channelName]: state;}} syncedStates Latest / synced states that were just saved to the backend
+     * @param {StateMap} syncedStates Latest / synced states that were just saved to the backend
      * @param {boolean} emitChange = false
      * @access private
      */
@@ -424,14 +427,5 @@ class SaveButton {
         this.opHistoryCursor = 1;
     }
 }
-
-/**
- * @typedef {any} state
- *
- * @typedef HistoryItem
- * @prop {string} channelName
- * @prop {any} userCtx
- * @prop {blockPropValueChangeFlags} flags
- */
 
 export default SaveButton;

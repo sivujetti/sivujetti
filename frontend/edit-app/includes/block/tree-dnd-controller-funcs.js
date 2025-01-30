@@ -1,8 +1,10 @@
 import {
     api,
+    arrayUtils,
     blockTreeUtils,
     objectUtils,
 } from '@sivujetti-commons-for-edit-app';
+import {createGbtsState} from '../../menu-column/block/block-edit-funcs.js';
 
 /**
  * @param {Block} blockOrBranch
@@ -29,8 +31,8 @@ function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, targetTrid, targetBlo
     else
         return [
             'globalBlockTrees',
-            objectUtils.cloneDeepWithChanges(api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
-                const gbt = findGbt(targetTrid, newGbtsCopy);
+            objectUtils.cloneDeepWithChanges(createGbtsState(targetTrid), newGbtsCopy => {
+                const gbt = arrayUtils.findById(newGbtsCopy, targetTrid);
                 // mutates gbt.blocks (and thus gbt and newGbtsCopy)
                 if (!isReplace) insertAfterBeforeOrAsChild(blockOrBranch, gbt.blocks, targetBlockId, insertPos);
                 else replaceAt(blockOrBranch, gbt.blocks, targetBlockId);
@@ -104,8 +106,8 @@ function createMoveWithinMainTreeOp(dragBlockId, dropBlockId, dropPos) {
 function createMoveWithinGbtOp(dragTreeId, dragBlockId, dropBlockId, dropPos) {
     return [
         'globalBlockTrees',
-        objectUtils.cloneDeepWithChanges(api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
-            const gbt = findGbt(dragTreeId, newGbtsCopy);
+        objectUtils.cloneDeepWithChanges(createGbtsState(dragTreeId), newGbtsCopy => {
+            const gbt = arrayUtils.findById(newGbtsCopy, dragTreeId);
             const [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragBlockId, gbt.blocks);
             const [dropBlock, dropBranch] = blockTreeUtils.findBlock(dropBlockId, gbt.blocks);
             swapBlocksSameTree(dragBlock, dragBranch, dropBlock, dropBranch, dropPos);
@@ -123,12 +125,11 @@ function createMoveWithinGbtOp(dragTreeId, dragBlockId, dropBlockId, dropPos) {
  * @returns {[['theBlockTree', Array<Block>, StateChangeUserContext], ['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext]]}
  */
 function createMoveFromGbtToMainTreeOps(dragBlockId, dragTreeId, dropBlockId, dropPos) {
-    const gbts = api.saveButton.getInstance().getChannelState('globalBlockTrees');
     return [
         [
             'theBlockTree',
             blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
-                const block = blockTreeUtils.findBlock(dragBlockId, findGbt(dragTreeId, gbts).blocks)[0];
+                const block = blockTreeUtils.findBlock(dragBlockId, blockTreeUtils.getTree(dragTreeId).blocks)[0];
                 insertAfterBeforeOrAsChild(block, newTreeCopy, dropBlockId, dropPos);
                 return newTreeCopy;
             }),
@@ -136,8 +137,8 @@ function createMoveFromGbtToMainTreeOps(dragBlockId, dragTreeId, dropBlockId, dr
         ],
         [
             'globalBlockTrees',
-            objectUtils.cloneDeepWithChanges(gbts, newGbtsCopy => {
-                const gbt = findGbt(dragTreeId, newGbtsCopy);
+            objectUtils.cloneDeepWithChanges(createGbtsState(dragTreeId), newGbtsCopy => {
+                const gbt = arrayUtils.findById(newGbtsCopy, dragTreeId);
                 const [block, branch] = blockTreeUtils.findBlock(dragBlockId, gbt.blocks);
                 removeFrom(block, branch); // Mutates gbt.blocks (and thus gbt and newGbtsCopy)
                 return newGbtsCopy;
@@ -158,9 +159,9 @@ function createMoveFromGbtToMainTreeOps(dragBlockId, dragTreeId, dropBlockId, dr
 function createMoveBetweenTwoGbtsOp(dragBlockId, dragTreeId, dropBlockId, dropTreeId, dropPos) {
     return [
         'globalBlockTrees',
-        objectUtils.cloneDeepWithChanges(api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
-            const dragGbt = findGbt(dragTreeId, newGbtsCopy);
-            const dropGbt = findGbt(dropTreeId, newGbtsCopy);
+        objectUtils.cloneDeepWithChanges(createGbtsState([dragTreeId, dropTreeId]), newGbtsCopy => {
+            const dragGbt = arrayUtils.findById(newGbtsCopy, dragTreeId);
+            const dropGbt = arrayUtils.findById(newGbtsCopy, dropTreeId);
             const [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragBlockId, dragGbt.blocks);
             insertAfterBeforeOrAsChild(dragBlock, dropGbt.blocks, dropBlockId, dropPos);
             removeFrom(dragBlock, dragBranch);
@@ -191,8 +192,8 @@ function createMoveFromMainToGbtTreeOps(dragBlockId, dropTreeId, dropBlockId, dr
         ],
         [
             'globalBlockTrees',
-            objectUtils.cloneDeepWithChanges(api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
-                const gbt = findGbt(dropTreeId, newGbtsCopy);
+            objectUtils.cloneDeepWithChanges(createGbtsState(dropTreeId, api.saveButton.getInstance()), newGbtsCopy => {
+                const gbt = arrayUtils.findById(newGbtsCopy, dropTreeId);
                 const [dragBlock] = blockTreeUtils.findBlock(dragBlockId, mainTree);
                 insertAfterBeforeOrAsChild(dragBlock, gbt.blocks, dropBlockId, dropPos); // mutates gbt.blocks (and thus gbt and newGbtsCopy)
                 return newGbtsCopy;
@@ -308,19 +309,9 @@ function getRealTarget(target, dropOrInsertPos) {
         : [target.isStoredToTreeId, target.blockId];
 }
 
-/**
- * @param {string} gbtId
- * @param {Array<GlobalBlockTree>} from
- * @returns {GlobalBlockTree|undefined}
- */
-function findGbt(gbtId, from) {
-    return from.find(({id}) => id === gbtId);
-}
-
 export {
     createBlockTreeInsertOrReplaceAtOp,
     createBlockTreeMoveToOps,
-    findGbt,
     getRealTarget,
     removeFrom,
     replaceAt,

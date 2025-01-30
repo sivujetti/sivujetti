@@ -1,6 +1,7 @@
 import {
     __,
     api,
+    blockTreeUtils,
     env,
     http,
     objectUtils,
@@ -133,7 +134,7 @@ function createGlobalBlockTreesChannelHandler() {
          * @returns {Promise<boolean|any>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
-            const saveable = createSaveableItems(stateHistory);
+            const saveable = createGbtSaveables(stateHistory);
             const results = await Promise.all(saveable.map(({type, arg}) => type === 'update'
                 ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks})
                 : http.post('/api/global-block-trees', arg)
@@ -334,6 +335,18 @@ function createSaveableItems({initial, latest}, key = 'id') {
     }
     }
     return out;
+}
+
+/**
+ * @param {StateHistory} stateHistory
+ * @returns {Array<{type: 'insert'|'update'; arg: GlobalBlockTree;}>}
+ */
+function createGbtSaveables({latest}) {
+    const alreadyExisting = blockTreeUtils.globalBlockTreesRepo.getTrees();
+    return latest.map(entity => ({
+        type: !alreadyExisting.some(({id}) => id === entity.id) ? 'insert' : 'update',
+        arg: entity
+    }));
 }
 
 /**

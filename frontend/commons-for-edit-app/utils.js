@@ -1,6 +1,18 @@
 import {cloneDeep} from '../shared-inline.js';
 import {generateShortId} from './short-id-gen.js';
 
+const arrayUtils = {
+    /**
+     * @template T
+     * @param {Array<T & { id: string }>} from
+     * @param {string} id
+     * @returns {T|undefined}
+     */
+    findById(from, id) {
+        return from.find(entity => entity.id === id);
+    }
+};
+
 const stringUtils = {
     /**
      * https://gist.github.com/mathewbyrne/1280286#gistcomment-2353812
@@ -141,6 +153,7 @@ const generatePushID = (function() {
 })();
 
 export {
+    arrayUtils,
     generatePushID,
     generateShortId,
     isUndoOrRedo,

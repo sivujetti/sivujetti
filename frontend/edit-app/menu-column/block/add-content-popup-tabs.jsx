@@ -1,6 +1,7 @@
 import {
     __,
     api,
+    blockTreeUtils,
     env,
     http,
     Icon,
@@ -28,12 +29,9 @@ class AddReusableContentTab extends preact.Component {
     componentWillMount() {
         http.get('/api/global-block-trees')
             .then(globalBlockTrees => {
-                api.saveButton.getInstance().replaceStateOf('globalBlockTrees', stateArr =>
-                    // [ [], [<gbtPrev>] ] -> [ [<gbtFromBackend>], [<gbtFromBackend>, <gbtPrev>] ]
-                    stateArr.map(gbts => mergeGlobalBlockTrees(gbts, globalBlockTrees))
-                );
-                const replaced = api.saveButton.getInstance().getChannelState('globalBlockTrees');
-                this.setState({globalBlockTrees: replaced});
+                blockTreeUtils.globalBlockTreesRepo.setTrees(globalBlockTrees);
+                const all = mergeGlobalBlockTrees(api.saveButton.getInstance().getChannelState('globalBlockTrees'), blockTreeUtils.globalBlockTreesRepo.getTrees());
+                this.setState({globalBlockTrees: all});
             })
             .catch(env.window.console.error);
         fetchOrGetReusableBranches()

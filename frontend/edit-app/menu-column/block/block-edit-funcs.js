@@ -1,8 +1,10 @@
 import {
     api,
+    arrayUtils,
     blockTreeUtils,
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
+/** @typedef {import('../../includes/global-block-trees-repo.js').GlobalBlockTreesRepository} GlobalBlockTreesRepository */
 
 /**
  * @param {string} blockId
@@ -13,8 +15,8 @@ import {
  */
 function createUpdateBlockPropOp(blockId, getChanges, flags = null, saveButton = api.saveButton.getInstance()) {
     const root1 = blockTreeUtils.findBlockMultiTree(blockId, saveButton.getChannelState('theBlockTree'))[3];
-    const trid = blockTreeUtils.getIdFor(root1);
-    if (trid === 'main')
+    const treeId = blockTreeUtils.getIdFor(root1);
+    if (treeId === 'main')
         return [
             'theBlockTree',
             blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
@@ -28,8 +30,8 @@ function createUpdateBlockPropOp(blockId, getChanges, flags = null, saveButton =
     else
         return [
             'globalBlockTrees',
-            saveButton.getChannelState('globalBlockTrees').map(gbt =>
-                gbt.id !== trid
+            createGbtsState(treeId, saveButton).map(gbt =>
+                gbt.id !== treeId
                     ? gbt
                     : {...gbt, blocks: blockTreeUtils.createMutation(gbt.blocks, copy => {
                         const [blockRefMut] = blockTreeUtils.findBlock(blockId, copy);
@@ -39,6 +41,38 @@ function createUpdateBlockPropOp(blockId, getChanges, flags = null, saveButton =
             {event: 'update-block-in', blockId},
             flags,
         ];
+}
+
+/**
+ * Returns a new 'globalBlockTrees' state by adding all $treeIdOrTreeIds from $globalBlockTreesRepo. Example:
+ * ```
+ * const saveButton = api.saveButton.getInstance();
+ * console.log(saveButton.getChannelState('globalBlockTrees')); // []
+ * const someId = '<pushId>';
+ * const newState = createGbtsState(someId, saveButton);
+ * console.log(newState); // [{id: '<pushId>', blocks: ...}]
+ * // Now you can mutate newState and pass it to saveButton.pushOp('globalBlockTrees', newState)
+ * ```
+ *
+ * @param {string|Array<string>} treeIdOrTreeIds
+ * @param {SaveButton} saveButton = api.saveButton.getInstance()
+ * @param {GlobalBlockTreesRepository} globalBlockTreesRepo = blockTreeUtils.globalBlockTreesRepo
+ * @returns {Array<GlobalBlockTree>}
+ */
+function createGbtsState(
+    treeIdOrTreeIds,
+    saveButton = api.saveButton.getInstance(),
+    globalBlockTreesRepo = blockTreeUtils.globalBlockTreesRepo
+) {
+    /** @type {Array<GlobalBlockTree>} */
+    const state = saveButton.getChannelState('globalBlockTrees');
+    return (Array.isArray(treeIdOrTreeIds) ? treeIdOrTreeIds : [treeIdOrTreeIds]).reduce((out, id) =>
+        arrayUtils.findById(out, id)
+            // treeIdOrTreeIds[i] already exists in the state, do nothing
+            ? out
+            // treeIdOrTreeIds[i] not found in state, find it from repo and add to state as a shallow copy
+            : [...out, {...arrayUtils.findById(globalBlockTreesRepo.getTrees(), id)}]
+    , state);
 }
 
 /**
@@ -56,4 +90,4 @@ function pushBlockChanges(blockId, changesOrGetChanges, flags = null) {
     ));
 }
 
-export {createUpdateBlockPropOp, pushBlockChanges};
+export {createGbtsState, createUpdateBlockPropOp, pushBlockChanges};

@@ -11,6 +11,7 @@ import globalData from '../includes/globalData.js';
 import {createTrier} from '../includes/utils.js';
 import {cloneDeep, getMetaKey, getBlockEl, traverseRecursively} from '../../shared-inline.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
+import GlobalBlockTreesRepository from '../includes/global-block-trees-repo.js';
 
 const broadcastInitialStateToListeners = true;
 
@@ -392,6 +393,44 @@ class WebPagePreviewApp extends preact.Component {
     }
 }
 
+let counter = -1;
+
+/**
+ * @param {Event & {data: [any, CurrentPageData]}} e
+ */
+function broadcastCurrentPageData(e) {
+    events.emit('webpage-preview-iframe-before-loaded');
+
+    const saveButton = api.saveButton.getInstance();
+    const [_, dataBundle] = e.data;
+
+    /** @type {Array<Block>} */
+    const blocks = getAndInvalidate(dataBundle.page, 'blocks');
+    const detachedGbts = detachGlobalBlockTrees(blocks); // Note: mutates blocks
+    blockTreeUtils.globalBlockTreesRepo = new GlobalBlockTreesRepository(detachedGbts);
+
+    /** @type {StylesBundle} */
+    const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');
+    saveButton.initChannel('stylesBundle', {
+        ...stylesBundle,
+        styleChunks: addIds(stylesBundle.styleChunks),
+        id: counter + 1,
+    }, broadcastInitialStateToListeners);
+
+    saveButton.initChannel('theBlockTree', blocks, broadcastInitialStateToListeners);
+
+    globalData.initialPageBlocksStyles = dataBundle.initialPageBlocksStyles;
+    globalData.theme = dataBundle.theme;
+    globalData.layout = dataBundle.layout;
+
+    saveButton.initChannel('currentPageData', dataBundle.page);
+    saveButton.initChannel('globalBlockTrees', []);
+    // saveButton.initChannel('reusableBranches', ...); deferred, see ../includes/reusable-branches/repository.js
+    // saveButton.initChannel('pageTypes', ...); deferred, see ../menu-column/page-type/PageTypeCreateState.jsx @componentWillMount
+
+    events.emit('webpage-preview-iframe-loaded');
+}
+
 /**
  * @param {DOMRect} elRect
  * @param {Window} win
@@ -444,43 +483,6 @@ function createUrlForIframe(url) {
         return urlUtils.makeUrl(`${pathname}?in-edit=1${!hash ? '' : `#${hash}`}`);
     }
     return null;
-}
-
-let counter = -1;
-
-/**
- * @param {Event & {data: [any, CurrentPageData]}} e
- */
-function broadcastCurrentPageData(e) {
-    events.emit('webpage-preview-iframe-before-loaded');
-
-    const saveButton = api.saveButton.getInstance();
-    const [_, dataBundle] = e.data;
-
-    /** @type {Array<Block>} */
-    const blocks = getAndInvalidate(dataBundle.page, 'blocks');
-    const detachedGbts = detachGlobalBlockTrees(blocks); // Note: mutates blocks
-    saveButton.initChannel('globalBlockTrees', detachedGbts);
-
-    /** @type {StylesBundle} */
-    const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');
-    saveButton.initChannel('stylesBundle', {
-        ...stylesBundle,
-        styleChunks: addIds(stylesBundle.styleChunks),
-        id: counter + 1,
-    }, broadcastInitialStateToListeners);
-
-    saveButton.initChannel('theBlockTree', blocks, broadcastInitialStateToListeners);
-
-    globalData.initialPageBlocksStyles = dataBundle.initialPageBlocksStyles;
-    globalData.theme = dataBundle.theme;
-    globalData.layout = dataBundle.layout;
-
-    saveButton.initChannel('currentPageData', dataBundle.page);
-    // saveButton.initChannel('reusableBranches', ...); deferred, see ../includes/reusable-branches/repository.js
-    // saveButton.initChannel('pageTypes', ...); deferred, see ../menu-column/page-type/PageTypeCreateState.jsx @componentWillMount
-
-    events.emit('webpage-preview-iframe-loaded');
 }
 
 /**

@@ -1,6 +1,7 @@
 import {
     __,
     api,
+    arrayUtils,
     blockTreeUtils,
     floatingDialog,
     generatePushID,
@@ -10,11 +11,12 @@ import {
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
-import {findGbt, removeFrom, replaceAt} from '../../includes/block/tree-dnd-controller-funcs.js';
+import {removeFrom, replaceAt} from '../../includes/block/tree-dnd-controller-funcs.js';
 import {createBlock, treeToTransferable} from '../../includes/block/utils.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import BlockTreeShowHelpPopup from '../../main-column/popups/BlockTreeShowHelpPopup.jsx';
 import {extractChangeableClasses} from '../block-styles/StyleClassesPicker.jsx';
+import {createGbtsState} from './block-edit-funcs.js';
 
 const autoCollapseNonUniqueRootLevelItems = true;
 
@@ -321,8 +323,8 @@ function createDeleteBlockOp(blockToDeleteId, blockToDeleteTrid, wasCurrentlySel
     else
         return [
             'globalBlockTrees',
-            objectUtils.cloneDeepWithChanges(api.saveButton.getInstance().getChannelState('globalBlockTrees'), newGbtsCopy => {
-                const [ref, refBranch] = blockTreeUtils.findBlock(blockToDeleteId, findGbt(blockToDeleteTrid, newGbtsCopy).blocks);
+            objectUtils.cloneDeepWithChanges(createGbtsState(blockToDeleteTrid), newGbtsCopy => {
+                const [ref, refBranch] = blockTreeUtils.findBlock(blockToDeleteId, arrayUtils.findById(newGbtsCopy, blockToDeleteTrid).blocks);
                 removeFrom(ref, refBranch); // mutates newGbtsCopy
                 return newGbtsCopy;
             }), {event: 'delete', wasCurrentlySelectedBlock}
@@ -338,11 +340,9 @@ function createDeleteBlockOp(blockToDeleteId, blockToDeleteTrid, wasCurrentlySel
  * @returns {Array<['theBlockTree'|'globalBlockTrees', Array<Block>|Array<GlobalBlockTree>, StateChangeUserContext]>}
  */
 function createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlockId, originalBlockIsStoredTo, saveButton) {
-    const currentGbts = saveButton.getChannelState('globalBlockTrees');
-
     if (originalBlockIsStoredTo === 'main') {
         // Push a new 'globalBlockTrees' state (which includes the new gbt)
-        const pushNewGbtsStateOp = ['globalBlockTrees', objectUtils.cloneDeepWithChanges(currentGbts, copy => {
+        const pushNewGbtsStateOp = ['globalBlockTrees', objectUtils.cloneDeepWithChanges(saveButton.getChannelState('globalBlockTrees'), copy => {
             copy.push(newGbt);
             return copy;
         }), {event: 'create'}];
@@ -367,11 +367,11 @@ function createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlockId, o
         ];
     } else {
         // Push a new 'globalBlockTrees' state (which includes both the new and updated gbt)
-        return [['globalBlockTrees', objectUtils.cloneDeepWithChanges(currentGbts, copy => {
+        return [['globalBlockTrees', objectUtils.cloneDeepWithChanges(createGbtsState(originalBlockIsStoredTo, saveButton), copy => {
             // 1
             copy.push(newGbt);
             // 2
-            replaceAt(newGbRefBlock, findGbt(originalBlockIsStoredTo, copy).blocks, originalBlockId);
+            replaceAt(newGbRefBlock, arrayUtils.findById(copy, originalBlockIsStoredTo).blocks, originalBlockId);
 
             return copy;
         }), {event: 'create-and-convert'}]];
@@ -394,8 +394,8 @@ function createDuplicateBlockOp(blockId, blockIsStoredTo, saveButton) {
         });
     } else {
         channel = 'globalBlockTrees';
-        newState = objectUtils.cloneDeepWithChanges(saveButton.getChannelState('globalBlockTrees'), newGbtsCopy => {
-            const gbt = findGbt(blockIsStoredTo, newGbtsCopy);
+        newState = objectUtils.cloneDeepWithChanges(createGbtsState(blockIsStoredTo, saveButton), newGbtsCopy => {
+            const gbt = arrayUtils.findById(newGbtsCopy, blockIsStoredTo);
             cloned = duplicateBlockWithin(blockId, gbt.blocks); // mutates gbt.blocks (and thus gbt and newGbtsCopy)
             return newGbtsCopy;
         });

@@ -1,7 +1,10 @@
 import {api} from '../edit-app-singletons.js';
-import {objectUtils} from '../utils.js';
+import {arrayUtils, objectUtils} from '../utils.js';
+/** @typedef {import('../../edit-app/includes/global-block-trees-repo.js').GlobalBlockTreesRepository} GlobalBlockTreesRepository */
 
 const blockTreeUtils = {
+    /** @type {GlobalBlockTreesRepository} */
+    globalBlockTreesRepo: null,
     /**
      * @param {string} id
      * @param {Array<Block>} branch
@@ -143,7 +146,10 @@ const blockTreeUtils = {
     getTree(trid, gbtStoreState = null) {
         if (trid === 'main')
             return api.saveButton.getInstance().getChannelState('theBlockTree');
-        return (gbtStoreState || api.saveButton.getInstance().getChannelState('globalBlockTrees')).find((({id}) => id === trid));
+        const fromSaveButtonState = arrayUtils.findById(gbtStoreState || api.saveButton.getInstance().getChannelState('globalBlockTrees'), trid);
+        if (fromSaveButtonState) return fromSaveButtonState;
+        const fromSynced = arrayUtils.findById(this.globalBlockTreesRepo?.getTrees() || [], trid);
+        return fromSynced;
     },
     /**
      * @param {string} trid 'main' or 'id-of-some-global-block-tree'

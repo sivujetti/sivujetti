@@ -59,6 +59,7 @@ import BlockVisualStylesEditForm, {
     createPaddingVarDefs,
 } from './BlockVisualStylesEditForm.jsx';
 import {
+    arrayUtils,
     generatePushID,
     isUndoOrRedo,
     objectUtils,
@@ -70,6 +71,7 @@ import {urlValidatorImpl} from './validation.js';
 export {
     __,
     api,
+    arrayUtils,
     blockTreeUtils,
     BlockVisualStylesEditForm,
     ColorPickerInput,

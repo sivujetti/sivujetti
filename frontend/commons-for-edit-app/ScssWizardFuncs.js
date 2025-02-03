@@ -117,14 +117,7 @@ function stylesToBaked(styles, cachedCompiledCss, pageIdPair) {
  * @returns {[string, string|null]}
  */
 function validateAndCompileDevStyles(styles) {
-    const earlyError = styles.reduce((out, {scss}) =>
-        /^\.cc-[0-9]+ \{\r?\n/.test(scss)
-            ? out
-            : [...out, `dev chunk's first line must match \`.cc-<n>\` ( (was \`${scss.split('\n')[0]}\`)`]
-    , []).join(', ');
-    return !earlyError
-        ? [serialize(compile(styles.map(({scss}) => scss).join('')), stringify), null]
-        : ['', earlyError];
+    return [serialize(compile(styles.map(({scss}) => scss).join('')), stringify), null];
 }
 
 /**
@@ -301,11 +294,6 @@ function filterRecursively(ast, fn, parentNode = null) {
  * @returns {string}
  */
 function getSelectorForDecl(declsParentAstNode, cur) {
-    if (declsParentAstNode && typeof declsParentAstNode.value === 'string' && declsParentAstNode.value[0] === ' ') {
-        window.console.error('########');
-        window.console.error('leading space',declsParentAstNode.value);
-        window.console.error('########');
-        }
     return declsParentAstNode
         ? declsParentAstNode.value // Example 'ul', 'ul li', 'ul li a:hover', '>.j-Section2-cols>:nth-of-type(2)'
         : cur.getAst()[0].value;   // '[data-block="<id>"]'

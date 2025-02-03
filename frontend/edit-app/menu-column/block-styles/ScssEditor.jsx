@@ -5,12 +5,8 @@ class ScssEditor extends preact.Component {
     componentWillMount() {
         this.currentCode = this.props.scss;
         this.editor = null;
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        this.isEditorReady = false;
+        this.emitLockIsOn = false;
+        this.lastChangeTimestamp = 0;
     }
     /**
      * @param {{scss: string; onCommitInput: (scss: string) => void; editorId: string; collapseOuterCode?: boolean;}} props
@@ -18,10 +14,14 @@ class ScssEditor extends preact.Component {
      */
     componentWillReceiveProps(props) {
         if (props.scss !== this.currentCode) {
+            if ((Date.now() - this.lastChangeTimestamp) < 1001)
+                // User is most likely still typing, do nothing
+                return;
             this.currentCode = props.scss;
             this.emitLockIsOn = true;
-            setTimeout(() => {
-                this.emitLockIsOn = null;
+            clearTimeout(this.clearEmitClearTimeout);
+            this.clearEmitClearTimeout = setTimeout(() => {
+                this.emitLockIsOn = false;
             }, 400);
             this.overwriteEditorCode(props.scss);
         }
@@ -57,12 +57,11 @@ class ScssEditor extends preact.Component {
                                     return;
                                 const newCode = e.state.doc.toString();
                                 this.currentCode = newCode;
-                                if (this.emitLockIsOn) {
+                                if (this.emitLockIsOn)
                                     return;
-                                }
-                                if (e.transactions.some(tr => tr.isUserEvent('undo') || tr.isUserEvent('redo'))) {
+                                this.lastChangeTimestamp = Date.now();
+                                if (e.transactions.some(tr => tr.isUserEvent('undo') || tr.isUserEvent('redo')))
                                     return;
-                                }
                                 this.props.onInput(this.currentCode);
                             })
                         ]

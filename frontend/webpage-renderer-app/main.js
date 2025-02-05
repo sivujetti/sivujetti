@@ -4,6 +4,7 @@ Included by backend/sivujetti/src/Page/WebPageAwareTemplate.php jsFiles().
 */
 import {cloneDeep} from '../shared-inline.js';
 import {api} from './ReRenderingWebPage.jsx';
+/** @typedef {import('./ReRenderingWebPage.jsx').ReRenderingWebPage} ReRenderingWebPage */
 
 /**
  * Mounts <ReRenderingWebPage/> to document.body.
@@ -15,7 +16,7 @@ function mountWebPageRendererApp(dataBundle) {
     const withNested__globalBlockTrees = cloneDeep(dataBundle.page.blocks);
     printBlockWarnings(withNested__globalBlockTrees);
 
-    /** @type {preact.RefObject<RenderAll>} */
+    /** @type {preact.RefObject<ReRenderingWebPage>} */
     const reRenderingWebPage = preact.createRef();
     const outerEl = document.body;
     const ReRenderingWebPage = api.import('ReRenderingWebPage');
@@ -43,7 +44,7 @@ function mountWebPageRendererApp(dataBundle) {
 }
 
 /**
- * @param {preact.RefObject<RenderAll>} reRenderingWebPageRef
+ * @param {preact.RefObject<ReRenderingWebPage>} reRenderingWebPageRef
  * @param {MessagePort} messagePortToEditApp
  * @returns {(e: MessageEvent) => void}
  */

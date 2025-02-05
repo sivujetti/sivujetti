@@ -89,6 +89,13 @@ class RenderAll extends preact.Component {
         };
     }
     /**
+     * @param {boolean} isDown
+     * @access private
+     */
+    handleEditAppMetaKeyPressedOrReleased(isDown) {
+        this.metaKeyIsPressed = isDown;
+    }
+    /**
      * @access protected
      */
     componentWillMount() {
@@ -311,13 +318,6 @@ class RenderAll extends preact.Component {
         });
     }
     /**
-     * @param {boolean} isDown
-     * @access private
-     */
-    handleEditAppMetaKeyPressedOrReleased(isDown) {
-        this.metaKeyIsPressed = isDown;
-    }
-    /**
      * @param {HTMLAnchorElement} el
      * @access private
      */
@@ -388,6 +388,22 @@ function isBlockEl(el) {
 }
 
 api.export('ReRenderingWebPage', RenderAll);
+
+/**
+ * @typedef {{
+ *   hookUpEventHandlersAndEmitters(messagePortToEditApp: MessagePort, prevIframeMouseState: ReRenderingWebPageMouseState|null): void;
+ *   exchangeBlocks(newBlocks: Array<Block>): void;
+ *   exchangeSingleBlock(block: Block, allBlocks: Array<Block>): void;
+ *   getMouseState(): ReRenderingWebPageMouseState;
+ *   handleEditAppMetaKeyPressedOrReleased(isDown: boolean): void;
+ * } & preact.Component} ReRenderingWebPage
+ *
+ * @typedef {{
+ *   metaKeyIsPressed: boolean;
+ *   curHoverBlockBlockId?: string;
+ *   curHoverBlockNthOfId?: number;
+ * }} ReRenderingWebPageMouseState
+ */
 
 export default RenderAll;
 export {api};

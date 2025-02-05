@@ -1,6 +1,7 @@
 import {
     __,
     api,
+    arrayUtils,
     blockTreeUtils,
     env,
     http,
@@ -317,7 +318,7 @@ function mergeGlobalBlockTrees(fromState, fromBackend) {
     const out = [...fromState];
     const addToTheBeginning = [];
     for (const gbt of fromBackend) {
-        if (!out.some(({id}) => id === gbt.id))
+        if (!arrayUtils.findById(out, gbt.id))
             addToTheBeginning.push(gbt);
     }
     return [...addToTheBeginning, ...out];

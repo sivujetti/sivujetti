@@ -12,6 +12,7 @@ import {createTrier} from '../includes/utils.js';
 import {cloneDeep, getMetaKey, getBlockEl, traverseRecursively} from '../../shared-inline.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 import GlobalBlockTreesRepository from '../includes/global-block-trees-repo.js';
+/** @typedef {import('../../webpage-renderer-app/ReRenderingWebPage.jsx').ReRenderingWebPageMouseState} ReRenderingWebPageMouseState */
 
 const broadcastInitialStateToListeners = true;
 

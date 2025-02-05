@@ -10,13 +10,11 @@
   "author": "ut4",
   "license": "GPLv3",
   "devDependencies": {
-    "@rollup/plugin-sucrase": "^5.0.1",
-    "@rollup/plugin-terser": "^0.4.3",
-    "chromedriver": "^122.0.6",
-    "eslint": "^8.50.0",
-    "eslint-plugin-react": "^7.33.2",
-    "nightwatch": "^3.5.0",
-    "preact": "^10.17.1",
-    "rollup": "^3.29.3"
+    "@rollup/plugin-sucrase": "^5.0.2",
+    "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "^9.19.0",
+    "eslint-plugin-react": "^7.37.4",
+    "preact": "^10.25.4",
+    "rollup": "^3.29.5"
   }
 }

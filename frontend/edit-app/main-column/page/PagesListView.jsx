@@ -20,7 +20,7 @@ class PagesListView extends preact.Component {
      */
     componentWillMount() {
         this.infoOfPageWithNavOpened = null;
-        this.setState({pages: null});
+        this.filterablePagesRef = preact.createRef();
     }
     /**
      * @access protected
@@ -32,24 +32,26 @@ class PagesListView extends preact.Component {
                 <Icon iconId="circle-plus" className="color-dimmed3 size-sm mr-2"/>
                 <span>{ __('Create new %s', __('page')) }</span>
             </a>
-            <FilterablePagesList>{ pages => <ul class="list table-list">{ pages.length ? pages.map(({title, slug}) =>
-                <li class="p-0 p-relative">
-                    <button
-                        onClick={ e => this.openMoreMenu(slug, title, e) }
-                        class="btn btn-link flex-centered p-absolute"
-                        style="right: 0; top: .2rem;"
-                        type="button">
-                        <Icon iconId="dots" className="size-sm"/>
-                    </button>
-                    <a
-                        class="btn btn-link my-0 col-12 text-left text-ellipsis"
-                        href={ `#${slug !== '/' ? slug : ''}` }
-                        style="padding: .4rem 2.2rem .4rem .4rem; height: initial;">
-                        <span class="h6 my-0 mr-1">{ title }</span>
-                        <i class="color-dimmed">{ slug }</i>
-                    </a>
-                </li>
-            ) : <li>{ __('No pages') }</li> }</ul>}</FilterablePagesList>
+            <FilterablePagesList ref={ this.filterablePagesRef }>{ pages =>
+                <ul class="list table-list">{ pages.length ? pages.map(({title, slug}) =>
+                    <li class="p-0 p-relative">
+                        <button
+                            onClick={ e => this.openMoreMenu(slug, title, e) }
+                            class="btn btn-link flex-centered p-absolute"
+                            style="right: 0; top: .2rem;"
+                            type="button">
+                            <Icon iconId="dots" className="size-sm"/>
+                        </button>
+                        <a
+                            class="btn btn-link my-0 col-12 text-left text-ellipsis"
+                            href={ `#${slug !== '/' ? slug : ''}` }
+                            style="padding: .4rem 2.2rem .4rem .4rem; height: initial;">
+                            <span class="h6 my-0 mr-1">{ title }</span>
+                            <i class="color-dimmed">{ slug }</i>
+                        </a>
+                    </li>
+                ) : <li>{ __('No pages') }</li> }</ul>
+            }</FilterablePagesList>
         </OverlayView>;
     }
     /**
@@ -94,7 +96,7 @@ class PagesListView extends preact.Component {
             env.window.myRoute(`/pages/${encodeURIComponent(pageSlug)}/duplicate`);
         else if (link.id === 'delete') {
             openPageDeleteDialog(pageSlug, pageTitle, () => {
-                this.setState({pages: this.state.pages.filter(({slug}) => slug !== pageSlug)});
+                this.filterablePagesRef.current.updatePagesList(pages => pages.filter(({slug}) => slug !== pageSlug));
                 toasters.editAppMain(__('Deleted page "%s".', pageTitle), 'success');
             }, pageTypeName);
         }

@@ -11,6 +11,24 @@ const INITIAL_PAGES_LIST_BACKEND_HARD_LIMIT = 200;
 /** @extends {preact.Component<{createFilterablePages(from: Array<PageStub>, currentFilterStr: string): Array<PageStub>; filterDivMarginRight?: number;}, any>} */
 class FilterablePagesList extends preact.Component {
     /**
+     * @param {(currentList: Array<PageStub>, cacheBucketKey?: string|null) => Array<PageStub>} getNewList
+     */
+    updatePagesList(getNewList) {
+        const curFilter = this.state.currentFilterStr || '';
+        let allPages;
+        if (this.useLocalSearch) {
+            allPages = getNewList(this.state.allPages, null);
+        } else {
+            // Update all buckets
+            for (const key in this.backendSearchCache)
+                this.backendSearchCache[key] = getNewList(this.backendSearchCache[key], curFilter);
+            // Get current, updated bucket
+            allPages = this.backendSearchCache[curFilter];
+        }
+        const filteredPages = getFilteredPages(allPages, curFilter);
+        this.setState({allPages, filteredPages});
+    }
+    /**
      * @access protected
      */
     componentWillMount() {
@@ -101,7 +119,7 @@ class FilterablePagesList extends preact.Component {
     }
     /**
      * @param {string} searchTerm = ''
-     * @returns {Promise<UploadsEntry[]>}
+     * @returns {Promise<PageStub[]>}
      * @access private
      */
     async fetchOrGetPageSearchResults(searchTerm = '') {

@@ -1,8 +1,5 @@
-/** @extends {preact.Component<{tags: string; createTagsDropdownChoices: () => Array<string>; onChanged: (newTags: string) => void; onTagClicked: () => void;}>, any>} */
+/** @extends {preact.Component<{tags: string; createTagsDropdownChoices: () => Array<string>; onChanged: (newTags: string) => void; onTagClicked: () => void;}, any>} */
 class Tagify extends preact.Component {
-    // inputEl;
-    // currentVal;
-    // tagify;
     /**
      * @param {string} newTags
      * @access public
@@ -18,6 +15,10 @@ class Tagify extends preact.Component {
      */
     componentWillMount() {
         this.inputEl = preact.createRef();
+        /** @type {string} */
+        this.currentVal = null;
+        /** @type {Object} */
+        this.tagify = null;
     }
     /**
      * @access protected
@@ -56,12 +57,14 @@ class Tagify extends preact.Component {
      * @access protected
      */
     render({tags}) {
-        return <input
-            value={ tags.split(' ') }
-            name="input-custom-dropdown"
-            class="tagify--custom-dropdown"
-            placeholder="e.g. float-left mt-1 pt-1"
-            ref={ this.inputEl }/>;
+        return <div>
+            <input
+                value={ tags.split(' ') }
+                name="input-custom-dropdown"
+                class="tagify--custom-dropdown"
+                placeholder="e.g. float-left mt-1 pt-1"
+                ref={ this.inputEl }/>
+        </div>;
     }
 }
 

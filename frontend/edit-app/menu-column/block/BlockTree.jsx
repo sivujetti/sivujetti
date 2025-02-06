@@ -45,22 +45,6 @@ import EditBehaviourPopup from './EditBehaviourPopup.jsx';
 /** @typedef {import('./BlockTreeFuncs.js').LiUiState} LiUiState */
 
 class BlockTree extends preact.Component {
-    // unregistrables;
-    // moreMenu;
-    // dragDrop; // public
-    // onDragStart;
-    // onDrag;
-    // onDragOver;
-    // onDragLeave;
-    // onDrop;
-    // onDragEnd;
-    // currentlyHoveredLi;
-    // disablePageInfo;
-    // mouseDownHoverClearerHookedUp;
-    // curUrl;
-    // openMoreMenuData;
-    // registeredBlockBehaviourDefs;
-    // openPopupStash;
     /**
      * @access protected
      */
@@ -75,8 +59,20 @@ class BlockTree extends preact.Component {
         this.onDragLeave = this.dragDrop.handleDragLeave.bind(this.dragDrop);
         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
         this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
-        this.currentlyHoveredLi = null;
         this.disablePageInfo = this.props.containingView === 'CreatePageType';
+        this.mouseDownHoverClearerHookedUp = false;
+        /** @type {HTMLLIElement} */
+        this.currentlyHoveredLi = null;
+        /** @type {string} */
+        this.curUrl = null;
+        /** @type {{block: Block; isRootBlockOf: globalBlockReferenceBlockId|null; li: HTMLLIElement; activeBlockBehaviours: Array<BlockBehaviour>;}} */
+        this.openMoreMenuData = null;
+        /** @type {Array<BlockBehaviourDefinition>} */
+        this.registeredBlockBehaviourDefs = null;
+        /** @type {{popupName: 'add-content'|'edit-behaviour'; blockId: string; behaviourName?: string;}} */
+        this.openPopupStash = null;
+        /** @type {HTMLButtonElement} */
+        this.refElOfOpenMoreMenu = null;
 
         if (this.props.blocks) this.setState(createPartialState(this.props.blocks));
 
@@ -155,7 +151,7 @@ class BlockTree extends preact.Component {
     /**
      * @param {Array<Block>} branch
      * @param {Array<UiStateEntry>} uiStateArr
-     * @param {(gbtRefBlock: Block) => Array<Block>} getTreeBlocks ? 
+     * @param {(gbtRefBlock: Block) => Array<Block>} getTreeBlocks
      * @param {string} nth2DepthCls
      * @param {number} depth = 1
      * @param {Block} parent = null
@@ -577,7 +573,7 @@ class BlockTree extends preact.Component {
         this.setState({uiStateTree: this.setBlockAsSelected(null, null)});
     }
     /**
-     * @param {LiUiState} liUiState
+     * @param {UiStateEntry} liUiState
      * @access private
      */
     toggleBranchIsCollapsed(liUiState) {
@@ -600,7 +596,7 @@ class BlockTree extends preact.Component {
             const li = ul.querySelectorAll(`li[data-block-id="${blockId}"]`)[nthOfId - 1];
             if (li) {
                 curHigh.hovered = li;
-                curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, ul, li, 1);
+                curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, ul, li);
                 curHigh.visible.classList.add('highlighted');
             }
         }));

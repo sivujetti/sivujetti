@@ -1,7 +1,7 @@
 import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
 import {placeholderImageSrc} from '../shared-inline.js';
 import setFocusTo from './auto-focusers.js';
-import {__, api} from './edit-app-singletons.js'; // ctrl + f edit-app-singletons.js'
+import {__, api} from './edit-app-singletons.js';
 import UploadButton from './UploadButton.jsx';
 import {Icon} from './Icon.jsx';
 import LoadingSpinner from './LoadingSpinner.jsx';

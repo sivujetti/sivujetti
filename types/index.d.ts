@@ -4,67 +4,15 @@ interface SivujettiFrontendApi {
     getAvailableUpdatePackages(): () => Array<string>;
     menuPanel: MenuPanel;
     blockTypes: BlockTypesRegister;
-    inspectorPanel: {
-        getOuterEl(): HTMLElement;
-        close(): void;
-    };
-    saveButton: {
-        getInstance(): {
-            pushOp(): todo;
-            pushOpGroup(): todo;
-            // todo
-        };
-    };
+    inspectorPanel: InspectorPanel;
+    saveButton: SaveButton;
     user: UserApi;
     registerTranslationStrings(strings: {[key: string]: string}): void;
     webPagePreview: WebPagePreviewApp;
     import(name: string): any|Array<any>;
     export(name: string, item: any): void;
-}
-
-interface UserApi {
-    can(doWhat: 'doAnything'|'editGlobalStylesVisually'|'editBlockCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'editTheWebsitesGlobalScripts'|'checkTheWebsitesHealth'|'listUploads'): boolean;
-    getRole(): number;
-    ROLE_SUPER_ADMIN: number;
-    ROLE_ADMIN: number;
-    ROLE_ADMIN_EDITOR: number;
-    ROLE_EDITOR: number;
-    ROLE_AUTHOR: number;
-    ROLE_CONTRIBUTOR: number;
-    ROLE_FOLLOWER: number;
-}
-
-interface OpQueueOp {
-    opName: string;
-    command: {
-        doHandle(): Promise<false|any>;
-        doUndo?: () => void;
-        args: Array<any>;
-    };
-}
-
-interface WebPagePreviewApp {
-    getEl(): HTMLIFrameElement;
-    updateCss(compiledCss: string): void;
-    updateCssFast(blockId: string, css: string): void;
-    highlightBlock(block: Block, nthOfId: number): void;
-    unHighlightBlock(): void;
-    unHighlightTextBlockChildEl(): todo;
-    scrollToBlock(block: Block, nthOfId: number, win?: Window, behavior?: ScrollBehavior = 'smooth'): boolean;
-    scrollToBlockAsync(block: Block, nthOfId: number, win?: Window, behavior?: ScrollBehavior = 'smooth'): void;
-    scrollToTextBlockChildEl(childElemIdx: number, textBlockBlockId: string, center?: boolean = true): void;
-    highlightTextBlockChildEl(elIdx: number, textBlockBlockId: string, nthOfTextBlockBlockId: number): void;
-    reRenderAllBlocks(theTree: Array<Block>, detachedTrees: Array<GlobalBlockTree>): void;
-    reRenderBlock(theTree: Array<Block>, detachedTrees: Array<GlobalBlockTree>, block: Block = null): void;
-    sendMessageToReRenderer(args: [string, ...any]): void;
-    sendMessageToReRendererWithReturn(args: [string, ...any]): Promise<any>;
-    onReady(runFn: () => any): void;
-}
-
-interface ReRenderingWebPageMouseState {
-    metaKeyIsPressed: boolean;
-    curHoverBlockBlockId?: string;
-    curHoverBlockNthOfId?: number;
+    contextMenu: ContextMenu;
+    mainPopper: MainPopper;
 }
 
 type mainPanelSectionName = 'onThisPage'|'baseStyles';
@@ -87,6 +35,77 @@ interface BlockTypesRegister {
     get(name: string): BlockTypeDefinition;
     getIconId(blockType: BlockTypeDefinition|string, fallback: string = 'box'): string;
     entries(): IterableIterator<string, BlockTypeDefinition>;
+}
+
+interface InspectorPanel {
+    getOuterEl(): HTMLElement;
+    close(): void;
+}
+
+interface SaveButton {
+    subscribeToChannel(name: string, fn: (state: sbState, userCtx: StateChangeUserContext, context: stateChangeContext) => any): Function;
+    initChannel(name: string, state: sbState, broadcastInitialStateToListeners: boolean = false): void;
+    getChannelState(channelName: string): T|null;
+    pushOp(channelName: string, state: sbState, userCtx: StateChangeUserContext = null, flags: blockPropValueChangeFlags = null): void;
+    pushOpGroup(...ops: Array<[string, sbState, StateChangeUserContext|null, blockPropValueChangeFlags]>): void;
+    onAfterItemsSynced(thenDo: () => any): Function;
+    invalidateAll(): void;
+    setHotkeyUndoLockIsOn(isOn: boolean): BiquadFilterNode;
+    registerSyncQueueFilter<T>(fn: (queue: Array<StateHistory<T>>, activeState: Array<T>) => Array<StateHistory<T>>|null, toEnd: boolean = true): () => void;
+    replaceStateOf(channelName: string, createNewState: (channelState: Array<sbState>) => Array<sbState>): void;
+    doUndo(): void;
+    doRedo(): void;
+    async syncQueuedOpsToBackend(): void;
+    getInstance(): SaveButton;
+    linkRenderer(renderer: preact.Component & {resetState(): void;}): void;
+}
+
+interface UserApi {
+    can(doWhat: 'doAnything'|'editGlobalStylesVisually'|'editBlockCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'editTheWebsitesGlobalScripts'|'checkTheWebsitesHealth'|'listUploads'): boolean;
+    getRole(): number;
+    ROLE_SUPER_ADMIN: number;
+    ROLE_ADMIN: number;
+    ROLE_ADMIN_EDITOR: number;
+    ROLE_EDITOR: number;
+    ROLE_AUTHOR: number;
+    ROLE_CONTRIBUTOR: number;
+    ROLE_FOLLOWER: number;
+}
+
+interface WebPagePreviewApp {
+    getEl(): HTMLIFrameElement;
+    updateCss(compiledCss: string): void;
+    updateCssFast(blockId: string, css: string): void;
+    highlightBlock(block: Block, nthOfId: number): void;
+    unHighlightBlock(): void;
+    unHighlightTextBlockChildEl(): todo;
+    scrollToBlock(block: Block, nthOfId: number, win?: Window, behavior?: ScrollBehavior = 'smooth'): boolean;
+    scrollToBlockAsync(block: Block, nthOfId: number, win?: Window, behavior?: ScrollBehavior = 'smooth'): void;
+    scrollToTextBlockChildEl(childElemIdx: number, textBlockBlockId: string, center?: boolean = true): void;
+    highlightTextBlockChildEl(elIdx: number, textBlockBlockId: string, nthOfTextBlockBlockId: number): void;
+    reRenderAllBlocks(theTree: Array<Block>, detachedTrees: Array<GlobalBlockTree>): void;
+    reRenderBlock(theTree: Array<Block>, detachedTrees: Array<GlobalBlockTree>, block: Block = null): void;
+    sendMessageToReRenderer(args: [string, ...any]): void;
+    sendMessageToReRendererWithReturn(args: [string, ...any]): Promise<any>;
+    onReady(runFn: () => any): void;
+}
+
+interface ContextMenu extends preact.Component {
+    open(e: Event, controller: ContextMenuController): void;
+    close(e: Event|null): void;
+}
+
+interface MainPopper extends preact.Component {
+    open(Renderer: preact.Component, arrowRefEl: HTMLElement, rendererProps: Object = {}, settings: MainPopperSettings = {}): void;
+    close(): void;
+    refresh(newRendererProps: Object, newSettings: MainPopperSettings = {}, merge: boolean = false): void;
+    getCurrentRendererCls(): preact.Component|null;
+}
+
+interface MainPopperSettings {
+    onClose?: () => void;
+    maxWidth?: number;
+    offsetY?: number;
 }
 
 interface BlockData {
@@ -602,6 +621,8 @@ interface SaveButtonChannelHandler<T = any> {
     handleStateChange(state: T, userCtx: StateChangeUserContext|null, context: stateChangeContext): void;
     syncToBackend(stateHistory: StateHistory<T>, otherHistories: Array<StateHistory>): Promise<boolean|any>;
 }
+
+type sbState = any;
 
 interface BlockRendererProps {
     block: Block;

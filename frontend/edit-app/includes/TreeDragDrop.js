@@ -258,7 +258,7 @@ class TreeDragDrop {
     }
     /**
      * @param {DragDropInfo} nextCandVisual
-     * @param {DragDropInfo} nextReal
+     * @param {DragDropInfo} nextCandReal
      * @access private
      */
     setStartExternalOrigin(nextCandVisual, nextCandReal) {

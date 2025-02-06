@@ -201,7 +201,7 @@ function createCurrentPageDataChannelHandler() {
          * @access private
          */
         syncAlreadyExistingPageToBackend(page, syncedPage) {
-            const data = toTransferable(page, ['blocks', 'isPlaceholderPage']);
+            const data = pageToTransferable(page, ['blocks', 'isPlaceholderPage']);
 
             // Add code that redirects to the new path after SaveButton has finished syncQueuedOpsToBackend()
             if (data.path !== syncedPage.path && !unregisterNavigateToNewSlugHandler) {
@@ -223,7 +223,7 @@ function createCurrentPageDataChannelHandler() {
          * @access private
          */
         syncNewPageToBackend(newPage) {
-            const postData = toTransferable(newPage);
+            const postData = pageToTransferable(newPage);
             //
             return http.post(`/api/pages/${postData.type}`, postData)
                 .then(resp => {
@@ -287,7 +287,7 @@ function handleHttpError(err, adjustErrorToastArgs) {
  * @param {Array<keyof Page|string>} notTheseKeys = [] Example: ['id', 'blocks' ...]
  * @return {{[key: string]: any;}} Clean object
  */
-function toTransferable(page, notTheseKeys = []) { // todo yhdistä jonnekin utilsiin 
+function pageToTransferable(page, notTheseKeys = []) {
     const allKeys = Object.keys(page);
     const onlyTheseKeys = allKeys.filter(key =>
         !key.startsWith('__') && notTheseKeys.indexOf(key) < 0
@@ -324,7 +324,7 @@ function createSaveableItems({initial, latest}, key = 'id') {
         if (isNew)
             out.push({type: 'insert', arg: entity});
         else if (JSON.stringify(fromInitial) !== JSON.stringify(entity))
-            out.push({type: 'update', arg: entity, isNew});
+            out.push({type: 'update', arg: entity});
     }
     const includeDeletables = false;
     if (includeDeletables) {

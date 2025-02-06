@@ -120,7 +120,6 @@ function createFindPrevUiStateEntryFn(fromsState) {
  * @param {boolean} recursive = true
  */
 function setAsCollapsed(asCollapsed, entryMut, recursive = true) {
-    // const visible = getVisibleBlock(block);
     if (entryMut.children.length) {
         // uncollpse|uncollapase outermost
         entryMut.item.isCollapsed = asCollapsed;
@@ -436,7 +435,7 @@ function getVisibleLisCount(uiStateEntry) {
 }
 
 /**
- * @returns {(gbtRefBlock: Block) => Array<GlobalBlockTree>}
+ * @returns {(gbtRefBlock: Block) => Array<Block>}
  */
 function createGetTreeBlocksFn() {
     if (api.saveButton.getInstance().getChannelState('theBlockTree'))
@@ -446,12 +445,12 @@ function createGetTreeBlocksFn() {
 
 /**
  * @param {string} blockId
- * @param {string} nthOfId
+ * @param {number} nthOfId
  * @param {Array<Block>} blockBranch
- * @param {Array<UiStateEntry} uiStateBranch
+ * @param {Array<UiStateEntry>} uiStateBranch
  * @param {{nthFound: number;}} stat = {nthFound: 0}
- * @param {(gbtRefBlock: Block) => Array<GlobalBlockTree>} getTreeBlocks = createGetTreeBlocksFn()
- * @returns {Block|undefined}
+ * @param {(gbtRefBlock: Block) => Array<Block>} getTreeBlocks = createGetTreeBlocksFn()
+ * @returns {UiStateEntry|undefined}
  */
 function findUiStateEntry(blockId, nthOfId, blockBranch, uiStateBranch, stat = {nthFound: 0}, getTreeBlocks = createGetTreeBlocksFn()) {
     for (let i = 0; i < blockBranch.length; ++i) {
@@ -511,7 +510,7 @@ function hasBehaviour({styleClasses}, behaviourName) {
 }
 
 /**
- * @param {Block} openBlock
+ * @param {string} blockId
  * @param {string} blockIsStoredTo
  * @access private
  */

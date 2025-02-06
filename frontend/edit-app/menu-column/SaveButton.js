@@ -34,12 +34,13 @@ class SaveButton {
     /**
      * @param {string} name
      * @param {(state: state, userCtx: StateChangeUserContext, context: stateChangeContext) => any} fn
+     * @returns {Function}
      * @access public
      */
     subscribeToChannel(name, fn) {
         if (!handlerFactoriesMap[name]) {
             env.window.console.warn(`Unknown channel "${name}". Known: ${Object.keys(handlerFactoriesMap).join(', ')}`);
-            return;
+            return () => {};
         }
         return saveButtonEvents.on(createEventName(name), fn);
     }
@@ -72,7 +73,7 @@ class SaveButton {
     /**
      * @param {string} channelName
      * @param {state} state
-     * @param {StateChangeUserContext|null} userCtx = null
+     * @param {StateChangeUserContext} userCtx = null
      * @param {blockPropValueChangeFlags} flags = null
      * @access public
      */

@@ -8,6 +8,7 @@ import WebsiteEditGlobalScriptsView from './website/WebsiteEditGlobalScriptsView
 
 const historyInstance = createHashHistory();
 
+/** @extends {preact.Component<preact.RouterProps & {onWillChange?: (newUrl: string, prevUrl: string) => void;}, any>} */
 class MyRouter extends preactRouter {
     /**
      * @param {string} url
@@ -17,12 +18,13 @@ class MyRouter extends preactRouter {
     routeTo(url) {
         if (historyInstance.doRevertNextHashChange)
             return;
+        if (this.props.onWillChange && url !== this.state.url)
+            this.props.onWillChange(url, this.state.url);
         return super.routeTo(url);
     }
 }
 
 class MainColumnViews extends preact.Component {
-    // boundOnChange;
     /**
      * @param {{rootEl: HTMLElement;}} props
      */
@@ -34,7 +36,10 @@ class MainColumnViews extends preact.Component {
      * @access protected
      */
     render() {
-        return <MyRouter history={ historyInstance } onChange={ this.boundOnChange }>
+        return <MyRouter
+            history={ historyInstance }
+            onWillChange={ (url, prevUrl) => events.emit('route-will-change', url, prevUrl) }
+            onChange={ this.boundOnChange }>
             <WebsiteEditBasicInfoView path="/website/edit-basic-info"/>
             <WebsiteEditGlobalScriptsView path="/website/edit-global-scripts"/>
             <WebsiteApplyUpdatesView path="/website/updates"/>

@@ -19,11 +19,21 @@ const broadcastInitialStateToListeners = true;
 const TITLE_LABEL_HEIGHT = 18; // at least
 
 class WebPagePreviewApp extends preact.Component {
-    // currentIframeIsLoading;
-    // currentlyLoadedUrl;
-    // messageChannel;
-    // highlightRectEls;
-    // urlFromRouter;
+    /**
+     */
+    constructor(props) {
+        super(props);
+        /** @type {string} */
+        this.urlQueuedForLoad = null;
+        /** @type {string} */
+        this.urlCurrentlyLoading = null;
+        /** @type {string} */
+        this.urlLoaded = null;
+        /** @type {MessageChannel} */
+        this.messageChannel = null;
+        /** @type {Array<HTMLElement>>} */
+        this.highlightRectEls = null;
+    }
     /**
      * @returns {HTMLIFrameElement}
      * @access public
@@ -36,13 +46,13 @@ class WebPagePreviewApp extends preact.Component {
      * @access public
      */
     onReady(fn) {
-        if (!this.currentIframeIsLoading)
-            fn();
-        else {
+        if (this.urlQueuedForLoad || this.urlCurrentlyLoading) {
             const once = events.on('webpage-preview-iframe-loaded', () => {
                 fn();
                 once();
             });
+        } else {
+            fn();
         }
     }
     /**
@@ -207,23 +217,29 @@ class WebPagePreviewApp extends preact.Component {
         const initialUrl = this.props.urlToLoad === '@currentUrl'
             ? getFullUrl(historyInstance.getCurrentLocation())
             : this.props.urlToLoad;
+
+        this.urlQueuedForLoad = getFullUrl(historyInstance.getCurrentLocation());
         this.setOrReplacePreviewIframeUrl(initialUrl);
 
         // Start listening url changes, load new urls as they come
-        historyInstance.listen(path => {
-            const newUrl = getFullUrl(path);
-            if (!isMainColumnViewUrl(newUrl) && this.urlFromRouter !== newUrl) {
-                const prevUrlIsPageUrl = !isMainColumnViewUrl(this.urlFromRouter) &&
-                                            !isEditAppNonDefaultStateUrl(this.urlFromRouter);
-                const newUrlIsPageUrl = !isEditAppNonDefaultStateUrl(newUrl);
-                if (prevUrlIsPageUrl && newUrlIsPageUrl) {
-                    this.sendMessageToReRendererWithReturn(['getMouseState']).then(data => {
-                        const [_, state] = data; // [_, ReRenderingWebPageMouseState]
-                        this.setOrReplacePreviewIframeUrl(newUrl, state);
-                    });
-                } else {
-                    this.setOrReplacePreviewIframeUrl(newUrl, null);
-                }
+        events.on('route-will-change', (newUrl, _prevUrl) => {
+            if (!isMainColumnViewUrl(newUrl) && newUrl !== this.urlLoaded)
+                this.urlQueuedForLoad = newUrl;
+        });
+        events.on('route-changed', ({url}, _isMainColumnView) => {
+            if (!this.urlQueuedForLoad)
+                return;
+            const prevUrlIsPageUrl = this.urlLoaded &&
+                                     !isMainColumnViewUrl(this.urlLoaded) &&
+                                    !isEditAppNonDefaultStateUrl(this.urlLoaded);
+            const newUrlIsPageUrl = !isEditAppNonDefaultStateUrl(url);
+            if (prevUrlIsPageUrl && newUrlIsPageUrl) {
+                this.sendMessageToReRendererWithReturn(['getMouseState']).then(data => {
+                    const [_, state] = data; // [_, ReRenderingWebPageMouseState]
+                    this.setOrReplacePreviewIframeUrl(url, state);
+                });
+            } else {
+                this.setOrReplacePreviewIframeUrl(url, null);
             }
         });
 
@@ -247,10 +263,10 @@ class WebPagePreviewApp extends preact.Component {
             return;
         return <div ref={ el => {
             const iframe = el?.querySelector('iframe');
-            if (iframe && !this.currentIframeIsLoading) {
-                this.currentIframeIsLoading = true;
+            if (iframe && this.urlQueuedForLoad && !this.urlCurrentlyLoading) {
+                this.urlCurrentlyLoading = this.urlQueuedForLoad;
                 // Clear _all_ data from current savebutton
-                if (this.currentlyLoadedUrl) {
+                if (this.urlLoaded) {
                     api.saveButton.getInstance().invalidateAll();
                 }
 
@@ -300,8 +316,9 @@ class WebPagePreviewApp extends preact.Component {
                         }
                     }, false);
                     //
-                    this.currentIframeIsLoading = false;
-                    this.currentlyLoadedUrl = url;
+                    this.urlCurrentlyLoading = null;
+                    this.urlLoaded = this.urlQueuedForLoad;
+                    this.urlQueuedForLoad = null;
                 });
             }
         } } dangerouslySetInnerHTML={ // Use this to force preact to recreate the iframe element instead of reusing the previous
@@ -314,8 +331,6 @@ class WebPagePreviewApp extends preact.Component {
      * @access private
      */
     setOrReplacePreviewIframeUrl(urlFromRouter, prevIframeMouseState = null) {
-        this.urlFromRouter = urlFromRouter;
-
         const url = createUrlForIframe(urlFromRouter);
         if (!url) return;
 
@@ -487,7 +502,7 @@ function createUrlForIframe(url) {
 }
 
 /**
- * @template {T}
+ * @template T
  * @param {T} entity
  * @param {string} prop
  * @returns {T}

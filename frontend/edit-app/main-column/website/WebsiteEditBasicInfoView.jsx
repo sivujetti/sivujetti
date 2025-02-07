@@ -135,7 +135,7 @@ class WebsiteEditBasicInfoView extends preact.Component {
                         hideFromSearchEngines: data.hideFromSearchEngines,
                     }
                 };
-                toasters.editAppMain(__('Saved website\'s basic info.'), 'success');
+                toasters.editAppMain(__('%s updated', __('Website\'s basic info')), 'success');
             });
     }
 }

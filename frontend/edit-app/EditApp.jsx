@@ -122,7 +122,7 @@ class EditApp extends preact.Component {
             })
             .catch(err => {
                 window.console.error(err);
-                toasters.editAppMain(__('Something unexpected happened.'), 'error');
+                toasters.editAppMain(__('Something unexpected happened'), 'error');
             });
     }
 }

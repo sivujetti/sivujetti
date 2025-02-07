@@ -4,6 +4,7 @@ import MainMenuPanelApi from './MainMenuPanelApi.js';
 import ScssWizard from './ScssWizard.js';
 import Translator from './Translator.js';
 import {stringUtils} from './utils.js';
+/** @typedef {import('../edit-app/includes/toasters.jsx').messageLevel} messageLevel */
 
 const editAppBlockTypeRegister = new BlockTypesRegister;
 
@@ -63,6 +64,8 @@ const api = {
         setInstance(cmp) { this._instance = cmp; },
         close() { this._instance?.close(); },
     },
+    /** @type {ToasterMap} */
+    toasters: {},
 
     // Initialized in ViewAndContextMenuLayer (../edit-app/main.js)
     contextMenu: {},

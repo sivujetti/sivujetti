@@ -7,6 +7,7 @@ import WebPagePreviewApp from './main-column/WebPagePreviewApp.jsx';
 import InspectorPanel from './menu-column/InspectorPanel.jsx';
 import patchQuillEditor from './includes/quill-customizations.js';
 import globalData from './includes/globalData.js';
+import toasters from './includes/toasters.jsx';
 import EditApp from './EditApp.jsx';
 import ViewAndContextMenuLayer from './ViewAndContextMenuLayer.jsx';
 import SaveButton from './menu-column/SaveButton.js';
@@ -60,5 +61,6 @@ function configureApis() {
     });
     //
     api.saveButton = new SaveButton;
+    api.toasters = toasters;
     patchQuillEditor();
 }

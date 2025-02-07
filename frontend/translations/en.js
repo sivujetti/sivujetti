@@ -83,15 +83,15 @@ stringBundles.push({
     'Title': 'Title',
     'Slug': 'Slug',
     'Content': 'Content',
-    'Page "%s" already exist.': 'Page "%s" already exist.',
-    'Something unexpected happened.': 'Something unexpected happened.',
+    'Page "%s" already exist': 'Page "%s" already exist',
+    'Something unexpected happened': 'Something unexpected happened',
     // edit-app/src/right-column/page/PagesListView.jsx
     'Create new %s': 'Create new %s',
     'Edit page': 'Edit page',
     'Duplicate page': 'Duplicate page',
     'Delete page': 'Delete page',
-    'Deleted page "%s".': 'Deleted page "%s".',
-    'Failed to delete page.': 'Failed to delete page.',
+    'Deleted page "%s"': 'Deleted page "%s"',
+    'Failed to delete page': 'Failed to delete page',
     // edit-app/src/right-column/IframePageManager.js
     'Paragraph': 'Paragraph',
     'Heading': 'Heading',
@@ -392,14 +392,14 @@ stringBundles.push({
     'These details are visible to search engines and when sharing pages on social media channels.': 'These details are visible to search engines and when sharing pages on social media channels.',
     'Language': 'Language',
     'Discourage search engines from indexing this site': 'Discourage search engines from indexing this site',
-    'Saved website\'s basic info.': 'Saved website\'s basic info.',
+    '%s updated': '%s updated',
+    'Website\'s basic info': 'Website\'s basic info',
     // edit-app/src/right-column/website/WebsiteEditGlobalScriptsView.jsx
     'Edit scripts': 'Edit scripts',
     'In these fields, you can define HTML code (e.g., various analytics scripts) that will be added to the final page\'s <head> tag or at the end of the <body> tag.': 'In these fields, you can define HTML code (e.g., various analytics scripts) that will be added to the final page\'s <head> tag or at the end of the <body> tag.',
     'Head scripts': 'Head scripts',
     'Append example': 'Append example',
     'Body scripts': 'Body scripts',
-    'Saved global scripts.': 'Saved global scripts.',
     // edit-app/menu-column/block/AddContentPopup.jsx
     'Stored': 'Stored',
     'Blocks': 'Blocks',
@@ -480,7 +480,7 @@ stringBundles.push({
     'Background (elements)': 'Background (elements)',
     'Background darker (elements)': 'Background darker (elements)',
 
-    'You lack permissions to do this action.': 'You lack permissions to do this action.',
+    'You lack permissions to do this action': 'You lack permissions to do this action',
     // Content templates' visual styles
     // Header
     'Header': 'Header',

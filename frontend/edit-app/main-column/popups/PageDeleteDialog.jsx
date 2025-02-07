@@ -57,7 +57,7 @@ function openPageDeleteDialog(pageSlug, pageTitle, onSuccess, pageTypeName = 'Pa
                 if (resp.ok) {
                     onSuccess();
                 } else {
-                    toasters.editAppMain(__('Failed to delete page.'), 'error');
+                    toasters.editAppMain(__('Failed to delete page'), 'error');
                 }
             })
     });

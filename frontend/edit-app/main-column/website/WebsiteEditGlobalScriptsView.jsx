@@ -114,7 +114,7 @@ class WebsiteEditGlobalScriptsView extends preact.Component {
                         footHtml: data.footHtml,
                     }
                 };
-                toasters.editAppMain(__('Saved global scripts.'), 'success');
+                toasters.editAppMain(__('%s updated', __('Global scripts')), 'success');
             });
     }
     /**

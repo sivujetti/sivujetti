@@ -84,15 +84,15 @@ stringBundles.push({
     'Title': 'Otsikko',
     'Slug': 'Url (slug)',
     'Content': 'Sisältö',
-    'Page "%s" already exist.': 'Sivu "%s" on jo olemassa.',
-    'Something unexpected happened.': 'Jokin meni pieleen.',
+    'Page "%s" already exist': 'Sivu "%s" on jo olemassa',
+    'Something unexpected happened': 'Jokin meni pieleen',
     // edit-app/src/right-column/page/PagesListView.jsx
     'Create new %s': 'Luo uusi %s',
     'Edit page': 'Muokkaa sivua',
     'Duplicate page': 'Monista sivu',
     'Delete page': 'Poista sivu',
-    'Deleted page "%s".': 'Poistettiin sivu "%s".',
-    'Failed to delete page.': 'Sivun poistaminen epäonnistui.',
+    'Deleted page "%s"': 'Poistettiin sivu "%s"',
+    'Failed to delete page': 'Sivun poistaminen epäonnistui',
     // edit-app/src/right-column/IframePageManager.js
     'Paragraph': 'Tekstikappale',
     'Heading': 'Otsikko',
@@ -392,14 +392,14 @@ stringBundles.push({
     'These details are visible to search engines and when sharing pages on social media channels.': 'Nämä tiedot näkyvät hakukoneissa, ja esim. jaettaessa sivuja some-kanaviin.',
     'Language': 'Kieli',
     'Discourage search engines from indexing this site': 'Kiellä sivuston näkyminen hakukoneissa',
-    'Saved website\'s basic info.': 'Sivuston tiedot tallennettin.',
+    '%s updated': '%s päivitettiin',
+    'Website\'s basic info': 'Sivuston tiedot',
     // edit-app/src/right-column/website/WebsiteEditGlobalScriptsView.jsx
     'Edit scripts': 'Muokkaa skriptejä',
     'In these fields, you can define HTML code (e.g., various analytics scripts) that will be added to the final page\'s <head> tag or at the end of the <body> tag.': 'Näihin kenttiin voit määritellä HTML-koodin (esim. erilaiset analytiikka-skriptit), jotka lisätään lopullisen sivun <head>-tagiin tai <body>-tagin loppuun.',
     'Head scripts': 'Head -skriptit',
     'Append example': 'Lataa esimerkki',
     'Body scripts': 'Body -skriptit',
-    'Saved global scripts.': 'Globaalit skriptit tallennettin.',
     // edit-app/menu-column/block/AddContentPopup.jsx
     'Stored': 'Tallennetut',
     'Blocks': 'Lohkot',
@@ -480,7 +480,7 @@ stringBundles.push({
     'Background (elements)': 'Tausta (elementit)',
     'Background darker (elements)': 'Tausta tummempi (elementit)',
 
-    'You lack permissions to do this action.': 'Käyttöoikeutesi ei riitä tähän toiminnallisuuteen.',
+    'You lack permissions to do this action': 'Käyttöoikeutesi ei riitä tähän toiminnallisuuteen',
     // Content templates' visual styles
     // Header
     'Header': 'Header',

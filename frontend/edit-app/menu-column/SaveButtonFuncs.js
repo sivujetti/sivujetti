@@ -228,7 +228,7 @@ function createCurrentPageDataChannelHandler() {
             return http.post(`/api/pages/${postData.type}`, postData)
                 .then(resp => {
                     if (Array.isArray(resp) && resp[0] === 'Page with identical slug already exists') {
-                        toasters.editAppMain(__('Page "%s" already exist.', postData.slug), 'error');
+                        toasters.editAppMain(__('Page "%s" already exist', postData.slug), 'error');
                         return false;
                     }
                     if (resp.ok !== 'ok') throw new Error('-');
@@ -272,8 +272,8 @@ function handleHttpError(err, adjustErrorToastArgs) {
     window.console.error(err);
     //
     const pair1 = err.cause?.status === 403
-        ? ['You lack permissions to do this action.', 'notice']
-        : ['Something unexpected happened.', 'error'];
+        ? ['You lack permissions to do this action', 'notice']
+        : ['Something unexpected happened', 'error'];
     const [message, level] = !adjustErrorToastArgs
         ? pair1
         : adjustErrorToastArgs(err, ...pair1);

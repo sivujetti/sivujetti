@@ -11,6 +11,7 @@ interface SivujettiFrontendApi {
     webPagePreview: WebPagePreviewApp;
     import(name: string): any|Array<any>;
     export(name: string, item: any): void;
+    toasters: ToasterMap;
     contextMenu: ContextMenu;
     mainPopper: MainPopper;
 }
@@ -88,6 +89,15 @@ interface WebPagePreviewApp {
     sendMessageToReRenderer(args: [string, ...any]): void;
     sendMessageToReRendererWithReturn(args: [string, ...any]): Promise<any>;
     onReady(runFn: () => any): void;
+}
+
+interface ToasterMap {
+    [name: string]: (
+        message: preact.ComponentChild,
+        level: messageLevel,
+        timeout: number = undefined,
+        onDismissed: () => void = undefined
+    ) => void;
 }
 
 interface ContextMenu extends preact.Component {

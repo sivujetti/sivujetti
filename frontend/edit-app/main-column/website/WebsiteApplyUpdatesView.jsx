@@ -388,7 +388,7 @@ function runTasks(tasks, idx, onAfterEach) {
  */
 function onUnexpectedError(err) {
     env.window.console.error(err);
-    toasters.editAppMain(__('Something unexpected happened.'), 'error');
+    toasters.editAppMain(__('Something unexpected happened'), 'error');
     liftMouseLock();
 }
 

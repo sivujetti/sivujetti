@@ -466,7 +466,7 @@ final class PagesController {
             assetUrlCacheBustStr: "v={$theWebsite->versionId}",
             dataForPreviewApp: $editModeIsOn ? [
                 "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
-                "initialPageBlocksStyles" => $placeholderPageStyles,
+                "initialPageBlocksStyles" => $placeholderPageStyles ?? [],
                 "layout" => self::layoutToRaw($page->layout),
                 "theme" => self::themeToRaw($theWebsite->activeTheme),
             ] : null,

@@ -121,6 +121,16 @@ class SaveButton {
         this.pushHistoryItem(group);
     }
     /**
+     * @param {'before-items-synced'|'after-items-synced'|string} when
+     * @param {(...any) => void} thenDo
+     * @returns {Function} Unregister
+     * @access public
+     */
+    on(when, thenDo) {
+        return saveButtonEvents2.on(when, thenDo);
+    }
+    /**
+     * @deprecated Use saveButton.on('after-items-synced', () => {});
      * @param {() => any} thenDo
      * @returns {Function} Unregister
      * @access public
@@ -193,6 +203,7 @@ class SaveButton {
      * @access public
      */
     async syncQueuedOpsToBackend() {
+        saveButtonEvents2.emit('before-items-synced');
         this.unregisterAndClearUnsavedChagesAlertIfSet();
         this.renderer.setState({isSubmitting: true});
 

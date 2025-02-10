@@ -6,17 +6,21 @@ import {
     objectUtils,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
+import {cloneDeep, getMetaKey, getBlockEl, traverseRecursively} from '../../shared-inline.js';
 import {isMetaBlock} from '../includes/block/utils.js';
 import globalData from '../includes/globalData.js';
-import {createTrier} from '../includes/utils.js';
-import {cloneDeep, getMetaKey, getBlockEl, traverseRecursively} from '../../shared-inline.js';
-import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 import GlobalBlockTreesRepository from '../includes/global-block-trees-repo.js';
+import {createTrier} from '../includes/utils.js';
+import {registerUpdateSyncedGbtsPatchers} from '../menu-column/SaveButtonFuncs.js';
+import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 /** @typedef {import('../../webpage-renderer-app/ReRenderingWebPage.jsx').ReRenderingWebPageMouseState} ReRenderingWebPageMouseState */
 
 const broadcastInitialStateToListeners = true;
 
 const TITLE_LABEL_HEIGHT = 18; // at least
+
+/** @type {[Function, Function]} */
+let syncedGbtsUnregistrables = null;
 
 class WebPagePreviewApp extends preact.Component {
     /**
@@ -424,6 +428,8 @@ function broadcastCurrentPageData(e) {
     const blocks = getAndInvalidate(dataBundle.page, 'blocks');
     const detachedGbts = detachGlobalBlockTrees(blocks); // Note: mutates blocks
     blockTreeUtils.globalBlockTreesRepo = new GlobalBlockTreesRepository(detachedGbts);
+    if (!syncedGbtsUnregistrables)
+        syncedGbtsUnregistrables = registerUpdateSyncedGbtsPatchers(saveButton);
 
     /** @type {StylesBundle} */
     const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');

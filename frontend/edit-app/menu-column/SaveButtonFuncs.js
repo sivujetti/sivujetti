@@ -1,6 +1,7 @@
 import {
     __,
     api,
+    arrayUtils,
     blockTreeUtils,
     env,
     http,
@@ -142,6 +143,24 @@ function createGlobalBlockTreesChannelHandler() {
             return results.every(resp => resp?.ok === 'ok');
         }
     };
+}
+
+/**
+ * @param {Array<GlobalBlockTree>} mergeTo
+ * @param {Array<GlobalBlockTree>} additions
+ * @returns {Array<GlobalBlockTree>}
+ */
+function mergeGlobalBlockTrees(mergeTo, additions) {
+    const out = [...mergeTo];
+    const append = [];
+    for (const gbt of additions) {
+        const pos = out.findIndex(({id}) => id === gbt.id);
+        if (pos < 0)
+            append.push(gbt);
+        else
+            out[pos] = gbt;
+    }
+    return [...out, ...append];
 }
 
 function createQuicklyAddedPagesChannelHandler() {
@@ -343,10 +362,15 @@ function createSaveableItems({initial, latest}, key = 'id') {
  */
 function createGbtSaveables({latest}) {
     const alreadyExisting = blockTreeUtils.globalBlockTreesRepo.getTrees();
-    return latest.map(entity => ({
-        type: !alreadyExisting.some(({id}) => id === entity.id) ? 'insert' : 'update',
-        arg: entity
-    }));
+    const out = [];
+    for (const entity of latest) {
+        const fromInitial = arrayUtils.findById(alreadyExisting, entity.id);
+        if (!fromInitial)
+            out.push({type: 'insert', arg: entity});
+        else if (JSON.stringify(fromInitial) !== JSON.stringify(entity))
+            out.push({type: 'update', arg: entity});
+    }
+    return out;
 }
 
 /**
@@ -356,6 +380,10 @@ function createGbtSaveables({latest}) {
 function getLatestItemsOfEachChannel(queue) {
     const out = {};
     for (const item of queue) {
+        if (item.channelName === 'globalBlockTrees' && !item.initial?.length) {
+            out[item.channelName] = [];
+            continue;
+        }
         if (!item.latest) continue;
         out[item.channelName] = item.latest;
     }
@@ -379,6 +407,29 @@ function createEventName(channelName) {
 }
 
 /**
+ * @param {SaveButton} saveButton = api.saveButton.getInstance()
+ * @returns {[Function, Function]}
+ */
+function registerUpdateSyncedGbtsPatchers(saveButton = api.saveButton.getInstance()) {
+    /** @type {Array<GlobalBlockTree>} */
+    let latestGbtsJustBeforeSave = [];
+    return [
+        saveButton.on('before-items-synced', () => {
+            latestGbtsJustBeforeSave = saveButton.getChannelState('globalBlockTrees');
+        }),
+        saveButton.on('after-items-synced', () => {
+            if (!latestGbtsJustBeforeSave.length)
+                return;
+            blockTreeUtils.globalBlockTreesRepo.setTrees(mergeGlobalBlockTrees(
+                blockTreeUtils.globalBlockTreesRepo.getTrees(),
+                latestGbtsJustBeforeSave,
+            ));
+            latestGbtsJustBeforeSave = [];
+        })
+    ];
+}
+
+/**
  * @typedef {any} state
  *
  * @typedef {{[channelName: string]: Array<state>;}} StateMap
@@ -395,5 +446,7 @@ export {
     createEventName,
     getLatestItemsOfEachChannel,
     handlerFactoriesMap,
+    mergeGlobalBlockTrees,
     normalizeItem,
+    registerUpdateSyncedGbtsPatchers,
 };

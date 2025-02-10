@@ -3,12 +3,13 @@ To run these tests, head to <devServerHost>/public/tests/index.html
 */
 
 import {api} from '@sivujetti-commons-for-edit-app';
-import './add-content-popup-tabs-test.js';
 import './SaveButton-test.js';
+import './SaveButtonFuncs-test.js';
 import './scss-utils-test.js';
 import './short-id-gen-test.js';
 
 api.webPagePreview.reRenderBlock = () => {};
+api.webPagePreview.reRenderAllBlocks = () => {};
 
 QUnit.config.autostart = false;
 QUnit.dump.maxDepth = 8; // default 5

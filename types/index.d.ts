@@ -49,6 +49,8 @@ interface SaveButton {
     getChannelState(channelName: string): T|null;
     pushOp(channelName: string, state: sbState, userCtx: StateChangeUserContext = null, flags: blockPropValueChangeFlags = null): void;
     pushOpGroup(...ops: Array<[string, sbState, StateChangeUserContext|null, blockPropValueChangeFlags]>): void;
+    on(when: 'before-items-synced'|'after-items-synced'|string, thenDo: () => any): Function;
+    /** @deprecated */
     onAfterItemsSynced(thenDo: () => any): Function;
     invalidateAll(): void;
     setHotkeyUndoLockIsOn(isOn: boolean): BiquadFilterNode;

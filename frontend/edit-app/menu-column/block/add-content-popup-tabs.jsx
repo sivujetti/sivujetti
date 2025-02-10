@@ -1,7 +1,6 @@
 import {
     __,
     api,
-    arrayUtils,
     blockTreeUtils,
     env,
     http,
@@ -18,6 +17,7 @@ import {
     createCustomClassChunkClassNameCreator,
     createIsDuplicateCustomClassChunkChecker,
 } from '../block-styles/CustomClassStylesList.jsx';
+import {mergeGlobalBlockTrees} from '../SaveButtonFuncs.js';
 import {createStyleShunkcScssIdReplacer} from './BlockTreeFuncs.js';
 
 const blockBtnClses = 'btn with-icon with-icon-inline focus-default';
@@ -31,7 +31,10 @@ class AddReusableContentTab extends preact.Component {
         http.get('/api/global-block-trees')
             .then(globalBlockTrees => {
                 blockTreeUtils.globalBlockTreesRepo.setTrees(globalBlockTrees);
-                const all = mergeGlobalBlockTrees(api.saveButton.getInstance().getChannelState('globalBlockTrees'), blockTreeUtils.globalBlockTreesRepo.getTrees());
+                const all = mergeGlobalBlockTrees(
+                    blockTreeUtils.globalBlockTreesRepo.getTrees(),
+                    api.saveButton.getInstance().getChannelState('globalBlockTrees')
+                );
                 this.setState({globalBlockTrees: all});
             })
             .catch(env.window.console.error);
@@ -310,21 +313,6 @@ function createContentTemplateSpawnDescriptor(template, props) {
 }
 
 /**
- * @param {Array<GlobalBlockTree>} fromState
- * @param {Array<GlobalBlockTree>} fromBackend
- * @returns {Array<GlobalBlockTree>}
- */
-function mergeGlobalBlockTrees(fromState, fromBackend) {
-    const out = [...fromState];
-    const addToTheBeginning = [];
-    for (const gbt of fromBackend) {
-        if (!arrayUtils.findById(out, gbt.id))
-            addToTheBeginning.push(gbt);
-    }
-    return [...addToTheBeginning, ...out];
-}
-
-/**
  * @typedef {{
  *   onContentPicked: (descr: SpawnDescriptor) => void;
  * }} AddContentTabProps
@@ -339,5 +327,4 @@ export {
     AddReusableContentTab,
     AddSimpleContentBlocksTab,
     AddTemplateContentTab,
-    mergeGlobalBlockTrees,
 };

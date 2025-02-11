@@ -24,18 +24,19 @@ import {
  * @deprecated
  */
 class BlockVisualStylesEditForm extends preact.Component {
-    // cssVarDefs;
-    // userStyleChunks;
-    // varInputToScssCodeFn;
-    // isSpecialRootVarsStyle;
     /**
      * @param {BlockStylesEditFormProps} props
-     * @access protected
      */
     constructor(props) {
         super(props);
+        /** @type {Array<VisualStylesFormVarDefinition>} */
         this.cssVarDefs = createNormalizedDefs(getValidDefs(this.createCssVarDefinitions()));
+        /** @type {translateVarInputToScssCodeTemplateFn} */
         this.varInputToScssCodeFn = this.createVarInputToScssCodeFn(this.cssVarDefs);
+        /** @type {Array<StyleChunk|null>} */
+        this.userStyleChunks = null;
+        /** @type {boolean} */
+        this.isSpecialRootVarsStyle = null;
     }
     /**
      * @returns {Array<VisualStylesFormVarDefinition>}
@@ -68,10 +69,8 @@ class BlockVisualStylesEditForm extends preact.Component {
     componentWillReceiveProps(props) {
         if (props.stateId !== this.props.stateId) {
             const [scopes, styleChunks] = this.createCssVarsMapsInternal(props);
-            if (JSON.stringify(scopes) !== JSON.stringify(this.state.styleScreens)) {
-                this.userStyleChunks = styleChunks;
-                this.setState({styleScreens: scopes});
-            }
+            this.userStyleChunks = styleChunks;
+            this.setState({styleScreens: scopes});
         }
     }
     /**
@@ -235,7 +234,4 @@ class BlockVisualStylesEditForm extends preact.Component {
 }
 
 export default BlockVisualStylesEditForm;
-export {
-    createCssVarsMaps,
-    createPaddingVarDefs,
-};
+export {createCssVarsMaps, createPaddingVarDefs};

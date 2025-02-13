@@ -21,12 +21,6 @@ import {
 /** @typedef {import('./filterPopupForms.jsx').howManyType} howManyType */
 
 class ListingBlockEditForm extends preact.Component {
-    // showTechnicalHints;
-    // pageTypeBundles;
-    // selectedPageTypeBundle;
-    // selectedPageTypeFriendlyName;
-    // selectedPageTypeFriendlyNamePlural;
-    // selectedPageTypeFriendlyNamePartitive;
     /**
      * @access protected
      */
@@ -59,8 +53,8 @@ class ListingBlockEditForm extends preact.Component {
         const {block} = props;
         if (block === this.props.block)
             return;
-        const current = JSON.stringify(this.props.block.propsData) + this.props.block.renderer;
-        const incoming = JSON.stringify(props.block.propsData) + block.renderer;
+        const current = `${JSON.stringify(this.props.block.propsData)}${this.props.block.renderer}`;
+        const incoming = `${JSON.stringify(props.block.propsData)}${block.renderer}`;
         if (current === incoming)
             return;
 
@@ -73,7 +67,6 @@ class ListingBlockEditForm extends preact.Component {
             api.mainPopper.refresh(this.createCurrentPopupProps(PopupClsToRefresh, props, state));
     }
     /**
-     * @param {BlockEditFormProps} props
      * @access protected
      */
     render(_, {filterPageType, howManyType, howManyAmount, filtersCopy, order, renderWith}) {
@@ -165,7 +158,7 @@ class ListingBlockEditForm extends preact.Component {
             ] : null
             }
 
-            { this.selectedPageTypeBundle.renderers.length > 1 ? [
+            { rendererIsConfigurable || this.selectedPageTypeBundle.renderers.length > 1 ? [
                 <span class="group-4 ml-1 pl-2 pr-0 no-round-right">{ __('rendering %s using template', __(howManyTypeAdjusted !== 'single' ? 'them' : 'it')) }</span>,
                 <div class="group-4 no-round-left">
                     <button
@@ -197,7 +190,7 @@ class ListingBlockEditForm extends preact.Component {
     }
     /**
      * @param {BlockEditFormProps} props
-     * @returns {[Object|undefined, preact.Component|null]}
+     * @returns {[Object|undefined, preact.ComponentConstructor|null]}
      * @access private
      */
     createState({block}) {
@@ -236,7 +229,7 @@ class ListingBlockEditForm extends preact.Component {
         return [state, PopupClsToRefresh];
     }
     /**
-     * @param {preact.Component} PopupRendererCls
+     * @param {preact.ComponentConstructor} PopupRendererCls
      * @param {BlockEditFormProps} props = this.props
      * @param {Object} state = this.state
      * @returns {{[key: string]: any;}}
@@ -278,7 +271,7 @@ class ListingBlockEditForm extends preact.Component {
         this.props.emitValueChanged(newValue, propName);
     }
     /**
-     * @param {preact.Component} RendererCls
+     * @param {preact.ComponentConstructor} RendererCls
      * @param {Event} e
      * @access private
      */

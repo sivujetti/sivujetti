@@ -34,6 +34,7 @@ const editAppMainMenuPanelApi = new MainMenuPanelApi;
 
 const mainRegistry = new Map;
 
+/** @type {SivujettiFrontendApi} */
 const api = {
     getPageTypes() { return dataFromBackend.pageTypes; },
     getBlockRenderers() { return dataFromBackend.blockRenderers; },

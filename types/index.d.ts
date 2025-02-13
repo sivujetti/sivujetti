@@ -35,7 +35,7 @@ interface BlockTypesRegister {
     register(name: string, blockTypeFactory: () => BlockTypeDefinition): void;
     get(name: string): BlockTypeDefinition;
     getIconId(blockType: BlockTypeDefinition|string, fallback: string = 'box'): string;
-    entries(): IterableIterator<string, BlockTypeDefinition>;
+    entries(): MapIterator<[string, BlockTypeDefinition]>;
 }
 
 interface InspectorPanel {
@@ -108,10 +108,10 @@ interface ContextMenu extends preact.Component {
 }
 
 interface MainPopper extends preact.Component {
-    open(Renderer: preact.Component, arrowRefEl: HTMLElement, rendererProps: Object = {}, settings: MainPopperSettings = {}): void;
+    open(Renderer: preact.AnyComponent, arrowRefEl: HTMLElement, rendererProps: Object = {}, settings: MainPopperSettings = {}): void;
     close(): void;
     refresh(newRendererProps: Object, newSettings: MainPopperSettings = {}, merge: boolean = false): void;
-    getCurrentRendererCls(): preact.Component|null;
+    getCurrentRendererCls(): preact.ComponentConstructor|null;
 }
 
 interface MainPopperSettings {

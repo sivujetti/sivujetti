@@ -24,9 +24,6 @@ let prevAction = null;
 
 /** @extends {preact.Component<CustomClassStylesListProps, ({styleChunksVisible: Array<StyleChunk>} & {[key: string]: any;})>} */
 class CustomClassStylesList extends preact.Component {
-    // emitChunksChangesThrottled;
-    // listElRef;
-    // idxOfOpenMoreMenuChunk;
     /**
      * @access protected
      */
@@ -38,6 +35,7 @@ class CustomClassStylesList extends preact.Component {
             env.normalTypingDebounceMillis
         );
         this.listElRef = preact.createRef();
+        this.idxOfOpenMoreMenuChunk = null;
         //
         this.setState({
             styleChunksVisible,

@@ -22,7 +22,9 @@ class DefaultStyleCustomizatorForm extends preact.Component {
         super(props);
         const reduced = DefaultStyleCustomizatorForm.getConfigurableVarsList(null, props.checkIsChunkActive);
         this.cssVarDefs = createNormalizedDefs(getValidDefs(reduced));
+        /** @type {Array<StyleChunk>} */
         this.styleChunks = [];
+        /** @type {translateVarInputToScssCodeTemplateFn} */
         this.varInputToScssCodeFn = createVarInputToScssCodeAuto(this.cssVarDefs);
     }
     /**

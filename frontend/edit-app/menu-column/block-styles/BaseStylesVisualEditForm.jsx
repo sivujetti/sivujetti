@@ -2,7 +2,6 @@ import {__, BlockVisualStylesEditForm, scssUtils, scssWizard} from '@sivujetti-c
 import baseStyleVarDefs, {essentialVarNames} from './base-style-vars.js';
 
 class BaseStylesVisualEditForm extends BlockVisualStylesEditForm {
-    // showAll;
     /**
      * @inheritdoc
      */

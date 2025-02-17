@@ -1,8 +1,13 @@
-import {__, handleSubmit, floatingDialog, http} from '@sivujetti-commons-for-edit-app';
+import {
+    __,
+    floatingDialog,
+    handleSubmit, 
+    http,
+    stringUtils,
+} from '@sivujetti-commons-for-edit-app';
 import toasters from '../../includes/toasters.jsx';
 
 class PageDeleteDialog extends preact.Component {
-    // boundDoHandleSubmit;
     /**
      * @param {{pageSlug: string; pageTitle: string; onConfirmed: () => Promise<void>;}} props
      */
@@ -16,11 +21,11 @@ class PageDeleteDialog extends preact.Component {
      */
     render({pageTitle, pageSlug}) {
         return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
-            <div class="mb-1">{ __('Delete page') } <b>&quot;{ pageTitle }&quot;</b> <i class="color-dimmed">{ pageSlug }</i>?</div>
+            <div class="text-prose mb-1">{ __('Delete', __('page')) } <b>&quot;{ pageTitle }&quot;</b> <i class="color-dimmed">{ pageSlug }</i>?</div>
             <div class="mt-8">
                 <button
                     class="btn btn-primary mr-2"
-                    type="submit">{ __('Delete page') }</button>
+                    type="submit">{ __('Delete', __('page')) }</button>
                 <button
                     onClick={ () => floatingDialog.close() }
                     class="btn btn-link"
@@ -47,8 +52,8 @@ class PageDeleteDialog extends preact.Component {
  */
 function openPageDeleteDialog(pageSlug, pageTitle, onSuccess, pageTypeName = 'Pages') {
     floatingDialog.open(PageDeleteDialog, {
-        title: __('Delete page'),
-        height: 178,
+        title: __('Delete %s', __('page')),
+        height: 184,
     }, {
         pageSlug,
         pageTitle,
@@ -57,7 +62,7 @@ function openPageDeleteDialog(pageSlug, pageTitle, onSuccess, pageTypeName = 'Pa
                 if (resp.ok) {
                     onSuccess();
                 } else {
-                    toasters.editAppMain(__('Failed to delete page'), 'error');
+                    toasters.editAppMain(stringUtils.capitalize(__('Failed to delete %s', __('page#genitive'))), 'error');
                 }
             })
     });

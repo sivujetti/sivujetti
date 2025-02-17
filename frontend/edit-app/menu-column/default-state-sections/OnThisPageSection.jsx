@@ -151,7 +151,7 @@ class OnThisPageSection extends MenuSectionAbstract {
             getLinks: () => {
                 const links = [
                     {text: __('Duplicate this page'), title: __('Duplicate page'), id: 'duplicate'},
-                    {text: __('Delete this page'), title: __('Delete page'), id: 'delete'},
+                    {text: __('Delete %s', __('this page')), title: __('Delete %s', __('page')), id: 'delete'},
                     {text: __('Show without edit mode'), title: __('Show without edit mode'), id: 'show-without-edit-mode'},
                 ];
                 return pageSlug !== '/' ? links : links.filter(({id}) => id !== 'delete');

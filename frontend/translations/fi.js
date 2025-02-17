@@ -90,9 +90,11 @@ stringBundles.push({
     'Create new %s': 'Luo uusi %s',
     'Edit page': 'Muokkaa sivua',
     'Duplicate page': 'Monista sivu',
-    'Delete page': 'Poista sivu',
-    'Deleted page "%s"': 'Poistettiin sivu "%s"',
-    'Failed to delete page': 'Sivun poistaminen epäonnistui',
+    'Delete %s': 'Poista %s',
+    'page': 'sivu',
+    'Deleted %s "%s"': 'Poistettiin %s "%s"',
+    'Failed to delete %s': '%s poistaminen epäonnistui',
+    'page#genitive': 'sivun',
     // edit-app/src/right-column/IframePageManager.js
     'Paragraph': 'Tekstikappale',
     'Heading': 'Otsikko',
@@ -139,7 +141,6 @@ stringBundles.push({
     'behaviour': 'toiminnallisuus',
     'behaviour#partitive': 'toiminnallisuutta',
     'Edit %s': 'Edit %s',
-    'Delete %s': 'Delete %s',
     'Select %s': 'Select %s',
     'Delete': 'Poista',
     'Delete content': 'Poista sisältö',
@@ -152,10 +153,9 @@ stringBundles.push({
     'Code': 'Koodi',
     // edit-app/src/left-column/panel-sections/ContentManagementSection.jsx
     'Content management': 'Sisällönhallinta',
-    'page': 'sivu',
     // edit-app/src/left-column/panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Monista tämä sivu',
-    'Delete this page': 'Poista tämä sivu',
+    'this page': 'this page',
     'Show without edit mode': 'Näytä ilman muokkaustilaa',
     'On this page': 'Tällä sivulla',
     'Default content': 'Oletussisältö',
@@ -239,6 +239,8 @@ stringBundles.push({
     'This page': 'Tämä sivu',
     'Filter': 'Suodata',
     'Url address': 'Url-osoite',
+    // edit-app/src/popups/FileDeleteDialog.jsx
+    'file#genitive': 'tiedoston',
     // edit-app/src/popups/WebsiteDiagnoseIssuesDialog.jsx
     'Run a health check that scans the website for potential security and functionality issues?': 'Suorita tarkastus, joka etsii sivustosta mahdollisia tietoturva- ja toiminnallisuusongelmia?',
     'Run health check': 'Suorita tarkastus',

@@ -2,6 +2,9 @@
 
 namespace Sivujetti\Upload\Entities;
 
+/**
+ * @phpstan-type UploadsEntryShape object{id: string, fileName: string, baseDir: string, mime: string, friendlyName: string, createdAt: int, updatedAt: int}
+ */
 final class UploadsEntry {
     /** @var string */
     public string $id;

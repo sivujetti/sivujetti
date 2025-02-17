@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Upload;
 
-use Pike\{PikeException, Request, Response, Validation};
+use Pike\{FileSystem, PikeException, Request, Response, Validation};
 use Pike\Db\FluentDb2;
 use Pike\Validation\ObjectValidator;
 use Sivujetti\Auth\ACL;
@@ -82,6 +82,33 @@ final class UploadsController {
         $res->json(["file" => $insertId !== "" ? $file : null]);
     }
     /**
+     * DELETE /api/uploads/:targetFileName/:baseDir: deletes the file `concat($req->params->baseDir,
+     * $req->params->targetFileName)` from both the database and the uploads directory.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Pike\FileSystem $fs
+     * @param \Pike\Db\FluentDb2 $db
+     */
+    public function deleteFile(Request $req,
+                               Response $res,
+                               FileSystem $fs,
+                               FluentDb2 $db): void {
+        if (($errors = self::validateAndNormalizeDeleteInput($req->params))) {
+            $res->status(400)->json($errors);
+            return;
+        }
+        // @allow \Pike\PikeException
+        $db->delete(self::FILES_TABLE_NAME)
+            ->where("`fileName` = ? AND `baseDir` = ?", [$req->params->targetFileName, $req->params->baseDir])
+            ->execute();
+        $filePath = self::UPLOADS_DIR_PATH . "/{$req->params->baseDir}{$req->params->targetFileName}";
+        if ($fs->isFile($filePath))
+            $fs->unlink($filePath);
+        //
+        $res->json(["ok" => "ok"]);
+    }
+    /**
      * Returns "$input-1" or "$input-($max+1)" if there was already a file named
      * $input in the database. Otherwise returns null.
      *
@@ -120,6 +147,23 @@ final class UploadsController {
             ->rule("friendlyName", "type", "string")
             ->rule("friendlyName", "maxLength", 255)
             ->validate($input);
+    }
+    /**
+     * @param \stdClass $reqParams
+     * @return string[]
+     */
+    private static function validateAndNormalizeDeleteInput(\stdClass $reqParams): array {
+        if (is_string($reqParams->fileName ?? null))
+            $reqParams->fileName = urldecode($reqParams->fileName);
+        $baseDirIn = $reqParams->baseDir ?? null;
+        if ($baseDirIn === "-")
+            $reqParams->baseDir = "";
+        elseif (is_string($baseDirIn))
+            $reqParams->baseDir = urldecode($baseDirIn);
+        return self::makeCommonValidator()
+            ->rule("baseDir", "type", "string")
+            ->rule("baseDir", "maxLength", 260)
+            ->validate($reqParams);
     }
     /**
      * @return \Pike\Validation\ObjectValidator

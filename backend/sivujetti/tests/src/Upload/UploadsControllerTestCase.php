@@ -2,12 +2,16 @@
 
 namespace Sivujetti\Tests\Upload;
 
-use Pike\Injector;
+use PHPUnit\Framework\MockObject\MockObject;
+use Pike\{FileSystem, Injector};
 use Pike\Interfaces\SessionInterface;
 use Sivujetti\Tests\Utils\{DbDataHelper, HttpApiTestTrait, TestEnvBootstrapper};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\Upload\Uploader;
 
+/**
+ * @phpstan-import-type UploadsEntryShape from \Sivujetti\Upload\Entities\UploadsEntry
+ */
 abstract class UploadsControllerTestCase extends DbTestCase {
     use HttpTestUtils;
     use HttpApiTestTrait;
@@ -49,8 +53,39 @@ abstract class UploadsControllerTestCase extends DbTestCase {
                 $di->define(Uploader::class, [
                     ":moveUploadedFileFn" => $this->createMockMoveUploadedFileFn($state),
                 ]);
+                $di->delegate(FileSystem::class, fn() =>
+                    $this->makeFsThatDeletesFileSuccesfully($state)
+                );
             });
         });
+    }
+    /**
+     * @return list<UploadsEntryShape>
+     */
+    protected function createSampleFiles(): array {
+        return [
+            (object) ["id" => "1",
+                      "fileName" => "a-cat.png",
+                      "baseDir" => "sub-dir/",
+                      "mime" => "image/png",
+                      "friendlyName" => "",
+                      "createdAt" => 1320969601,
+                      "updatedAt" => 0],
+            (object) ["id" => "2",
+                      "fileName" => "niss.jpg",
+                      "baseDir" => "sub-dir/",
+                      "mime" => "image/jpeg",
+                      "friendlyName" => "Everdeen",
+                      "createdAt" => 1320969601,
+                      "updatedAt" => 0],
+            (object) ["id" => "3",
+                      "fileName" => "readme.txt",
+                      "baseDir" => "",
+                      "mime" => "text/plain",
+                      "friendlyName" => "",
+                      "createdAt" => 1320969601,
+                      "updatedAt" => 0]
+        ];
     }
     private function createMockMoveUploadedFileFn(\TestState $state): \Closure {
         $state->actuallyMovedFileTo = null;
@@ -58,5 +93,14 @@ abstract class UploadsControllerTestCase extends DbTestCase {
             $state->actuallyMovedFileTo = $targetFilePath;
             return true;
         };
+    }
+    private function makeFsThatDeletesFileSuccesfully(\TestState $state): MockObject {
+        $out = $this->createMock(FileSystem::class);
+        $out->method("isFile")->willReturn(true);
+        $out->method("unlink")->with($this->callback(function ($filePath) use ($state) {
+            $state->actuallyDeletedFilePath = $filePath;
+            return true;
+        }))->willReturn(true);
+        return $out;
     }
 }

@@ -41,29 +41,7 @@ final class GetUploadsTest extends UploadsControllerTestCase {
     }
     private function setupListUploadsTest(): \TestState {
         $state = new \TestState;
-        $state->testFiles = [
-            (object) ["id" => "1",
-                      "fileName" => "a-cat.png",
-                      "baseDir" => "sub-dir/",
-                      "mime" => "image/png",
-                      "friendlyName" => "",
-                      "createdAt" => "1320969601",
-                      "updatedAt" => "0"],
-            (object) ["id" => "2",
-                      "fileName" => "niss.jpg",
-                      "baseDir" => "sub-dir/",
-                      "mime" => "image/jpeg",
-                      "friendlyName" => "Everdeen",
-                      "createdAt" => "1320969601",
-                      "updatedAt" => "0"],
-            (object) ["id" => "3",
-                      "fileName" => "readme.txt",
-                      "baseDir" => "",
-                      "mime" => "text/plain",
-                      "friendlyName" => "",
-                      "createdAt" => "1320969601",
-                      "updatedAt" => "0"]
-        ];
+        $state->testFiles = $this->createSampleFiles();
         $state->spyingResponse = null;
         return $state;
     }

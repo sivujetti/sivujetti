@@ -89,9 +89,11 @@ stringBundles.push({
     'Create new %s': 'Create new %s',
     'Edit page': 'Edit page',
     'Duplicate page': 'Duplicate page',
-    'Delete page': 'Delete page',
-    'Deleted page "%s"': 'Deleted page "%s"',
-    'Failed to delete page': 'Failed to delete page',
+    'Delete %s': 'Delete %s',
+    'page': 'page',
+    'Deleted %s "%s"': 'Deleted %s "%s"',
+    'Failed to delete %s': 'Failed to delete %s',
+    'page#genitive': 'page',
     // edit-app/src/right-column/IframePageManager.js
     'Paragraph': 'Paragraph',
     'Heading': 'Heading',
@@ -138,7 +140,6 @@ stringBundles.push({
     'behaviour': 'behaviour',
     'behaviour#partitive': 'behaviour',
     'Edit %s': 'Edit %s',
-    'Delete %s': 'Delete %s',
     'Select %s': 'Select %s',
     'Delete': 'Delete',
     'Delete content': 'Delete content',
@@ -151,10 +152,9 @@ stringBundles.push({
     'Code': 'Code',
     // edit-app/src/left-column/panel-sections/ContentManagementSection.jsx
     'Content management': 'Content management',
-    'page': 'page',
     // edit-app/src/left-column/panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Duplicate this page',
-    'Delete this page': 'Delete this page',
+    'this page': 'this page',
     'Show without edit mode': 'Show without edit mode',
     'On this page': 'On this page',
     'Default content': 'Default content',
@@ -239,6 +239,8 @@ stringBundles.push({
     'This page': 'This page',
     'Filter': 'Filter',
     'Url address': 'Url address',
+    // edit-app/src/popups/FileDeleteDialog.jsx
+    'file#genitive': 'file',
     // edit-app/src/popups/WebsiteDiagnoseIssuesDialog.jsx
     'Run a health check that scans the website for potential security and functionality issues?': 'Run a health check that scans the website for potential security and functionality issues?',
     'Run health check': 'Run health check',

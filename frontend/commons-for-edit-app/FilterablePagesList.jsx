@@ -15,16 +15,15 @@ class FilterablePagesList extends preact.Component {
      */
     updatePagesList(getNewList) {
         const curFilter = this.state.currentFilterStr || '';
-        let allPages;
-        if (this.useLocalSearch) {
-            allPages = getNewList(this.state.allPages, null);
-        } else {
-            // Update all buckets
-            for (const key in this.backendSearchCache)
-                this.backendSearchCache[key] = getNewList(this.backendSearchCache[key], curFilter);
-            // Get current, updated bucket
-            allPages = this.backendSearchCache[curFilter];
-        }
+
+        // Update all buckets (though there's only one (``) if this.useLocalSearch == true)
+        for (const key in this.backendSearchCache)
+            this.backendSearchCache[key] = getNewList(this.backendSearchCache[key], curFilter);
+
+        // Get current, updated bucket
+        const bucketKey = this.useLocalSearch ? '' : curFilter;
+        const allPages = this.backendSearchCache[bucketKey];
+
         const filteredPages = getFilteredPages(allPages, curFilter);
         this.setState({allPages, filteredPages});
     }

@@ -75,7 +75,7 @@ class PagesListView extends preact.Component {
                 const links = [
                     {text: __('Edit'), title: __('Edit page'), id: 'edit'},
                     {text: __('Duplicate'), title: __('Duplicate page'), id: 'duplicate'},
-                    {text: __('Delete'), title: __('Delete page'), id: 'delete'},
+                    {text: __('Delete'), title: __('Delete %s', __('page')), id: 'delete'},
                 ];
                 return pageSlug !== '/' ? links : links.filter(({id}) => id !== 'delete');
             },
@@ -97,7 +97,7 @@ class PagesListView extends preact.Component {
         else if (link.id === 'delete') {
             openPageDeleteDialog(pageSlug, pageTitle, () => {
                 this.filterablePagesRef.current.updatePagesList(pages => pages.filter(({slug}) => slug !== pageSlug));
-                toasters.editAppMain(__('Deleted page "%s"', pageTitle), 'success');
+                toasters.editAppMain(__('Deleted %s "%s"', __('page'), pageTitle), 'success');
             }, pageTypeName);
         }
     }

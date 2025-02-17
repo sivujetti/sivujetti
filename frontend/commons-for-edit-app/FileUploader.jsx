@@ -1,5 +1,6 @@
 import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
 import {placeholderImageSrc} from '../shared-inline.js';
+import {openFileDeleteDialog} from './popups/FileDeleteDialog.jsx';
 import setFocusTo from './auto-focusers.js';
 import {__, api} from './edit-app-singletons.js';
 import UploadButton from './UploadButton.jsx';
@@ -448,27 +449,24 @@ class FileUploader extends preact.Component {
     handleContextMenuLinkClicked(link) {
         if (link.id === 'edit')
             alert(__('This feature is not implemented yet.'));
-        else if (link.id === 'delete')
-            alert(__('This feature is not implemented yet.'));
-    }
-    /**
-     * @param {UploadsEntry} file
-     * @access private
-     */
-    deleteFile(file) {
-        http.delete('/api/uploads/' +
-                    encodeURIComponent(file.fileName) + '/' +
-                    encodeURIComponent(file.baseDir || '-'))
-            .then(info => {
-                if (info.ok) {
-                    this.setState({files: this.state.files.filter(file2 => file2 !== file)});
-                    this.searchResultCache = new Map();
-                } else throw new Error(info);
-            })
-            .catch(err => {
-                env.console.error(err);
-                // toasters.main('Tiedoston poistaminen ei onnistunut.', 'error');
+        else if (link.id === 'delete') {
+            /** @type {UploadsEntry} */
+            const file = this.state.entryWithNavOpened;
+            openFileDeleteDialog(file, () => {
+                const fileType = this.props.onlyImages || file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
+
+                // Update all buckets (though there's only one (`${fileType}:`) if this.useLocalSearch == true)
+                for (const key in this.backendFetchCache)
+                    this.backendFetchCache[key] = this.backendFetchCache[key].filter(f => f.fileName !== file.fileName);
+
+                // Get current, updated bucket
+                const bucketKey = this.useLocalSearch ? `${fileType}:` : `${fileType}:${this.state.currentFilterStr}`;
+
+                const fileGroupAll = cloneArrShallow(this.backendFetchCache[bucketKey] || []);
+                this.setState({fileGroupAll, fileGroupFiltered: getFilteredFiles(fileGroupAll, this.state.currentFilterStr)});
+                api.toasters.editAppMain(__('Deleted %s "%s"', __('File').toLowerCase(), file.friendlyName), 'success');
             });
+        }
     }
     /**
      * @param {Event?} e

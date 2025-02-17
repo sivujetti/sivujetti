@@ -17,5 +17,9 @@ final class UploadsModule {
             [UploadsController::class, "uploadFile", ["consumes" => "multipart/form-data",
                                                       "identifiedBy" => ["upload", "uploads"]]]
         );
+        $router->map("DELETE", "/api/uploads/[*:targetFileName]/[*:baseDir]",
+            [UploadsController::class, "deleteFile", ["consumes" => "application/json",
+                                                      "identifiedBy" => ["delete", "uploads"]]]
+        );
     }
 }

@@ -1,14 +1,13 @@
-import {mediaScopes} from '../../shared-inline.js';
 import {__, api, scssWizard} from '../edit-app-singletons.js';
 import {createSelector} from '../ScssWizardFuncs.js';
+import BackgroundImageValueInput from './BackgroundImageValueInput.jsx';
+import ColorValueInput from './ColorValueInput.jsx';
 import {
     createNormalizedDefs,
     createVarInputToScssCodeAuto,
-    doCreateCssVarsMaps,
+    doCreateCssVarsMap,
     getValidDefs,
-} from '../BlockVisualStylesEditFormFuncs.js';
-import BackgroundImageValueInput from './BackgroundImageValueInput.jsx';
-import ColorValueInput from './ColorValueInput.jsx';
+} from './DefaultStyleCustomizatorFormFuncs.js';
 import GridColumnsValueInput from './GridColumnsValueInput.jsx';
 import LengthValueInput from './LengthValueInput.jsx';
 import OptionValueInput from './OptionValueInput.jsx';
@@ -20,10 +19,11 @@ class DefaultStyleCustomizatorForm extends preact.Component {
      */
     constructor(props) {
         super(props);
-        const reduced = DefaultStyleCustomizatorForm.getConfigurableVarsList(null, props.checkIsChunkActive);
-        this.cssVarDefs = createNormalizedDefs(getValidDefs(reduced));
-        /** @type {Array<StyleChunk>} */
-        this.styleChunks = [];
+        this.isSpecialRootStyle = props.blockId === 'j-_body_';
+        /** @type {Array<VisualStylesFormVarDefinition>} */
+        this.cssVarDefs = createNormalizedDefs(getValidDefs(this.createCssVarDefinitions()));
+        /** @type {StyleChunk} */
+        this.styleChunk = null;
         /** @type {translateVarInputToScssCodeTemplateFn} */
         this.varInputToScssCodeFn = createVarInputToScssCodeAuto(this.cssVarDefs);
     }
@@ -31,9 +31,16 @@ class DefaultStyleCustomizatorForm extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const [scopes, styleChunks] = this.createCssVarsMapsInternal(this.props);
-        this.styleChunks = styleChunks;
-        this.setState({styleScreens: scopes, curScreenSizeTabIdx: 0});
+        const [varsMap, styleChunk] = this.createCssVarsMapsInternal(this.props);
+        this.styleChunk = styleChunk;
+        this.setState({varsMap});
+    }
+    /**
+     * @returns {Array<Object>}
+     * @access protected
+     */
+    createCssVarDefinitions() {
+        return DefaultStyleCustomizatorForm.getConfigurableVarsList(null, this.props.checkIsChunkActive);
     }
     /**
      * @param {DefaultStyleCustomizatorFormProps} props
@@ -42,31 +49,31 @@ class DefaultStyleCustomizatorForm extends preact.Component {
     componentWillReceiveProps(props) {
         if (props.stylesStateId !== this.props.stylesStateId ||
             props.styleClasses !== this.props.styleClasses) {
-            const [scopes, styleChunks] = this.createCssVarsMapsInternal(props);
-            if (JSON.stringify(scopes) !== JSON.stringify(this.state.styleScreens)) {
-                this.styleChunks = styleChunks;
-                this.setState({styleScreens: scopes});
+            const [varsMap, styleChunk] = this.createCssVarsMapsInternal(props);
+            if (this.isSpecialRootStyle || JSON.stringify(varsMap) !== JSON.stringify(this.state.varsMap)) {
+                this.styleChunk = styleChunk;
+                this.setState({varsMap});
             }
         }
     }
     /**
      * @access protected
      */
-    render(_, {styleScreens, curScreenSizeTabIdx}) {
-        const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};
+    render(_, {varsMap}) {
         return <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">{
             this.cssVarDefs.map(def =>
-                this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssCodeFn)
+                this.renderVarWidget(def, varsMap, this.varInputToScssCodeFn)
             )
         }</div>;
     }
     /**
      * @param {VisualStylesFormVarDefinition} def
-     * @param {CssVarsMap} selectedScreenSizeVars
+     * @param {CssVarsMap} vars
      * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
+     * @returns {preact.ComponentChildren}
      * @access protected
      */
-    renderVarWidget(def, selectedScreenSizeVars, varInputToScssCode) {
+    renderVarWidget(def, vars, varInputToScssCode) {
         const {varName, widgetSettings} = def;
         if (!widgetSettings)
             return null;
@@ -74,33 +81,33 @@ class DefaultStyleCustomizatorForm extends preact.Component {
         const commonProps = {
             onValueChanged: newValAsString => this.handleVisualVarChanged(newValAsString, varName, varInputToScssCode),
             labelTranslated: __(label),
-            isClearable: !!selectedScreenSizeVars[varName],
+            isClearable: !this.isSpecialRootStyle && !!vars[varName],
             inputId: varName,
             defaultThemeValue,
         };
         if (valueType === 'backgroundImage' || renderer === BackgroundImageValueInput)
             return <BackgroundImageValueInput
                 value={ null }
-                valueAsString={ BackgroundImageValueInput.valueFromInput(selectedScreenSizeVars[varName] || 'initial').src }
+                valueAsString={ BackgroundImageValueInput.valueFromInput(vars[varName] || 'initial').src }
                 { ...commonProps }/>;
         else if (valueType === 'color' || renderer === ColorValueInput)
             return <ColorValueInput
                 value={ null }
-                valueAsString={ selectedScreenSizeVars[varName] || null }
+                valueAsString={ vars[varName] || null }
                 onValueChangedFast={ newValAsString => this.handleVisualVarChangedFast(newValAsString, varName, varInputToScssCode) }
                 { ...commonProps }/>;
         else if (valueType === 'gridColumns' || renderer === GridColumnsValueInput)
             return <GridColumnsValueInput
                 value={ null }
-                valueAsString={ GridColumnsValueInput.valueFromInput(selectedScreenSizeVars[varName] || null).decl }
+                valueAsString={ GridColumnsValueInput.valueFromInput(vars[varName] || null).decl }
                 { ...commonProps }/>;
         else if (valueType === 'length' || renderer === LengthValueInput)
             return <LengthValueInput
-                value={ LengthValueInput.valueFromInput(selectedScreenSizeVars[varName] || 'initial', initialUnit || defaultThemeValue?.unit || undefined) }
+                value={ LengthValueInput.valueFromInput(vars[varName] || 'initial', initialUnit || defaultThemeValue?.unit || undefined) }
                 { ...commonProps }/>;
         else if (valueType === 'option' || renderer === OptionValueInput)
             return <OptionValueInput
-                value={ OptionValueInput.valueFromInput(selectedScreenSizeVars[varName] || null, initialUnit) }
+                value={ OptionValueInput.valueFromInput(vars[varName] || null, initialUnit) }
                 options={ widgetSettings.options }
                 { ...commonProps }/>;
     }
@@ -125,7 +132,8 @@ class DefaultStyleCustomizatorForm extends preact.Component {
         const codeTemplate = varInputToScssCode(varName, val);
         const lines = Array.isArray(codeTemplate) ? codeTemplate : codeTemplate.split('\n');
         const isSingleLineDecl = lines[0].at(-1) === ';';
-        const rootSelector = createSelector(this.props.blockId, 'single-block');
+        const [scopeKind, scopeSpecifier, _layer] = this.createFindStyleArgs();
+        const rootSelector = createSelector(scopeSpecifier, scopeKind);
         const linesFull = isSingleLineDecl
             ? [
                 rootSelector,
@@ -145,7 +153,7 @@ class DefaultStyleCustomizatorForm extends preact.Component {
                 // asArr.at(-1) already contains '}'
             ];
         const css = linesFull.map(l => l.replace('%s', val)).join('');
-        api.webPagePreview.updateCssFast(this.props.blockId, css);
+        api.webPagePreview.updateCssFast(scopeSpecifier, css);
     }
     /**
      * @param {string|null} val
@@ -155,49 +163,54 @@ class DefaultStyleCustomizatorForm extends preact.Component {
      * @access private
      */
     doHandleValChanged(val, varName, varInputToScssCode) {
-        const {styleScreens, curScreenSizeTabIdx} = this.state;
-        const curChunk = this.styleChunks[curScreenSizeTabIdx];
         const newValIsNotEmpty = val?.trim().length > 0;
         const valNorm = newValIsNotEmpty ? val : '"dummy"';
-        const mediaScopeId = mediaScopes[curScreenSizeTabIdx];
         const codeTemplate = varInputToScssCode(varName, val);
 
-        if (!curChunk) {
+        if (!this.styleChunk) {
             return scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
                 codeTemplate,
                 valNorm,
                 this.props.blockId,
-                this.props.blockIsStoredToTreeId,
+                this.props.blockIsStoredToTreeId || 'main',
             );
         } else {
-            const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};
-            const hasVarValPreviously = !!selectedScreenSizeVars[varName];
+            const hasVarValPreviously = !!this.state.varsMap[varName];
             if (!newValIsNotEmpty && hasVarValPreviously)
                 return scssWizard.deleteScssCodeFromExistingUniqueScopeChunkAndReturnAllRecompiled(
                     codeTemplate,
                     valNorm,
-                    curChunk,
-                    mediaScopeId
+                    this.styleChunk
                 );
             return scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
                 codeTemplate,
                 valNorm,
-                curChunk,
-                mediaScopeId,
+                this.styleChunk
             );
         }
     }
     /**
      * @param {DefaultStyleCustomizatorFormProps} props
-     * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
+     * @returns {[CssVarsMap, StyleChunk|null]}
      */
     createCssVarsMapsInternal(props) {
-        return doCreateCssVarsMaps(
+        const [scopeKind, scopeSpecifier, layer] = this.createFindStyleArgs(props);
+        return doCreateCssVarsMap(
             this.cssVarDefs,
-            'single-block',
-            props.blockId,
-            undefined
+            scopeKind,
+            scopeSpecifier,
+            layer
         );
+    }
+    /**
+     * @param {DefaultStyleCustomizatorFormProps} props
+     * @returns {[styleScopeKind, string|undefined, stylesLayer|undefined]}
+     * @access private
+     */
+    createFindStyleArgs(props = this.props) {
+        return !this.isSpecialRootStyle
+            ? ['single-block', props.blockId, undefined]
+            : ['base-vars',    undefined,    'base-styles'];
     }
 }
 
@@ -207,7 +220,7 @@ class DefaultStyleCustomizatorForm extends preact.Component {
  * @returns {Array<VisualStylesFormVarDefinition>}
  */
 DefaultStyleCustomizatorForm.getConfigurableVarsList = (styleChunks, checkIsChunkActive) => {
-    const enabled = (styleChunks || getAllCustomClassChunks()).filter(checkIsChunkActive);
+    const enabled = styleChunks || (getAllCustomClassChunks().filter(checkIsChunkActive));
     const withRules = enabled.filter(c => c.data?.customizationSettings?.varDefs.length > 0);
     return withRules.map(c => c.data?.customizationSettings?.varDefs).flat();
 };
@@ -225,6 +238,6 @@ function getAllCustomClassChunks() {
 /**
  * @typedef {{blockId: string; blockIsStoredToTreeId: 'main'|string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean; styleClasses: string;}} DefaultStyleCustomizatorFormProps
  */
-
+       
 export default DefaultStyleCustomizatorForm;
 export {getAllCustomClassChunks};

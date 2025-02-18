@@ -1,6 +1,5 @@
 import {__} from '../../edit-app-singletons.js';
 import EditForm from './ButtonBlockEditForm.jsx';
-import StylesEditForm from './ButtonBlockVisualStylesEditForm.jsx';
 
 export default {
     name: 'Button',

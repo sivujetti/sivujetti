@@ -1,19 +1,12 @@
-import {__, BlockVisualStylesEditForm, scssUtils, scssWizard} from '@sivujetti-commons-for-edit-app';
+import {__, DefaultStyleCustomizatorForm, scssUtils, scssWizard} from '@sivujetti-commons-for-edit-app';
 import baseStyleVarDefs, {essentialVarNames} from './base-style-vars.js';
 
-class BaseStylesVisualEditForm extends BlockVisualStylesEditForm {
-    /**
-     * @inheritdoc
-     */
-    componentWillMount() {
-        super.componentWillMount();
-        this.showAll = false;
-    }
+class BaseStylesVisualEditForm extends DefaultStyleCustomizatorForm {
     /**
      * @inheritdoc
      */
     createCssVarDefinitions() {
-        const customBaseScssChunk = scssWizard.findStyle('base-freeform', undefined, 'all', 'base-styles');
+        const customBaseScssChunk = scssWizard.findStyle('base-freeform', undefined, 'base-styles');
         const fontNames = getDevDefinedFontNames(customBaseScssChunk.scss);
         return fontNames.length
             ? baseStyleVarDefs.map(def =>
@@ -33,7 +26,7 @@ class BaseStylesVisualEditForm extends BlockVisualStylesEditForm {
     /**
      * @inheritdoc
      */
-    renderVarWidget(def, selectedScreenSizeVars, varInputToScssCode) {
+    renderVarWidget(def, vars, varInputToScssCode) {
         if (def === this.cssVarDefs[0]) return [
             <label class="form-switch d-inline-flex" style="opacity: .7;">
                 <input type="checkbox" checked={ this.showAll } onClick={ () => {
@@ -42,13 +35,13 @@ class BaseStylesVisualEditForm extends BlockVisualStylesEditForm {
                 } }/>
                 <i class="form-icon"></i> { __('Show all') }
             </label>,
-            super.renderVarWidget(def, selectedScreenSizeVars, varInputToScssCode)
+            super.renderVarWidget(def, vars, varInputToScssCode)
         ];
 
         if (!this.showAll && essentialVarNames.indexOf(def.varName) < 0)
             return null;
 
-        const orig = super.renderVarWidget(def, selectedScreenSizeVars, varInputToScssCode);
+        const orig = super.renderVarWidget(def, vars, varInputToScssCode);
         return [
             // Fonts
             'baseStyleBaseFont',

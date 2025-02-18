@@ -1,6 +1,5 @@
 import {__} from '../../edit-app-singletons.js';
 import EditForm, {CountingLinkItemFactory} from './MenuBlockEditForm.jsx';
-import StylesEditForm from './MenuBlockVisualStylesEditForm.jsx';
 
 export default {
     name: 'Menu',

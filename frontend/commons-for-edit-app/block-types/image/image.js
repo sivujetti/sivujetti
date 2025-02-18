@@ -1,5 +1,4 @@
 import EditForm from './ImageBlockEditForm.jsx';
-import StylesEditForm from './ImageBlockVisualStylesEditForm.jsx';
 
 /**
  * @typedef ImageBlockProps

@@ -19,8 +19,6 @@ import PageTypeCreateState from './menu-column/page-type/PageTypeCreateState.jsx
 import DefaultState from './menu-column/DefaultState.jsx';
 import SaveButtonRenderer from './menu-column/SaveButtonRenderer.jsx';
 
-let showFirstTimeDragInstructions = env.window.isFirstRun && getFromLocalStorage('sivujettiDragInstructionsShown') !== 'yes';
-
 class EditApp extends preact.Component {
     // changeViewOptions;
     // resizeHandleEl;
@@ -159,19 +157,6 @@ function registerResizeMouseHandlers(resizeEl) {
         resizeEl.classList.remove('dragging');
         rootEl.classList.remove('adjusting-panel-widths');
     });
-}
-
-/**
- * @param {Event} e
- */
-function dismissFirstTimeInstructions(e) {
-    putToLocalStorage('yes', 'sivujettiDragInstructionsShown');
-    showFirstTimeDragInstructions = false;
-    const el = e.target.closest('.drag-instructions-overlay');
-    el.classList.add('fade-away');
-    setTimeout(() => {
-        el.parentElement.removeChild(el);
-    }, 650);
 }
 
 export default EditApp;

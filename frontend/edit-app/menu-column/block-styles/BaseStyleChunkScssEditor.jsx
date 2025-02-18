@@ -54,7 +54,7 @@ function handleBaseChunkScssChanged(updatedScss, chunk) {
  * @returns {StyleChunk|null}
  */
 function findFreeformBaseStyleChunk() {
-    return scssWizard.findStyle('base-freeform', undefined, 'all', 'base-styles');
+    return scssWizard.findStyle('base-freeform', undefined, 'base-styles');
 }
 
 export default BaseStyleChunkScssEditor;

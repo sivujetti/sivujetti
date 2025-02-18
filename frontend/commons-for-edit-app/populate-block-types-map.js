@@ -7,7 +7,6 @@ import listingBlockType from './block-types/listing/listing.js';
 import menuBlockType from './block-types/menu/menu.js';
 import pageInfoBlockType from './block-types/page-info/pageInfo.js';
 import sectionBlockType from './block-types/section/section.js';
-import section2BlockType from './block-types/section2/section2.js';
 import textBlockType from './block-types/text/text.js';
 import wrapperBlockType from './block-types/wrapper.js';
 
@@ -31,7 +30,18 @@ blockTypesRegister.setup([
     [menuBlockType.name,     menuBlockType],
     [pageInfoBlockType.name, pageInfoBlockType],
     [sectionBlockType.name,  sectionBlockType],
-    [section2BlockType.name, section2BlockType],
+    ['Section2', {
+        name: 'Section2',
+        friendlyName: 'Section2',
+        icon: 'columns-3',
+        editForm: class extends preact.Component {
+            render() { return 'Section2 is deprecated'; }
+        },
+        stylesEditForm: 'default',
+        createOwnProps(/*defProps*/) {
+            return {dum: 'my',};
+        },
+    }],
     [textBlockType.name,     textBlockType],
     [wrapperBlockType.name,  wrapperBlockType],
 ]);

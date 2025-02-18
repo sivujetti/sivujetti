@@ -8,7 +8,6 @@ import CrudList from './CrudList.jsx';
 import FileUploader from './FileUploader.jsx';
 import {FloatingDialog, currentInstance as floatingDialog} from './FloatingDialog.jsx';
 import {MenuSection, MenuSectionAbstract} from './MenuSection.jsx';
-import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 import Sortable from './Sortable.js';
 import UploadButton from './UploadButton.jsx';
 import Events from '../shared-includes/Events.js';
@@ -52,12 +51,9 @@ import {
     doubleNormalizeUrl,
     getVisibleSlug,
 } from './pick-url-utils.js';
-import {mediaScopes, placeholderImageSrc, traverseRecursively} from '../shared-inline.js';
+import {placeholderImageSrc, traverseRecursively} from '../shared-inline.js';
 import Popup from './Popup.jsx';
 import {createCssDeclExtractor} from './ScssWizardFuncs.js';
-import BlockVisualStylesEditForm, {
-    createPaddingVarDefs,
-} from './BlockVisualStylesEditForm.jsx';
 import {
     arrayUtils,
     generatePushID,
@@ -73,10 +69,8 @@ export {
     api,
     arrayUtils,
     blockTreeUtils,
-    BlockVisualStylesEditForm,
     ColorPickerInput,
     createCssDeclExtractor,
-    createPaddingVarDefs,
     CrudList,
     DefaultStyleCustomizatorForm,
     determineModeFrom,
@@ -109,7 +103,6 @@ export {
     LoadingSpinner,
     makePath,
     makeSlug,
-    mediaScopes,
     MenuSection,
     MenuSectionAbstract,
     objectUtils,
@@ -118,7 +111,6 @@ export {
     Popup,
     putToLocalStorage,
     reHookValues,
-    ScreenSizesVerticalTabs,
     scssUtils,
     scssWizard,
     sensibleDefaults,

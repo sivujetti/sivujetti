@@ -85,18 +85,9 @@ function getBlockEl(blockId, nthOfId = 1, from = document.body) {
     return all[nthOfId - 1] || null;
 }
 
-const mediaScopes = [
-    'all',
-    '960', // lg
-    '840', // md
-    '600', // sm
-    '480', // xs
-];
-
 export {
     traverseRecursively,
     placeholderImageSrc,
-    mediaScopes,
     getBlockEl,
     getNormalizedInitialHoverCandidate,
     getMetaKey,

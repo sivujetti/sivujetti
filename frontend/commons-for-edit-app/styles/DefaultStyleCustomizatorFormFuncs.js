@@ -1,12 +1,11 @@
-import {mediaScopes} from '../shared-inline.js';
-import BackgroundImageValueInput from './styles/BackgroundImageValueInput.jsx';
-import ColorValueInput from './styles/ColorValueInput.jsx';
-import GridColumnsValueInput from './styles/GridColumnsValueInput.jsx';
-import LengthValueInput from './styles/LengthValueInput.jsx';
-import OptionValueInput from './styles/OptionValueInput.jsx';
-import {__, scssWizard} from './edit-app-singletons.js';
-import {createCssDeclExtractor} from './ScssWizardFuncs.js';
-import {compile} from './styles/scss-utils.js';
+import {__, scssWizard} from '../edit-app-singletons.js';
+import {createCssDeclExtractor} from '../ScssWizardFuncs.js';
+import BackgroundImageValueInput from './BackgroundImageValueInput.jsx';
+import ColorValueInput from './ColorValueInput.jsx';
+import GridColumnsValueInput from './GridColumnsValueInput.jsx';
+import LengthValueInput from './LengthValueInput.jsx';
+import OptionValueInput from './OptionValueInput.jsx';
+import {compile} from './scss-utils.js';
 
 const WidgetClses = {
     'backgroundImage': BackgroundImageValueInput,
@@ -17,33 +16,16 @@ const WidgetClses = {
 };
 
 /**
- * @param {string} blockId
- * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
- * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
- */
-function createCssVarsMaps(blockId, cssVarDefs) {
-    return doCreateCssVarsMaps(
-        cssVarDefs,
-        'single-block',
-        blockId,
-    );
-}
-
-/**
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
  * @param {styleScopeKind} scopeKind
  * @param {string} scopeSpecifier = undefined
  * @param {stylesLayer|undefined} layer = undefined
- * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
+ * @returns {[CssVarsMap, StyleChunk|null]}
  */
-function doCreateCssVarsMaps(cssVarDefs, scopeKind, scopeSpecifier = undefined, layer = undefined) {
-    return mediaScopes.reduce((out, mediaScopeId) => {
-        const styleRef = scssWizard.findStyle(scopeKind, scopeSpecifier, mediaScopeId, layer);
-        const styleVarsForThisMediaScope = createVarsMapAuto(cssVarDefs, styleRef?.scss || null);
-        out[0].push(styleVarsForThisMediaScope);
-        out[1].push(styleRef);
-        return out;
-    }, [[], []]);
+function doCreateCssVarsMap(cssVarDefs, scopeKind, scopeSpecifier = undefined, layer = undefined) {
+    const styleRef = scssWizard.findStyle(scopeKind, scopeSpecifier, layer);
+    const styleVars = createVarsMapAuto(cssVarDefs, styleRef?.scss || null);
+    return [styleVars, styleRef];
 }
 
 /**
@@ -107,7 +89,7 @@ function createVarInputToScssCodeAuto(cssVarDefs) {
 }
 
 /**
- * @param {Array<any>} input
+ * @param {Array<Object>} input
  * @returns {Array<VisualStylesFormVarDefinition>}
  * @throws {Error}
  */
@@ -164,93 +146,9 @@ function createNormalizedSubSelector(input) {
     return selector.replace(/\f/g, '');
 }
 
-/**
- * @deprecated
- * @param {string} prefix Examples: 'text', 'button'
- * @returns {VisualStylesFormVarDefinition}
- */
-function createJustifyContentVarDef(prefix) {
-    return {
-        varName: 'alignX',
-        cssProp: 'justify-content',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'option',
-            options: [
-                {label: __('Start'), value: 'start'},
-                {label: __('Center'), value: 'center'},
-                {label: __('End'), value: 'end'},
-                {label: __('Normal'), value: 'normal'},
-                {label: __('Space between'), value: 'space-between'},
-                {label: __('Space around'), value: 'space-around'},
-                {label: __('Space evenly'), value: 'space-evenly'},
-                {label: __('Stretch'), value: 'stretch'},
-                {label: __('Unset'), value: 'unset'},
-                {label: '-', value: null},
-            ],
-            label: 'Align ⇄',
-            inputId: `${prefix}AlignX`,
-        },
-    };
-}
-
-/**
- * @deprecated
- * @param {string} prefix Examples: 'text', 'button'
- * @returns {Array<VisualStylesFormVarDefinition>}
- */
-function createPaddingVarDefs(prefix) {
-    return [
-        {
-            varName: 'paddingTop',
-            cssProp: 'padding-top',
-            cssSubSelector: null,
-            widgetSettings: {
-                valueType: 'length',
-                label: 'Padding top',
-                inputId: `${prefix}PaddingTop`,
-            },
-        },
-        {
-            varName: 'paddingRight',
-            cssProp: 'padding-right',
-            cssSubSelector: null,
-            widgetSettings: {
-                valueType: 'length',
-                label: 'Padding right',
-                inputId: `${prefix}PaddingRight`,
-            },
-        },
-        {
-            varName: 'paddingBottom',
-            cssProp: 'padding-bottom',
-            cssSubSelector: null,
-            widgetSettings: {
-                valueType: 'length',
-                label: 'Padding bottom',
-                inputId: `${prefix}PaddingBottom`,
-            },
-        },
-        {
-            varName: 'paddingLeft',
-            cssProp: 'padding-left',
-            cssSubSelector: null,
-            widgetSettings: {
-                valueType: 'length',
-                label: 'Padding left',
-                inputId: `${prefix}PaddingLeft`,
-            },
-        }
-    ];
-}
-
 export {
-    createCssVarsMaps,
-    createJustifyContentVarDef,
     createNormalizedDefs,
-    createPaddingVarDefs,
     createVarInputToScssCodeAuto,
-    createVarsMapAuto,
-    doCreateCssVarsMaps,
+    doCreateCssVarsMap,
     getValidDefs,
 };

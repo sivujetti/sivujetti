@@ -104,7 +104,10 @@ class BaseAndCustomClassStylesSection extends preact.Component {
                         ? kind === 'user-styles'
                             ? <BaseStylesVisualEditForm
                                 blockId="j-_body_"
-                                stateId={ stylesStateId }/>
+                                blockIsStoredToTreeId="main"
+                                stylesStateId={ stylesStateId }
+                                checkIsChunkActive={ () => true }
+                                styleClasses={ '' }/>
                             : <BaseStyleChunkScssEditor
                                 stylesStateId={ stylesStateId }/>
                         : null

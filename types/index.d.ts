@@ -49,7 +49,7 @@ interface SaveButton {
     getChannelState(channelName: string): T|null;
     pushOp(channelName: string, state: sbState, userCtx: StateChangeUserContext = null, flags: blockPropValueChangeFlags = null): void;
     pushOpGroup(...ops: Array<[string, sbState, StateChangeUserContext|null, blockPropValueChangeFlags]>): void;
-    on(when: 'before-items-synced'|'after-items-synced'|string, thenDo: () => any): Function;
+    on(when: 'before-items-synced'|'after-items-synced'|string, thenDo: (() => any)|((hadStopError: boolean, results: ScopedSyncResult[]) => any)): Function;
     /** @deprecated */
     onAfterItemsSynced(thenDo: () => any): Function;
     invalidateAll(): void;
@@ -631,7 +631,17 @@ interface StateHistory<T = any> {
 
 interface SaveButtonChannelHandler<T = any> {
     handleStateChange(state: T, userCtx: StateChangeUserContext|null, context: stateChangeContext): void;
-    syncToBackend(stateHistory: StateHistory<T>, otherHistories: Array<StateHistory>): Promise<boolean|any>;
+    syncToBackend(stateHistory: StateHistory<T>, otherHistories: Array<StateHistory>): Promise<SyncResult>;
+}
+
+interface SyncResult<T = any> {
+    success: boolean;
+    data: T;
+}
+
+interface ScopedSyncResult<ResultT = any, EntityT = any> {
+    result: SyncResult<ResultT>;
+    queueItem: StateHistory<EntityT>;
 }
 
 type sbState = any;

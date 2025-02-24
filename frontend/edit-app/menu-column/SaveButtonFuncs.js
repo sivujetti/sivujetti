@@ -37,7 +37,7 @@ function createStylesBundleChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<boolean|any>}
+         * @returns {Promise<SyncResult>}
          */
         syncToBackend(stateHistory, _otherHistories) {
             const toTransferable = bundle => {
@@ -49,7 +49,7 @@ function createStylesBundleChannelHandler() {
                     pageType: type,
                 };
             };
-            return doPostOrPut(http.put(
+            return doWrappedPostOrPut(http.put(
                 `/api/themes/${globalData.theme.id}/styles/all`,
                 toTransferable(stateHistory.latest)
             ));
@@ -74,12 +74,12 @@ function createBlockTreeChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<boolean|any>}
+         * @returns {Promise<SyncResult>}
          */
         syncToBackend(stateHistory, _otherHistories) {
             const page = api.saveButton.getInstance().getChannelState('currentPageData');
             const blocks = treeToTransferable(stateHistory.latest);
-            return doPostOrPut(http.put(
+            return doWrappedPostOrPut(http.put(
                 `/api/pages/${page.type}/${page.id}/blocks`,
                 {blocks}
             ), (err, [message, level]) =>
@@ -102,7 +102,7 @@ function createReusableBranchesChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<boolean|any>}
+         * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory);
@@ -110,7 +110,8 @@ function createReusableBranchesChannelHandler() {
                 ? http.post('/api/reusable-branches', arg)
                 : (window.console.error(`${type}:ng to backend not implemented yet`), {ok: 'ok'})
             ));
-            return results.every(resp => resp?.ok === 'ok');
+            const wasSuccess = results.every(resp => resp?.ok === 'ok');
+            return {wasSuccess, data: null};
         }
     };
 }
@@ -132,10 +133,16 @@ function createGlobalBlockTreesChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<boolean|any>}
+         * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createGbtSaveables(stateHistory);
+            const results = await Promise.all(saveable.map(({type, arg}) => type === 'update'
+                ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks})
+                : http.post('/api/global-block-trees', arg)
+            ));
+            const wasSuccess = results.every(resp => resp?.ok === 'ok');
+            return {wasSuccess, data: null};
             const results = await Promise.all(saveable.map(({type, arg}) => type === 'update'
                 ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks})
                 : http.post('/api/global-block-trees', arg)
@@ -176,14 +183,15 @@ function createQuicklyAddedPagesChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<boolean|any>}
+         * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory);
             const results = await Promise.all(saveable.map(({arg}) =>
                 http.post(`/api/pages/${arg.type}/upsert-quick`, arg)
             ));
-            return results.every(resp => resp?.ok === 'ok');
+            const wasSuccess = results.every(resp => resp?.ok === 'ok');
+            return {wasSuccess, data: null};
         }
     };
 }
@@ -202,7 +210,7 @@ function createCurrentPageDataChannelHandler() {
         /**
          * @param {StateHistory<Page>} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<boolean|any>}
+         * @returns {Promise<SyncResult>}
          */
         syncToBackend(stateHistory, _otherHistories) {
             if (!stateHistory.latest.isPlaceholderPage) {
@@ -211,12 +219,13 @@ function createCurrentPageDataChannelHandler() {
                     stateHistory.initial,
                 );
             }
+            throw new Error('todo');
             return this.syncNewPageToBackend(stateHistory.latest);
         },
         /**
          * @param {Page} page
          * @param {Page} syncedPage
-         * @returns {Promise<boolean|any>}
+         * @returns {Promise<SyncResult>}
          * @access private
          */
         syncAlreadyExistingPageToBackend(page, syncedPage) {
@@ -232,13 +241,13 @@ function createCurrentPageDataChannelHandler() {
                 });
             }
 
-            return doPostOrPut(
+            return doWrappedPostOrPut(
                 http.put(`/api/pages/${data.type}/${data.id}`, data)
             );
         },
         /**
          * @param {Page} newPage
-         * @returns {Promise<boolean|any>}
+         * @returns {Promise<SyncResult>}
          * @access private
          */
         syncNewPageToBackend(newPage) {
@@ -271,14 +280,15 @@ function createPageTypesChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns {Promise<boolean|any>}
+         * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory, 'name');
             const results = await Promise.all(saveable.map(({arg}) =>
                 http.post('/api/page-types', arg)
             ));
-            return results.every(resp => resp?.ok === 'ok');
+            const wasSuccess = results.every(resp => resp?.ok === 'ok');
+            return {wasSuccess, data: null};
         }
     };
 }
@@ -315,9 +325,19 @@ function pageToTransferable(page, notTheseKeys = []) {
 }
 
 /**
+ * @param {Promise<Object|string>} httpCallPromise
+ * @param {adjustErrorToastArgsFn} adjustErrorToastArgs = null
+ * @returns {Promise<SyncResult>}
+ */
+async function doWrappedPostOrPut(httpCallPromise, adjustErrorToastArgs = null) {
+    const wasSuccess = await doPostOrPut(httpCallPromise, adjustErrorToastArgs);
+    return {wasSuccess, data: null};
+}
+
+/**
  * @param {Promise<Object|string>} httpCall
  * @param {adjustErrorToastArgsFn} adjustErrorToastArgs = null
- * @returns {Promise<boolean>}
+ * @returns {Promise<SyncResult>}
  */
 async function doPostOrPut(httpCall, adjustErrorToastArgs = null) {
     try {

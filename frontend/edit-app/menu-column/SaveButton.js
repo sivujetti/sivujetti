@@ -130,7 +130,7 @@ class SaveButton {
         return saveButtonEvents2.on(when, thenDo);
     }
     /**
-     * @deprecated Use saveButton.on('after-items-synced', () => {});
+     * @deprecated Use saveButton.on('after-items-synced', (hadStopError: boolean, results: ScopedSyncResult[]) => any) => {});
      * @param {() => any} thenDo
      * @returns {Function} Unregister
      * @access public
@@ -181,11 +181,10 @@ class SaveButton {
      */
     doUndo() {
         const head = this.opHistory[--this.opHistoryCursor];
-        const norm = normalizeItem(head);
-        norm.forEach(({channelName, userCtx}) => {
+        for (const {channelName, userCtx} of normalizeItem(head)) {
             const state = this.states[channelName][--this.stateCursors[channelName]];
             this.emitStateChange(channelName, state, userCtx, 'undo');
-        });
+        }
         this.renderer.setState(this.createCanUndoAndRedo());
     }
     /**
@@ -193,10 +192,10 @@ class SaveButton {
      */
     doRedo() {
         const head = this.opHistory[this.opHistoryCursor++];
-        normalizeItem(head).forEach(({channelName, userCtx}) => {
+        for (const {channelName, userCtx} of normalizeItem(head)) {
             const state = this.states[channelName][++this.stateCursors[channelName]];
             this.emitStateChange(channelName, state, userCtx, 'redo');
-        });
+        }
         this.renderer.setState(this.createCanUndoAndRedo());
     }
     /**
@@ -208,12 +207,14 @@ class SaveButton {
         this.renderer.setState({isSubmitting: true});
 
         const syncQueue = await this.createSynctobackendQueue();
-        for (const top of syncQueue) {
-            const handler = this.channelImpls[top.channelName];
-            const result = await handler.syncToBackend(top, syncQueue);
+        const results = [];
+        for (const item of syncQueue) {
+            const handler = this.channelImpls[item.channelName];
+            const result = await handler.syncToBackend(item, syncQueue);
+            results.push({result, queueItem: item});
             // If handler returns false -> stop processing. If it returns any other value
             // (undefined, true, etc.) -> interpret this as a success and continue
-            const isStopSignal = result === false;
+            const isStopSignal = result.wasSuccess === false;
             if (isStopSignal) {
                 this.removeOpHistoryItemsBetween(/*?, ? todo*/);
                 this.renderer.setState({isSubmitting: false});
@@ -221,7 +222,7 @@ class SaveButton {
         }
 
         this.reset(getLatestItemsOfEachChannel(syncQueue));
-        saveButtonEvents2.emit('after-items-synced');
+        saveButtonEvents2.emit('after-items-synced', false, results);
     }
     /**
      * @access public
@@ -371,10 +372,10 @@ class SaveButton {
      */
     getHistoryChannelNames() {
         const map = new Map;
-        for (let i = 0; i < this.opHistoryCursor; ++i) {
-            normalizeItem(this.opHistory[i]).forEach(({channelName}) => {
+        for (const item of this.opHistory) {
+            for (const {channelName} of normalizeItem(item)) {
                 map.set(channelName, 1);
-            });
+            }
         }
         return [...map.keys()];
     }
@@ -431,10 +432,13 @@ class SaveButton {
      * @access private
      */
     doInvalidateAll() {
+        /** @type {{[name: string]: Array<state>;}} */
         this.states = {};
+        /** @type {{[name: string]: number;}} */
         this.stateCursors = {};
+        /** @type {{[name: string]: SaveButtonChannelHandler;}} */
         this.channelImpls = {};
-
+        /** @type {Array<HistoryItem|Array<HistoryItem>>} */
         this.opHistory = [];
         this.opHistoryCursor = 1;
     }

@@ -193,6 +193,8 @@ stringBundles.push({
     'Unique': 'Unique',
     'todo13': 'todo13',
     'Cancel': 'Cancel',
+    // /edit-app/main-column/popups/CustomClassStyleReorderDialog.jsx
+    'Save order': 'Save order',
     // edit-app/src/popups/styles/EditUnitOrSetAsDefaultDialog.jsx
     'Specifier': 'Specifier',
     'todo16 %s': 'todo16 %s', // Tämä toiminto merkitsee nämä tyylit tyyleihin, jota käytetään automaattisesti uusissa, sivuun lisätyissä  %s -sisällöissä.'
@@ -405,6 +407,8 @@ stringBundles.push({
     'Edit name': 'Edit name',
     'Edit style name': 'Edit style name',
     'Edit customization settings': 'Edit customization settings',
+    'Reorder': 'Reorder',
+    'Reorder styles': 'Reorder styles',
     'Duplicate style': 'Duplicate style',
     'Delete style': 'Delete style',
     'Length': 'Length',

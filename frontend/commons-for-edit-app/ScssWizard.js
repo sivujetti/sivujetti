@@ -1,6 +1,7 @@
 import {
     addOrUpdateCodeTo,
     createChunkIdGenerator,
+    createReorderedStyles,
     createScssBlock,
     createSelector,
     deleteCodeFrom,
@@ -188,6 +189,15 @@ class ScssWizard {
         const updated = this.styles.map(s =>
             s !== currentStyle ? s : {...s, ...changes}
         );
+        return this.tryToCommitAll(updated);
+    }
+    /**
+     * 
+     * @param {Array<number>} newOrderedIds
+     * @returns {[StylesBundleWithId|null, string|null]}
+     */
+    reorderDevsExistingChunksAndReturnAllRecompiled(newOrderedIds) {
+        const updated = createReorderedStyles(this.styles, newOrderedIds);
         return this.tryToCommitAll(updated);
     }
     /**

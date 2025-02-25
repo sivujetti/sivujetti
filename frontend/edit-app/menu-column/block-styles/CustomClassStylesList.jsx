@@ -10,6 +10,7 @@ import {
     timingUtils,
 } from '@sivujetti-commons-for-edit-app';
 import CustomClassStyleEditCustomizationsDialog from '../../main-column/popups/CustomClassStyleEditCustomizationsDialog.jsx';
+import CustomClassStylesReorderDialog, {extractClassName} from '../../main-column/popups/CustomClassStyleReorderDialog.jsx';
 import EditTitlePopup from '../../main-column/popups/CustomClassStyleEditTitlePopup.jsx';
 import {createUpdateBlockPropOp, pushBlockChanges} from '../block/block-edit-funcs.js';
 import ScssEditor from './ScssEditor.jsx';
@@ -72,6 +73,8 @@ class CustomClassStylesList extends preact.Component {
                     currentSettings: next[this.state.idxOfOpenDialogListItem].data?.customizationSettings?.varDefs,
                     onSettingsChanged: newSettings => this.emitCustomClassSettingsData(this.state.idxOfOpenDialogListItem, newSettings),
                 });
+            else if (floatingDialog.getCurrentRendererCls() === CustomClassStylesReorderDialog)
+                floatingDialog.updateRendererProps({styleChunks: next});
         }
     }
     /**
@@ -216,6 +219,7 @@ class CustomClassStylesList extends preact.Component {
             getLinks: () => ([
                 {text: __('Edit name'), title: __('Edit style name'), id: 'edit-title'},
                 {text: __('Edit customization settings'), title: __('Edit customization settings'), id: 'edit-settings'},
+                {text: __('Reorder'), title: __('Reorder'), id: 'reorder'},
                 {text: __('Duplicate'), title: __('Duplicate style'), id: 'duplicate'},
                 {text: __('Delete'), title: __('Delete style'), id: 'delete'},
             ]),
@@ -242,6 +246,17 @@ class CustomClassStylesList extends preact.Component {
                     }, {
                         currentSettings: currentDefs,
                         onSettingsChanged: newSettings => this.emitCustomClassSettingsData(idx, newSettings),
+                    });
+                } else if (link.id === 'reorder') {
+                    this.setState({idxOfOpenDialogListItem: idx});
+                    floatingDialog.open(CustomClassStylesReorderDialog, {
+                        title: __('Reorder styles'),
+                    }, {
+                        styleChunks: this.state.styleChunksVisible,
+                        onOrderSaved: newOrderedIds => {
+                            const newAll = scssWizard.reorderDevsExistingChunksAndReturnAllRecompiled(newOrderedIds)[0];
+                            saveButtonInstance.pushOp('stylesBundle', newAll);
+                        }
                     });
                 } else if (link.id === 'duplicate') {
                     this.addStyle(idx);
@@ -340,16 +355,6 @@ function maybePatchVarDefs(arr, chunk) {
  */
 function createChunksState() {
     return getAllCustomClassChunks();
-}
-
-/**
- * @param {StyleChunk} scss
- * @param {boolean} withDot = true
- * @returns {string}
- */
-function extractClassName({scss}, withDot = true) {
-    const s1 = scss.split(' {')[0];
-    return withDot ? s1 : s1.substring(1);
 }
 
 /**

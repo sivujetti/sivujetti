@@ -13,7 +13,8 @@ import {
     timingUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
-import CustomClassStylesList, {extractClassName} from '../block-styles/CustomClassStylesList.jsx';
+import {extractClassName} from '../../main-column/popups/CustomClassStyleReorderDialog.jsx';
+import CustomClassStylesList from '../block-styles/CustomClassStylesList.jsx';
 import StyleClassesPicker from '../block-styles/StyleClassesPicker.jsx';
 import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
 import {pushBlockChanges} from './block-edit-funcs.js';

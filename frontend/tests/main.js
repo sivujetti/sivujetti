@@ -6,6 +6,7 @@ import {api} from '@sivujetti-commons-for-edit-app';
 import './SaveButton-test.js';
 import './SaveButtonFuncs-test.js';
 import './scss-utils-test.js';
+import './ScssWizardFuncsTest.js';
 import './short-id-gen-test.js';
 
 api.webPagePreview.reRenderBlock = () => {};

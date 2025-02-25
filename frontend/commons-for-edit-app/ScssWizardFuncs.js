@@ -495,10 +495,30 @@ function createChunkIdGenerator(chunksAll) {
     };
 }
 
+/**
+ * @param {Array<StyleChunk>} chunksAll
+ * @param {Array<number>} orderedIds
+ * @returns {Array<StyleChunk>}
+ */
+function createReorderedStyles(chunksAll, orderedIds) {
+    const out = [];
+    let cursor = 0;
+    for (const chunk of chunksAll) {
+        if (orderedIds.indexOf(chunk.id) > -1) {
+            const head = orderedIds[cursor++];
+            out.push(chunksAll.find(({id}) => id === head));
+        } else {
+            out.push(chunk);
+        }
+    }
+    return out;
+}
+
 export {
     addOrUpdateCodeTo,
     createChunkIdGenerator,
     createCssDeclExtractor,
+    createReorderedStyles,
     createScssBlock,
     createSelector,
     deleteCodeFrom,

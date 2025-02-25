@@ -194,6 +194,8 @@ stringBundles.push({
     'Unique': 'Uniikki',
     'todo13': 'Sisältö viittaa samaan tietoon, vaikka se olisi usealla eri sivulla (esim. "Footer").',
     'Cancel': 'Peruuta',
+    // /edit-app/main-column/popups/CustomClassStyleReorderDialog.jsx
+    'Save order': 'Tallenna järjestys',
     // edit-app/src/popups/styles/EditUnitOrSetAsDefaultDialog.jsx
     'Specifier': 'Tarkenne',
     'todo16 %s': 'Tämä toiminto merkitsee nämä tyylit tyyleihin, jota käytetään automaattisesti uusissa, sivuun lisätyissä  %s -sisällöissä.',
@@ -405,6 +407,8 @@ stringBundles.push({
     'Edit name': 'Muokkaa nimeä',
     'Edit style name': 'Muokkaa tyylin nimeä',
     'Edit customization settings': 'Muokkaa kustomointiasetuksia',
+    'Reorder': 'Järjestä',
+    'Reorder styles': 'Reorder styles',
     'Duplicate style': 'Monista tyyli',
     'Delete style': 'Poista tyyli',
     'Length': 'Pituus',

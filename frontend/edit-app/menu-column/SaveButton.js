@@ -216,8 +216,9 @@ class SaveButton {
             // (undefined, true, etc.) -> interpret this as a success and continue
             const isStopSignal = result.wasSuccess === false;
             if (isStopSignal) {
-                this.removeOpHistoryItemsBetween(/*?, ? todo*/);
-                this.renderer.setState({isSubmitting: false});
+                this.partiallyReset(syncQueue, item);
+                saveButtonEvents2.emit('after-items-synced', true, results);
+                return;
             }
         }
 
@@ -231,7 +232,7 @@ class SaveButton {
         return this;
     }
     /**
-     * @param {preact.Component & {resetState(): void;}} renderer
+     * @param {preact.Component & {resetState(keepButtonVisible?: boolean): void;}} renderer
      * @access public
      */
     linkRenderer(renderer) {
@@ -319,6 +320,7 @@ class SaveButton {
      */
     createSyncQueuePre() {
         const channelNamesOrdered = this.getHistoryChannelNames();
+        /** @type {StateMap} */
         const activeStates = {};
         const out = channelNamesOrdered.map(channelName => {
             const fromFirstToCursor = this.getActiveState(channelName);
@@ -347,7 +349,35 @@ class SaveButton {
             if (emitChange)
                 this.emitStateChange(channelName, initialState, {}, 'undo');
         }
+
         this.renderer.resetState();
+    }
+    /**
+     * @param {Array<StateHistory>} syncQueue
+     * @param {StateHistory} stopItem
+     */
+    partiallyReset(syncQueue, stopItem) {
+        const pos = syncQueue.indexOf(stopItem);
+        const before = syncQueue.slice(0, pos);
+        const afterIncludingStopItem = syncQueue.slice(pos);
+        const syncedStates = getLatestItemsOfEachChannel(syncQueue);
+
+        // before -> clear
+        for (const {channelName} of before) {
+            const initialState = syncedStates[channelName];
+            this.clearStateOf(channelName, initialState);
+        }
+
+        // stopItem + after -> keep
+        const beforeWipe = [...this.opHistory];
+        this.opHistory = [];
+        this.opHistoryCursor = 1;
+        for (const {channelName} of afterIncludingStopItem) {// [stopItem, ...after]) {
+            const firstStopItemChannelHistoryItem = beforeWipe.find(it => normalizeItem(it)[0].channelName === channelName);
+            this.opHistoryCursor = this.opHistory.push(firstStopItemChannelHistoryItem);
+        }
+
+        this.renderer.resetState(true);
     }
     /**
      * @param {string} channelName
@@ -357,14 +387,6 @@ class SaveButton {
     clearStateOf(channelName, initialState) {
         this.states[channelName] = [initialState];
         this.stateCursors[channelName] = 0;
-    }
-    /**
-     * @param {number} from
-     * @param {number} to
-     * @access private
-     */
-    removeOpHistoryItemsBetween(from, to) {
-        // todo
     }
     /**
      * @returns {Array<string>}

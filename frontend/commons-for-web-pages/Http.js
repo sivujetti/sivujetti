@@ -1,4 +1,16 @@
+class HttpErrorCause {
+    /**
+     * @param {string|Array<string>} error
+     * @param {Response} response
+     */
+    constructor(error, response) {
+        this.error = error;
+        this.response = response;
+    }
+}
+
 class Http {
+    static ErrorCauseClass = HttpErrorCause;
     /**
      * @param {(url: string, settings?: Object) => Promise<Object>} fetchFn
      * @param {(url: string) => string} makeUrl
@@ -15,11 +27,11 @@ class Http {
      * @access public
      */
     get(url, settings = {}) {
-        return this.fetchFn(this.makeUrl(url), completeSettings(Object.assign({method: 'GET'}, settings), null))
+        return this.fetchFn(this.makeUrl(url), completeSettings({method: 'GET', ...settings}, null))
             .then(resp => {
                 if (resp.status === 401)
                     window.console.error('todo');
-                return resp.json();
+                return readResponseBody(resp);
             });
     }
     /**
@@ -27,28 +39,38 @@ class Http {
      * @param {Object} data
      * @param {RequestInit} settings = {}
      * @param {RequestInit} defaults = {method: 'POST'}
+     * @param {boolean} throwIfError = false
      * @returns {Promise<Object>}
      * @access public
      */
-    post(url, data, settings = {}, defaults = {method: 'POST'}) {
-        return this.fetchFn(this.makeUrl(url), completeSettings(Object.assign(defaults, settings), data))
-            .then(resp => {
-                if (resp.status === 401)
-                    window.console.error('todo');
-                if (resp.status === 403)
-                    throw new Error('403 Forbidden', {cause: resp});
-                return resp.json();
-            });
+    async post(url, data, settings = {}, defaults = {method: 'POST'}, throwIfError = false) {
+        const resp = await this.fetchFn(this.makeUrl(url), completeSettings({...defaults, ...settings}, data));
+        if (resp.status === 401)
+            window.console.error('todo');
+        if (throwIfError && (resp.status === 400 || resp.status === 403)) {
+            let error = null;
+            try {
+                error = await resp.json();
+            } catch (e) {
+                error = e.message;
+            }
+            throw new Error(
+                resp.statusText, // '400 Bad Request', '403 Forbidden' etc.
+                {cause: new Http.ErrorCauseClass(error, resp)}
+            );
+        }
+        return readResponseBody(resp);
     }
     /**
      * @param {string} url
      * @param {Object} data
      * @param {RequestInit} settings = {}
+     * @param {boolean} throwIfError = false
      * @returns {Promise<Object>}
      * @access public
      */
-    put(url, data, settings = {}) {
-        return this.post(url, data, settings, {method: 'PUT'});
+    put(url, data, settings = {}, throwIfError = false) {
+        return this.post(url, data, settings, {method: 'PUT'}, throwIfError);
     }
     /**
      * @param {string} url
@@ -58,6 +80,15 @@ class Http {
     delete(url, settings = {}) {
         return this.post(url, null, settings, {method: 'DELETE'});
     }
+}
+
+/**
+ * @template T
+ * @param {Response} resp 
+ * @returns {Promise<T>}
+ */
+function readResponseBody(resp) {
+    return resp.json();
 }
 
 /**

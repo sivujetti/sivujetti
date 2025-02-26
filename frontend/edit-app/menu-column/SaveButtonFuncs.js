@@ -11,7 +11,6 @@ import {treeToTransferable} from '../includes/block/utils.js';
 import toasters from '../includes/toasters.jsx';
 import {pathToFullSlug} from '../includes/utils.js';
 import globalData from '../includes/globalData.js';
-/** @typedef {import('../includes/toasters.jsx').messageLevel} messageLevel */
 
 const handlerFactoriesMap = {
     currentPageData: createCurrentPageDataChannelHandler,
@@ -81,9 +80,11 @@ function createBlockTreeChannelHandler() {
             const blocks = treeToTransferable(stateHistory.latest);
             return doWrappedPostOrPut(http.put(
                 `/api/pages/${page.type}/${page.id}/blocks`,
-                {blocks}
-            ), (err, [message, level]) =>
-                [err.cause?.status === 403 ? 'You lack permissions to edit this content.' : message, level]
+                {blocks},
+                undefined,
+                true
+            ), (message, level, err) =>
+                [err?.cause instanceof Http.ErrorCauseClass && err.cause.response.status === 403 ? 'You lack permissions to edit this content.' : message, level]
             );
         },
     };
@@ -131,25 +132,68 @@ function createGlobalBlockTreesChannelHandler() {
                 api.webPagePreview.reRenderAllBlocks(api.saveButton.getInstance().getChannelState('theBlockTree'), state);
         },
         /**
+         * See also broadcastCurrentPageData() at ./main-column/WebPagePreviewApp.jsx
+         *
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
          * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
-            const saveable = createGbtSaveables(stateHistory);
-            const results = await Promise.all(saveable.map(({type, arg}) => type === 'update'
-                ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks})
-                : http.post('/api/global-block-trees', arg)
-            ));
-            const wasSuccess = results.every(resp => resp?.ok === 'ok');
-            return {wasSuccess, data: null};
-            const results = await Promise.all(saveable.map(({type, arg}) => type === 'update'
-                ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks})
-                : http.post('/api/global-block-trees', arg)
-            ));
-            return results.every(resp => resp?.ok === 'ok');
+            const saveables = createGbtSaveables(stateHistory);
+            let i = 0;
+            for (i; i < saveables.length; ++i) {
+                const {type, arg} = saveables[i];
+                try {
+                    const status = await doPostOrPut(type === 'update'
+                        ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks}, undefined, true)
+                        : http.post('/api/global-block-trees', arg, undefined, undefined, true))
+                    if (status === 'error') break;
+                } catch (err) {
+                    break;
+                }
+            }
+            const stoppedDueToError = i < saveables.length;
+            // This object is passed to the saveButton.on('after-items-synced') event
+            // (registered by registerUpdateSyncedGbtsPatchers() below) by the SaveButton
+            return {wasSuccess: !stoppedDueToError, data: saveables.slice(0, i - 1)};
         }
     };
+}
+
+/**
+ * @param {SaveButton} saveButton = api.saveButton.getInstance()
+ * @returns {[Function, Function]}
+ */
+function registerUpdateSyncedGbtsPatchers(saveButton = api.saveButton.getInstance()) {
+    /** @type {Array<GlobalBlockTree>} */
+    let latestGbtsJustBeforeSave = [];
+    return [
+        saveButton.on('before-items-synced', () => {
+            latestGbtsJustBeforeSave = saveButton.getChannelState('globalBlockTrees');
+        }),
+        saveButton.on('after-items-synced', (
+            /** @type {boolean} */ hadStopError,
+            /** @type {Array<ScopedSyncResult<{type: 'insert'|'update'; arg: GlobalBlockTree;}[], GlobalBlockTree>>} */ results
+        ) => {
+            if (!latestGbtsJustBeforeSave.length)
+                return;
+
+            let gbtsMarkedAsSynced = null;
+            if (!hadStopError)
+                gbtsMarkedAsSynced = latestGbtsJustBeforeSave;
+            else {
+                const succesfulHttpCalls = results.find(it => it.queueItem.channelName === 'globalBlockTrees')?.result.data; 
+                gbtsMarkedAsSynced = succesfulHttpCalls.map(({arg}) => latestGbtsJustBeforeSave.find(({id}) => id === arg.id));
+            }
+
+            blockTreeUtils.globalBlockTreesRepo.setTrees(mergeGlobalBlockTrees(
+                blockTreeUtils.globalBlockTreesRepo.getTrees(),
+                gbtsMarkedAsSynced,
+            ));
+
+            latestGbtsJustBeforeSave = [];
+        })
+    ];
 }
 
 /**
@@ -253,6 +297,7 @@ function createCurrentPageDataChannelHandler() {
         syncNewPageToBackend(newPage) {
             const postData = pageToTransferable(newPage);
             //
+            throw new Error('todo');
             return http.post(`/api/pages/${postData.type}`, postData)
                 .then(resp => {
                     if (Array.isArray(resp) && resp[0] === 'Page with identical slug already exists') {
@@ -262,7 +307,7 @@ function createCurrentPageDataChannelHandler() {
                     if (resp.ok !== 'ok') throw new Error('-');
                     return true;
                 })
-                .catch(err => handleHttpError(err, null));
+                .catch(err => createAndLogError(err, null));
         }
     };
 }
@@ -294,21 +339,37 @@ function createPageTypesChannelHandler() {
 }
 
 /**
- * @param {Error|Object} err
+ * @param {string|Error} err
  * @param {adjustErrorToastArgsFn|null} adjustErrorToastArgs
+ * @returns {ToastMessageSettings|null}
  */
-function handleHttpError(err, adjustErrorToastArgs) {
+function createAndLogError(err, adjustErrorToastArgs) {
     window.console.error(err);
-    //
-    const pair1 = err.cause?.status === 403
-        ? ['You lack permissions to do this action', 'notice']
-        : ['Something unexpected happened', 'error'];
+
+    let message1;
+    let level1;
+    if (err?.cause instanceof Http.ErrorCauseClass) {
+        const {response, error} = err.cause;
+        if (response.status === 400 && Array.isArray(error)) {
+            message1 = 'Error [' + JSON.stringify(error) + ']';
+            level1 = 'error';
+        } else if (response.status === 403) {
+            message1 = 'You lack permissions to do this action';
+            level1 = 'notice';
+        }
+    }
+    if (!message1) {
+        message1 = 'Something unexpected happened';
+        level1 = 'error';
+    }
+
     const [message, level] = !adjustErrorToastArgs
-        ? pair1
-        : adjustErrorToastArgs(err, ...pair1);
+        ? [message1, level1]
+        : adjustErrorToastArgs(message1, level1, err);
+
     toasters.editAppMain(__(message), level);
-    //
-    return false;
+
+    return [level, message];
 }
 
 /**
@@ -330,22 +391,21 @@ function pageToTransferable(page, notTheseKeys = []) {
  * @returns {Promise<SyncResult>}
  */
 async function doWrappedPostOrPut(httpCallPromise, adjustErrorToastArgs = null) {
-    const wasSuccess = await doPostOrPut(httpCallPromise, adjustErrorToastArgs);
-    return {wasSuccess, data: null};
+    const level = await doPostOrPut(httpCallPromise, adjustErrorToastArgs);
+    return {wasSuccess: level === null, data: null};
 }
 
 /**
- * @param {Promise<Object|string>} httpCall
+ * @param {Promise<Object|string>} httpCallPromise
  * @param {adjustErrorToastArgsFn} adjustErrorToastArgs = null
- * @returns {Promise<SyncResult>}
+ * @returns {Promise<toastMessageLevel|null>}
  */
-async function doPostOrPut(httpCall, adjustErrorToastArgs = null) {
+async function doPostOrPut(httpCallPromise, adjustErrorToastArgs = null) {
     try {
-        const resp = await httpCall;
-        if (resp.ok !== 'ok') throw new Error(typeof resp.err !== 'string' ? '-' : resp.err);
-        return true;
+        await httpCallPromise;
+        return null;
     } catch (err) {
-        return handleHttpError(err, adjustErrorToastArgs);
+        return createAndLogError(err, adjustErrorToastArgs)[0];
     }
 }
 
@@ -427,34 +487,11 @@ function createEventName(channelName) {
 }
 
 /**
- * @param {SaveButton} saveButton = api.saveButton.getInstance()
- * @returns {[Function, Function]}
- */
-function registerUpdateSyncedGbtsPatchers(saveButton = api.saveButton.getInstance()) {
-    /** @type {Array<GlobalBlockTree>} */
-    let latestGbtsJustBeforeSave = [];
-    return [
-        saveButton.on('before-items-synced', () => {
-            latestGbtsJustBeforeSave = saveButton.getChannelState('globalBlockTrees');
-        }),
-        saveButton.on('after-items-synced', () => {
-            if (!latestGbtsJustBeforeSave.length)
-                return;
-            blockTreeUtils.globalBlockTreesRepo.setTrees(mergeGlobalBlockTrees(
-                blockTreeUtils.globalBlockTreesRepo.getTrees(),
-                latestGbtsJustBeforeSave,
-            ));
-            latestGbtsJustBeforeSave = [];
-        })
-    ];
-}
-
-/**
  * @typedef {any} state
  *
  * @typedef {{[channelName: string]: Array<state>;}} StateMap
  *
- * @typedef {(err: Error|Object, message: string, level: messageLevel) => [string, messageLevel]} adjustErrorToastArgsFn
+ * @typedef {(message: string, level: toastMessageLevel, err: Error|Object) => [string, toastMessageLevel]} adjustErrorToastArgsFn
  *
  * @typedef HistoryItem
  * @prop {string} channelName

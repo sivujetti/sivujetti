@@ -96,11 +96,15 @@ interface WebPagePreviewApp {
 interface ToasterMap {
     [name: string]: (
         message: preact.ComponentChild,
-        level: messageLevel,
+        level: toastMessageLevel,
         timeout: number = undefined,
         onDismissed: () => void = undefined
     ) => void;
 }
+
+type toastMessageLevel = 'error'|'notice'|'info'|'success'|string;
+
+type ToastMessageSettings = [toastMessageLevel|null, string|string[]];
 
 interface ContextMenu extends preact.Component {
     open(e: Event, controller: ContextMenuController): void;
@@ -635,7 +639,7 @@ interface SaveButtonChannelHandler<T = any> {
 }
 
 interface SyncResult<T = any> {
-    success: boolean;
+    wasSuccess: boolean;
     data: T;
 }
 

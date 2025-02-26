@@ -6,7 +6,7 @@ const toasters = {
 
 class Toaster extends preact.Component {
     /**
-     * @param {{id?: string; autoCloseTimeoutMillis?: number; className?: string; message?: {message: preact.ComponentChild; level: messageLevel; timeout?: number; noClickClose?: boolean;}}} props
+     * @param {{id?: string; autoCloseTimeoutMillis?: number; className?: string; message?: {message: preact.ComponentChild; level: toasttoastMessageLevel; timeout?: number; noClickClose?: boolean;}}} props
      */
     constructor(props) {
         super(props);
@@ -51,7 +51,7 @@ class Toaster extends preact.Component {
     }
     /**
      * @param {preact.ComponentChild} message
-     * @param {messageLevel} level
+     * @param {toastMessageLevel} level
      * @param {number} timeout = this.autoCloseTimeoutMillis
      * @param {() => void} onDismissed = null
      * @access private
@@ -64,7 +64,7 @@ class Toaster extends preact.Component {
         this.setState({messages: this.state.messages});
     }
     /**
-     * @param {{message: preact.ComponentChild; level: messageLevel; addedAt: number; timeoutId: number; onDismissed?: () => void;}?} message
+     * @param {{message: preact.ComponentChild; level: toastMessageLevel; addedAt: number; timeoutId: number; onDismissed?: () => void;}?} message
      * @access private
      */
     removeMessage(message) {
@@ -86,7 +86,7 @@ class Toaster extends preact.Component {
 }
 
 /**
- * @typedef {'error'|'notice'|'info'|'success'|string} messageLevel
+ * @typedef {'error'|'notice'|'info'|'success'|string} toastMessageLevel
  */
 
 export default toasters;

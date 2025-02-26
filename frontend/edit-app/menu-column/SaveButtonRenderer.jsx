@@ -5,10 +5,11 @@ const useStickiedClsChangeUpdater = false;
 /** @extends {preact.Component<{editAppOuterEl: HTMLElement; saveButton: SaveButton;}, any>} */
 class SaveButtonRenderer extends preact.Component {
     /**
+     * @param {boolean} keepButtonVisible = false
      * @access public
      */
-    resetState() {
-        this.setState(createInitialState());
+    resetState(keepButtonVisible = false) {
+        this.setState(createInitialState(keepButtonVisible));
     }
     /**
      * @access protected
@@ -66,11 +67,12 @@ class SaveButtonRenderer extends preact.Component {
 }
 
 /**
+ * @param {boolean} isVisible
  * @returns {Object}
  */
-function createInitialState() {
+function createInitialState(isVisible = false) {
     return {
-        isVisible: false,
+        isVisible,
         isSubmitting: false,
         canUndo: false,
         canRedo: false,

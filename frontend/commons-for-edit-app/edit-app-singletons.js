@@ -4,7 +4,6 @@ import MainMenuPanelApi from './MainMenuPanelApi.js';
 import ScssWizard from './ScssWizard.js';
 import Translator from './Translator.js';
 import {stringUtils} from './utils.js';
-/** @typedef {import('../edit-app/includes/toasters.jsx').messageLevel} messageLevel */
 
 const editAppBlockTypeRegister = new BlockTypesRegister;
 

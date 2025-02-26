@@ -26,5 +26,19 @@ QUnit.module('ScssWizardFuncs.js', () => {
             before2[1],
             before2[3],
         ]);
+
+        const before3 = [
+            before[0],
+            before[1],
+            before2.at(-1),
+            before[2],
+        ];
+        const reordered3 = createReorderedStyles(before3, orderNew);
+        assert.deepEqual(reordered3, [
+            before3[0],
+            before3[3],
+            before3[2],
+            before3[1],
+        ]);
     });
 });

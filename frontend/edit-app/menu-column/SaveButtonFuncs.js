@@ -2,7 +2,6 @@ import {
     __,
     api,
     arrayUtils,
-    blockTreeUtils,
     env,
     http,
     objectUtils,
@@ -175,21 +174,26 @@ function registerUpdateSyncedGbtsPatchers(saveButton = api.saveButton.getInstanc
             /** @type {boolean} */ hadStopError,
             /** @type {Array<ScopedSyncResult<{type: 'insert'|'update'; arg: GlobalBlockTree;}[], GlobalBlockTree>>} */ results
         ) => {
-            if (!latestGbtsJustBeforeSave.length)
+            if (!latestGbtsJustBeforeSave.length) // Page didn't contain 'GlobalBlockReference' blocks
+                return;
+            const syncResult = results.find(it => it.queueItem.channelName === 'globalBlockTrees');
+            if (!syncResult) // Op queue didn't contain 'globalBlockTrees' items
                 return;
 
             let gbtsMarkedAsSynced = null;
+
             if (!hadStopError)
                 gbtsMarkedAsSynced = latestGbtsJustBeforeSave;
             else {
-                const succesfulHttpCalls = results.find(it => it.queueItem.channelName === 'globalBlockTrees')?.result.data; 
+                const succesfulHttpCalls = syncResult.result.data; 
                 gbtsMarkedAsSynced = succesfulHttpCalls.map(({arg}) => latestGbtsJustBeforeSave.find(({id}) => id === arg.id));
             }
 
-            blockTreeUtils.globalBlockTreesRepo.setTrees(mergeGlobalBlockTrees(
-                blockTreeUtils.globalBlockTreesRepo.getTrees(),
-                gbtsMarkedAsSynced,
-            ));
+            if (gbtsMarkedAsSynced?.length)
+                saveButton.setSyncedState('globalBlockTrees', mergeGlobalBlockTrees(
+                    saveButton.getSyncedState('globalBlockTrees'),
+                    gbtsMarkedAsSynced,
+                ));
 
             latestGbtsJustBeforeSave = [];
         })
@@ -441,7 +445,7 @@ function createSaveableItems({initial, latest}, key = 'id') {
  * @returns {Array<{type: 'insert'|'update'; arg: GlobalBlockTree;}>}
  */
 function createGbtSaveables({latest}) {
-    const alreadyExisting = blockTreeUtils.globalBlockTreesRepo.getTrees();
+    const alreadyExisting = api.saveButton.getInstance().getSyncedState('globalBlockTrees');
     const out = [];
     for (const entity of latest) {
         const fromInitial = arrayUtils.findById(alreadyExisting, entity.id);
@@ -460,10 +464,6 @@ function createGbtSaveables({latest}) {
 function getLatestItemsOfEachChannel(queue) {
     const out = {};
     for (const item of queue) {
-        if (item.channelName === 'globalBlockTrees' && !item.initial?.length) {
-            out[item.channelName] = [];
-            continue;
-        }
         if (!item.latest) continue;
         out[item.channelName] = item.latest;
     }

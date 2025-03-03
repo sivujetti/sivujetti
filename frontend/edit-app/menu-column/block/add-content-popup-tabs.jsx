@@ -30,10 +30,11 @@ class AddReusableContentTab extends preact.Component {
     componentWillMount() {
         http.get('/api/global-block-trees')
             .then(globalBlockTrees => {
-                blockTreeUtils.globalBlockTreesRepo.setTrees(globalBlockTrees);
+                const saveButton = api.saveButton.getInstance();
+                saveButton.setSyncedState('globalBlockTrees', globalBlockTrees);
                 const all = mergeGlobalBlockTrees(
-                    blockTreeUtils.globalBlockTreesRepo.getTrees(),
-                    api.saveButton.getInstance().getChannelState('globalBlockTrees')
+                    saveButton.getSyncedState('globalBlockTrees'),
+                    saveButton.getChannelState('globalBlockTrees')
                 );
                 this.setState({globalBlockTrees: all});
             })

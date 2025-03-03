@@ -15,6 +15,7 @@ const saveButtonEvents = new Events;
 const saveButtonEvents2 = new Events;
 
 class SaveButton {
+    static DEFERRED = undefined;
     // states;
     // stateCursors;
     // channelImpls;
@@ -46,29 +47,30 @@ class SaveButton {
     }
     /**
      * @param {string} name
-     * @param {state} state
+     * @param {state|undefined} syncedState
      * @param {boolean} broadcastInitialStateToListeners = false
      * @access public
      */
-    initChannel(name, state, broadcastInitialStateToListeners = false) {
+    initChannel(name, syncedState, broadcastInitialStateToListeners = false) {
         const createHandler = handlerFactoriesMap[name];
         if (createHandler) {
-            const handler = createHandler();
-            this.channelImpls[name] = handler;
-
-            this.clearStateOf(name, state);
-
+            if (!this.channelImpls[name]) {
+                const handler = createHandler();
+                this.channelImpls[name] = handler;
+            }
+            this.clearStateOf(name, syncedState);
             if (broadcastInitialStateToListeners)
-                saveButtonEvents.emit(createEventName(name), state, null, 'initial');
+                saveButtonEvents.emit(createEventName(name), syncedState, null, 'initial');
         } else throw new Error(`Unknown channel name: ${name}`);
     }
     /**
      * @template T
+     * @param {boolean} includeSynced = true
      * @returns {T|null}
      * @access public
      */
-    getChannelState(channelName) {
-        return this.getHead(channelName);
+    getChannelState(channelName, includeSynced = true) {
+        return this.getHead(channelName, includeSynced);
     }
     /**
      * @param {string} channelName
@@ -77,33 +79,40 @@ class SaveButton {
      * @param {blockPropValueChangeFlags} flags = null
      * @access public
      */
-    pushOp(channelName, state, userCtx = null, flags = null) {
+    pushOp(channelName, state, userCtx = null, flags = null) { 
         const stateCursor = this.stateCursors[channelName];
         const stateArr = this.states[channelName];
-        if (stateCursor < stateArr.length - 1)
-            stateArr.splice(stateCursor + 1);
+        //      cursor
+        //        \/
+        // ['a', 'b', 'undone1', 'undone2', ...] -> ['a', 'b']
+        if (stateArr.length - 1 > stateCursor)
+            stateArr.splice(stateCursor);
 
-        this.stateCursors[channelName] = stateArr.push(state) - 1;
+        this.stateCursors[channelName] = stateArr.push(state);
         this.emitStateChange(channelName, state, userCtx, 'push');
 
+        // rewrite/pack [<maybeUnrelated>, <firstThrottled>, ..., <lastThrottled>] -> [<maybeUnrelated>, <lastThrottled>]
         const isNormalPush = !flags;
-        if (isNormalPush || flags === 'is-throttled') {
-            if (isNormalPush) {
-                const latest = this.opHistory[this.opHistoryCursor - 1];
-                const doMergeThrottled = latest?.flags === 'is-throttled';
-                // rewrite/pack [<maybeUnrelated>, <firstThrottled>, ..., <lastThrottled>] -> [<maybeUnrelated>, <lastThrottled>]
-                if (doMergeThrottled) {
-                    const firstI = this.opHistory.findIndex(it => it.channelName === channelName && it.flags === 'is-throttled');
-                    const delCount = this.opHistoryCursor - firstI;
-                    this.opHistory = [...this.opHistory.slice(0, firstI)];
-                    this.opHistoryCursor = this.opHistory.length;
-                    this.states[channelName] = [
-                        ...this.states[channelName].slice(0, this.stateCursors[channelName] - delCount),
-                        this.states[channelName].at(-1),
-                    ];
-                    this.stateCursors[channelName] = this.states[channelName].length - 1;
-                }
-            }
+        // @ts-ignore allow [].flags -> undefined
+        const prevPushIsThrottled = this.opHistoryCursor > 0 && this.opHistory[this.opHistoryCursor - 1].flags === 'is-throttled';
+        const isThrottlePushTerminator = isNormalPush && prevPushIsThrottled;
+        if (isThrottlePushTerminator) {
+            // @ts-ignore allow [].channelName -> undefined
+            const firstI = this.opHistory.findIndex(it => it.channelName === channelName && it.flags === 'is-throttled');
+            const lenBef = this.opHistoryCursor;
+            this.opHistory = [
+                ...this.opHistory.slice(0, firstI),
+                {channelName, userCtx, flags}
+            ];
+            this.opHistoryCursor = this.opHistory.length;
+
+            const delta = lenBef - this.opHistoryCursor + 2;
+            this.states[channelName] = [
+                ...this.states[channelName].slice(0, this.stateCursors[channelName] - delta),
+                this.states[channelName].at(-1),
+            ];
+            this.stateCursors[channelName] = this.states[channelName].length;
+        } else {
             this.pushHistoryItem({channelName, userCtx, flags});
         }
     }
@@ -119,6 +128,28 @@ class SaveButton {
             return {channelName: args[0], userCtx: args[2], flags: args[3]};
         });
         this.pushHistoryItem(group);
+    }
+    /**
+     * @template T
+     * @param {string} channelName
+     * @param {T} data
+     * @access public
+     */
+    setSyncedState(channelName, data) {
+        if (!Object.hasOwn(this.syncedStates, channelName))
+            throw new Error(`Unknown channel "${channelName}"`); 
+        this.syncedStates[channelName] = data;
+    }
+    /**
+     * @template T
+     * @param {string} channelName
+     * @returns {T}
+     * @access public
+     */
+    getSyncedState(channelName) {
+        if (!Object.hasOwn(this.syncedStates, channelName))
+            throw new Error(`Unknown channel "${channelName}"`); 
+        return this.syncedStates[channelName];
     }
     /**
      * @param {'before-items-synced'|'after-items-synced'|string} when
@@ -180,9 +211,12 @@ class SaveButton {
      * @access public
      */
     doUndo() {
-        const head = this.opHistory[--this.opHistoryCursor];
+        if (!this.canUndo()) return;
+        this.opHistoryCursor -= 1;
+        const head = this.opHistory[this.opHistoryCursor];
         for (const {channelName, userCtx} of normalizeItem(head)) {
-            const state = this.states[channelName][--this.stateCursors[channelName]];
+            this.stateCursors[channelName] -= 1;
+            const state = this.getHead(channelName, true);
             this.emitStateChange(channelName, state, userCtx, 'undo');
         }
         this.renderer.setState(this.createCanUndoAndRedo());
@@ -191,9 +225,12 @@ class SaveButton {
      * @access public
      */
     doRedo() {
-        const head = this.opHistory[this.opHistoryCursor++];
+        if (!this.canRedo()) return;
+        const head = this.opHistory[this.opHistoryCursor];
+        this.opHistoryCursor += 1;
         for (const {channelName, userCtx} of normalizeItem(head)) {
-            const state = this.states[channelName][++this.stateCursors[channelName]];
+            const state = this.states[channelName][this.stateCursors[channelName]];
+            this.stateCursors[channelName] += 1;
             this.emitStateChange(channelName, state, userCtx, 'redo');
         }
         this.renderer.setState(this.createCanUndoAndRedo());
@@ -207,6 +244,7 @@ class SaveButton {
         this.renderer.setState({isSubmitting: true});
 
         const syncQueue = await this.createSynctobackendQueue();
+
         const results = [];
         for (const item of syncQueue) {
             const handler = this.channelImpls[item.channelName];
@@ -244,7 +282,10 @@ class SaveButton {
      * @access private
      */
     pushHistoryItem(item) {
-        if (this.opHistoryCursor < this.opHistory.length)
+        //      cursor
+        //        \/
+        // ['a', 'b', 'undone1', 'undone2', ...] -> ['a', 'b']
+        if (this.opHistory.length - 1 > this.opHistoryCursor)
             this.opHistory.splice(this.opHistoryCursor);
         this.opHistoryCursor = this.opHistory.push(item);
         this.renderer.setState({isVisible: true, canUndo: true, canRedo: false});
@@ -255,7 +296,7 @@ class SaveButton {
             const unregisterClearer = historyInstance.listen(({pathname}) => {
                 if (isMainColumnViewUrl(pathname) && !historyInstance.doRevertNextHashChange) {
                     const queue = this.createSyncQueuePre()[0];
-                    const initialStates = queue.reduce((out, {channelName, initial}) => ({...out, [channelName]: initial}), {});
+                    const initialStates = queue.reduce((out, {channelName}) => ({...out, [channelName]: null}), {});
                     this.reset(initialStates, true);
                     this.unregisterAndClearUnsavedChagesAlertIfSet();
                 }
@@ -279,12 +320,17 @@ class SaveButton {
         saveButtonEvents.emit(createEventName(channelName), state, userCtx, context);
     }
     /**
-     * @returns {state}
+     * @template T
+     * @returns {state|T|null}
      * @access private
      */
-    getHead(channelName) {
-        const pool = this.states[channelName] || [];
-        return pool[this.stateCursors[channelName]] || null;
+    getHead(channelName, includeSynced = false) {
+        const c = this.stateCursors[channelName];
+        if (c > 0)
+            return this.states[channelName][c - 1];
+        return includeSynced
+            ? this.syncedStates[channelName]
+            : null;
     }
     /**
      * @param {string} channelName
@@ -292,12 +338,13 @@ class SaveButton {
      * @returns {Array<state>}
      * @access private
      */
-    getActiveState(channelName, start = 1) {
+    getActiveState(channelName, start = 0) {
         const pool = this.states[channelName];
-        // ['initial', '1st', '2nd', '3rd'] -> ['1st']               (if cursor = 1)
-        // ['initial', '1st', '2nd', '3rd'] -> ['1st', '2nd']        (if cursor = 2)
-        // ['initial', '1st', '2nd', '3rd'] -> ['1st', '2nd', '3rd'] (if cursor = 3)
-        const fromFirstToCursor = pool.slice(start, this.stateCursors[channelName] + 1);
+        // []                    -> []                    (if cursor = 0)
+        // ['1st', '2nd', '3rd'] -> ['1st', '2nd', '3rd'] (if cursor = 3 / at the end)
+        // ['1st', '2nd', '3rd'] -> ['1st', '2nd']        (if cursor = 2)
+        // ['1st', '2nd', '3rd'] -> ['1st']               (if cursor = 1)
+        const fromFirstToCursor = pool.slice(start, this.stateCursors[channelName]);
         return fromFirstToCursor;
     }
     /**
@@ -327,27 +374,31 @@ class SaveButton {
             activeStates[channelName] = fromFirstToCursor;
             return {
                 channelName,
-                initial: this.states[channelName][0], // Example 'initial'
-                first: fromFirstToCursor[0],          // Example '1st'
-                latest: fromFirstToCursor.at(-1)      // Example '3rd' (if cursor = 3)
+                initial: this.syncedStates[channelName],
+                first: fromFirstToCursor[0],
+                latest: fromFirstToCursor.at(-1)
             };
         });
         return [out, activeStates];
     }
     /**
-     * @param {StateMap} syncedStates Latest / synced states that were just saved to the backend
+     * @param {StateMap} latesStates The states that were just saved to the backend
      * @param {boolean} emitChange = false
      * @access private
      */
-    reset(syncedStates, emitChange = false) {
+    reset(latesStates, emitChange = false) {
         this.opHistory = [];
-        this.opHistoryCursor = 1;
+        this.opHistoryCursor = 0;
 
         for (const channelName in this.states) {
-            const initialState = syncedStates[channelName] || this.getHead(channelName);
-            this.clearStateOf(channelName, initialState);
-            if (emitChange)
-                this.emitStateChange(channelName, initialState, {}, 'undo');
+            const newSyncedState = Object.hasOwn(latesStates, channelName)
+                ? latesStates[channelName]
+                : this.getHead(channelName);
+            this.clearStateOf(channelName, newSyncedState);
+            if (emitChange) {
+                const revertState = this.getHead(channelName, true);
+                this.emitStateChange(channelName, revertState, {}, 'undo');
+            }
         }
 
         this.renderer.resetState();
@@ -360,32 +411,37 @@ class SaveButton {
         const pos = syncQueue.indexOf(stopItem);
         const before = syncQueue.slice(0, pos);
         const afterIncludingStopItem = syncQueue.slice(pos);
-        const syncedStates = getLatestItemsOfEachChannel(syncQueue);
+        const latestStates = getLatestItemsOfEachChannel(syncQueue);
 
-        // before -> clear
+        // before -> update syncedState and clear state
         for (const {channelName} of before) {
-            const initialState = syncedStates[channelName];
-            this.clearStateOf(channelName, initialState);
+            const latestState = latestStates[channelName];
+            this.clearStateOf(channelName, latestState);
         }
 
-        // stopItem + after -> keep
-        const beforeWipe = [...this.opHistory];
+        // stopItem + after -> keep syncedState and set `state = [latestItem]`
+        for (const {channelName} of afterIncludingStopItem) {
+            const latestState = latestStates[channelName];
+            this.states[channelName] = [latestState];
+            this.stateCursors[channelName] = 1;
+        }
+
+        // Add a history item for the stop item
+        // @ts-ignore allow [].channelName -> undefined
+        const firstStopItemChannelHistoryItem = this.opHistory.find(({channelName}) => channelName === stopItem.channelName);
         this.opHistory = [];
-        this.opHistoryCursor = 1;
-        for (const {channelName} of afterIncludingStopItem) {// [stopItem, ...after]) {
-            const firstStopItemChannelHistoryItem = beforeWipe.find(it => normalizeItem(it)[0].channelName === channelName);
-            this.opHistoryCursor = this.opHistory.push(firstStopItemChannelHistoryItem);
-        }
-
+        this.opHistoryCursor = this.opHistory.push(firstStopItemChannelHistoryItem);
         this.renderer.resetState(true);
     }
     /**
      * @param {string} channelName
-     * @param {state} initialState
+     * @param {state|null} newSyncedState
      * @access private
      */
-    clearStateOf(channelName, initialState) {
-        this.states[channelName] = [initialState];
+    clearStateOf(channelName, newSyncedState) {
+        if (newSyncedState)
+            this.syncedStates[channelName] = newSyncedState;
+        this.states[channelName] = [];
         this.stateCursors[channelName] = 0;
     }
     /**
@@ -444,11 +500,29 @@ class SaveButton {
      * @access private
      */
     createCanUndoAndRedo() {
-        const activeHistory = this.opHistory.slice(this.opHistoryCursor);
         return {
-            canUndo: this.opHistoryCursor > 0,
-            canRedo: activeHistory.length > 0,
+            canUndo: this.canUndo(),
+            canRedo: this.canRedo(),
         };
+    }
+    /**
+     * @returns {boolean}
+     * @access private
+     */
+    canUndo() {
+        return this.opHistoryCursor > 0;
+    }
+    /**
+     * @returns {boolean}
+     * @access private
+     */
+    canRedo() {
+        // []     0 -> false
+        // [1]    1 -> false
+        // [1, 2] 2 -> false
+        // [1, 2] 1 -> true
+        // [1, 2] 0 -> true
+        return this.opHistoryCursor < this.opHistory.length;
     }
     /**
      * @access private
@@ -456,13 +530,15 @@ class SaveButton {
     doInvalidateAll() {
         /** @type {{[name: string]: Array<state>;}} */
         this.states = {};
+        /** @type {{[name: string]: Object;}} */
+        this.syncedStates = {};
         /** @type {{[name: string]: number;}} */
         this.stateCursors = {};
         /** @type {{[name: string]: SaveButtonChannelHandler;}} */
         this.channelImpls = {};
         /** @type {Array<HistoryItem|Array<HistoryItem>>} */
         this.opHistory = [];
-        this.opHistoryCursor = 1;
+        this.opHistoryCursor = 0;
     }
 }
 

@@ -9,7 +9,6 @@ import {
 import {cloneDeep, getMetaKey, getBlockEl, traverseRecursively} from '../../shared-inline.js';
 import {isMetaBlock} from '../includes/block/utils.js';
 import globalData from '../includes/globalData.js';
-import GlobalBlockTreesRepository from '../includes/global-block-trees-repo.js';
 import {createTrier} from '../includes/utils.js';
 import {registerUpdateSyncedGbtsPatchers} from '../menu-column/SaveButtonFuncs.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
@@ -423,14 +422,19 @@ function broadcastCurrentPageData(e) {
 
     const saveButton = api.saveButton.getInstance();
     const [_, dataBundle] = e.data;
-
     /** @type {Array<Block>} */
     const blocks = getAndInvalidate(dataBundle.page, 'blocks');
     const detachedGbts = detachGlobalBlockTrees(blocks); // Note: mutates blocks
-    blockTreeUtils.globalBlockTreesRepo = new GlobalBlockTreesRepository(detachedGbts);
+
+    globalData.initialPageBlocksStyles = dataBundle.initialPageBlocksStyles;
+    globalData.theme = dataBundle.theme;
+    globalData.layout = dataBundle.layout;
+
+    saveButton.initChannel('currentPageData', dataBundle.page);
     if (!syncedGbtsUnregistrables)
         syncedGbtsUnregistrables = registerUpdateSyncedGbtsPatchers(saveButton);
-
+    saveButton.initChannel('globalBlockTrees', detachedGbts);
+    saveButton.initChannel('reusableBranches', saveButton.DEFERRED); // see ../includes/reusable-branches/repository.js
     /** @type {StylesBundle} */
     const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');
     saveButton.initChannel('stylesBundle', {
@@ -438,17 +442,8 @@ function broadcastCurrentPageData(e) {
         styleChunks: addIds(stylesBundle.styleChunks),
         id: counter + 1,
     }, broadcastInitialStateToListeners);
-
     saveButton.initChannel('theBlockTree', blocks, broadcastInitialStateToListeners);
-
-    globalData.initialPageBlocksStyles = dataBundle.initialPageBlocksStyles;
-    globalData.theme = dataBundle.theme;
-    globalData.layout = dataBundle.layout;
-
-    saveButton.initChannel('currentPageData', dataBundle.page);
-    saveButton.initChannel('globalBlockTrees', []);
-    // saveButton.initChannel('reusableBranches', ...); deferred, see ../includes/reusable-branches/repository.js
-    // saveButton.initChannel('pageTypes', ...); deferred, see ../menu-column/page-type/PageTypeCreateState.jsx @componentWillMount
+    saveButton.initChannel('pageTypes', saveButton.DEFERRED); // see ../menu-column/page-type/PageTypeCreateState.jsx @componentWillMount
 
     events.emit('webpage-preview-iframe-loaded');
 }

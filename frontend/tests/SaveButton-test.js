@@ -1,8 +1,6 @@
 import {api, blockTreeUtils, http, objectUtils, writeBlockProps} from '@sivujetti-commons-for-edit-app';
-import GlobalBlockTreesRepo from '../edit-app/includes/global-block-trees-repo.js';
 import SaveButton from '../edit-app/menu-column/SaveButton.js';
 import {registerUpdateSyncedGbtsPatchers} from '../edit-app/menu-column/SaveButtonFuncs.js';
-import {Http} from '@sivujetti-commons-for-web-pages';
 /** @typedef {import('../edit-app/menu-column/SaveButton.js').HistoryItem} HistoryItem */
 /** @typedef {import('../edit-app/menu-column/SaveButton.js').state} state */
 
@@ -23,82 +21,71 @@ QUnit.module('SaveButton.jsx', hooks => {
         api.saveButton = {};
     });
     QUnit.test('pushOp strips "is-throttled" items', assert => {
-        saveButton.initChannel('globalBlockTrees', []);
-
-        const initialState = createTestTheBlockTreeState('Lorem ipsum');
-        saveButton.initChannel('theBlockTree', initialState);
-        const userCtx = {event: 'update-single-block-prop', blockId: initialState[0].id};
-
-        const finalNonThrottled = simulateThrottledTyping(initialState, userCtx, saveButton);
-
-        assert.equal(saveButton.states['theBlockTree'].length, 2, 'Should clear throttled items');
-        assert.deepEqual(saveButton.states['theBlockTree'].at(-1), finalNonThrottled, 'Should only pick latest item');
-        assert.deepEqual(saveButton.states['theBlockTree'].at(-2), initialState);
-
-        //
-
-        function simulateThrottledTyping(initialState, userCtx, saveButton) {
-            const throttled1 = blockTreeUtils.createMutation(initialState, copy => {
-                writeBlockProps(copy[0], {html: 'Lorem ipsum,'});
-            });
-            saveButton.pushOp('theBlockTree', throttled1, {...userCtx}, 'is-throttled');
-
-            const throttled2 = blockTreeUtils.createMutation(throttled1, copy => {
-                writeBlockProps(copy[0], {html: 'Lorem ipsum, d'});
-            });
-            saveButton.pushOp('theBlockTree', throttled2, {...userCtx}, 'is-throttled');
-
-            const throttled3 = blockTreeUtils.createMutation(throttled2, copy => {
-                writeBlockProps(copy[0], {html: 'Lorem ipsum, do'});
-            });
-            saveButton.pushOp('theBlockTree', throttled3, {...userCtx}, 'is-throttled');
-
-            const finalNonThrottled = blockTreeUtils.createMutation(throttled3, copy => {
-                writeBlockProps(copy[0], {html: 'Lorem ipsum, do.'});
-            });
-            saveButton.pushOp('theBlockTree', finalNonThrottled, {...userCtx}, null);
-
-            return finalNonThrottled;
-        }
-    });
-    QUnit.test('\'globalBlockTrees\' channel gets wiped after sync', async assert => {
-        const state = {gbtsSyncedToBackend: [], httpStub: null};
-        simulatePageLoad(state);
-        simulateGlobalBlockChange(state);
-        stubHttpToReturnSuccesfully(state, 'put');
-        await simulateSaveButtonClick();
-        verifyGlobalBlockTreesStateGotWiped(assert);
-        state.httpStub.restore();
-
-        //
-
-        function simulatePageLoad(state) {
+        [4, 3, 4, 1].forEach(steps => {
             saveButton.initChannel('globalBlockTrees', []);
-            blockTreeUtils.globalBlockTreesRepo = new GlobalBlockTreesRepo;
-            state.gbtsSyncedToBackend = [{id: 'a', dataProp: 1}];
-            // @ts-ignore
-            blockTreeUtils.globalBlockTreesRepo.setTrees(state.gbtsSyncedToBackend);
-        }
-        function simulateGlobalBlockChange(state) {
-            const secondState = [{...state.gbtsSyncedToBackend[0], dataProp: 2}]; // same as createGbtsState()
-            saveButton.pushOp(
-                'globalBlockTrees',
-                secondState,
-                {event: 'update-block-in', blockId: 'b'}
-            );
-        }
-        function verifyGlobalBlockTreesStateGotWiped(assert) {
-            assert.deepEqual(saveButton.getChannelState('globalBlockTrees'), []);
+
+            const initialState = createTestTheBlockTreeState('Lorem ipsum');
+            saveButton.initChannel('theBlockTree', initialState);
+            const userCtx = {event: 'update-single-block-prop', blockId: initialState[0].id};
+
+            const finalNonThrottled = simulateThrottledTyping(steps, initialState, userCtx, saveButton);
+            const info = debug(saveButton);
+            assert.equal(info.states['theBlockTree'].length, 1, 'Should clear throttled items');
+            assert.deepEqual(info.states['theBlockTree'].at(-1), finalNonThrottled, 'Should only pick latest item');
+            assert.deepEqual(saveButton.getChannelState('theBlockTree'), finalNonThrottled, 'Should return latest item');
+            assert.equal(info.opHistoryCursor, 1);
+            assert.equal(info.opHistory.length, 1);
+            assert.equal(info.opHistory.at(-1).flags, null);
+            saveButton.invalidateAll();
+        });
+
+        //
+
+        function simulateThrottledTyping(steps, initialState, userCtx, saveButton) {
+            return [
+                'Lorem ipsum, ',
+                'Lorem ipsum, d',
+                'Lorem ipsum, do',
+                'Lorem ipsum, do.',
+            ].slice(0, steps).reduce((prevState, text, i) => {
+                const out = blockTreeUtils.createMutation(prevState, copy => {
+                    writeBlockProps(copy[0], {html: text});
+                });
+                saveButton.pushOp('theBlockTree', out, {...userCtx}, i < steps - 1 ? 'is-throttled' : null);
+                return out;
+            }, initialState);
         }
     });
-    QUnit.test('registerUpdateSyncedGbtsPatchers() adds non-synced gbts to gbtsRepo after save', async assert => {
+    QUnit.test('pushOp() ditches previously undone history', assert => {
+        const state = {blockTreeStates: [], httpPutStub: null};
+        simulatePageLoad(state);
+
+        simulateBlockUpdate(state, 'a');
+        simulateBlockUpdate(state, 'b');
+        simulateBlockUpdate(state, 'c');
+
+        saveButton.doUndo();
+        saveButton.doUndo();
+
+        simulateBlockUpdate(state, 'd');
+
+        const info = debug(saveButton);
+        assert.equal(info.opHistory.length, 2, 'Should wipe the old history');
+        assert.equal(info.opHistoryCursor, 2, 'Should wipe the old history');
+        assert.deepEqual(info.states['theBlockTree'], [
+            state.blockTreeStates[1],
+            state.blockTreeStates[4],
+        ]);
+        assert.deepEqual(info.stateCursors['theBlockTree'], 2);
+    });
+    QUnit.test('registerUpdateSyncedGbtsPatchers() adds non-synced gbts to syncedState after save', async assert => {
         const state = {gbtsSyncedToBackend: [], httpStub: null};
         simulatePageLoad(state);
         const unreg = registerUpdateSyncedGbtsPatchers(saveButton);
         simulateGlobalBlockAddition(state);
         stubHttpToReturnSuccesfully(state, 'post');
         await simulateSaveButtonClick();
-        verifyNewGbtWasAddedToGlobalBlockTreesRepo(assert, state);
+        verifyNewGbtWasAddedToSyncedState(assert, state);
         state.httpStub.restore();
         unreg[0]();
         unreg[1]();
@@ -106,11 +93,8 @@ QUnit.module('SaveButton.jsx', hooks => {
         //
 
         function simulatePageLoad(state) {
-            saveButton.initChannel('globalBlockTrees', []);
-            blockTreeUtils.globalBlockTreesRepo = new GlobalBlockTreesRepo;
             state.gbtsSyncedToBackend = [{id: 'a', dataProp: 1}];
-            // @ts-ignore
-            blockTreeUtils.globalBlockTreesRepo.setTrees(state.gbtsSyncedToBackend);
+            saveButton.initChannel('globalBlockTrees', state.gbtsSyncedToBackend);
         }
         function simulateGlobalBlockAddition(state) {
             state.secondState = [
@@ -123,9 +107,9 @@ QUnit.module('SaveButton.jsx', hooks => {
                 {event: 'insert-block-at', wasCurrentlySelectedBlock: false}
             );
         }
-        function verifyNewGbtWasAddedToGlobalBlockTreesRepo(assert, state) {
+        function verifyNewGbtWasAddedToSyncedState(assert, state) {
             assert.deepEqual(
-                blockTreeUtils.globalBlockTreesRepo.getTrees(),
+                saveButton.getSyncedState('globalBlockTrees'),
                 [state.gbtsSyncedToBackend[0], state.secondState[1]]
             );
         }
@@ -133,6 +117,7 @@ QUnit.module('SaveButton.jsx', hooks => {
     QUnit.test('partiallyReset() clears single operation that was before the failed operation', async assert => {
         const state = {gbtsSyncedToBackend: [], gbtStates: [], blockTreeStates: [], httpPostStub: null, httpPutStub: null};
         simulatePageLoad(state);
+        const initiallySyncedBlocks = [...debug(saveButton).syncedStates['theBlockTree']];
 
         simulateGlobalBlockAddition(state); // Valid
         simulateBlockUpdate(state);         // Erroneous
@@ -140,14 +125,19 @@ QUnit.module('SaveButton.jsx', hooks => {
 
         await simulateSaveButtonClick();
 
-        assert.deepEqual(saveButton.getChannelState('globalBlockTrees'), [],
-            'Should clear "globalBlockTrees" channel\'s state');
-        assert.deepEqual(saveButton.getChannelState('theBlockTree'), [...state.blockTreeStates.at(-1)],
-            'Should keep "theBlockTree" channel\'s state');
-
         const info = debug(saveButton);
         assert.equal(info.opHistory.length, 1);
         assert.equal(info.opHistoryCursor, 1);
+
+        assert.deepEqual(saveButton.getChannelState('globalBlockTrees', false), null,
+            'Should clear "globalBlockTrees" channel\'s state');
+        assert.deepEqual(saveButton.getChannelState('theBlockTree'), [...state.blockTreeStates.at(-1)],
+            'Should keep "theBlockTree" channel\'s state');
+        assert.deepEqual(info.states['globalBlockTrees'], []);
+        assert.equal(info.stateCursors['globalBlockTrees'], 0);
+        assert.deepEqual(info.states['theBlockTree'], [[...state.blockTreeStates.at(-1)]]);
+        assert.equal(info.stateCursors['theBlockTree'], 1);
+        assert.deepEqual(info.syncedStates['theBlockTree'], initiallySyncedBlocks);
 
         state.httpPostStub.restore();
         state.httpPutStub.restore();
@@ -155,6 +145,7 @@ QUnit.module('SaveButton.jsx', hooks => {
     QUnit.test('partiallyReset() clears multiple operations that were before the failed operation', async assert => {
         const state = {gbtsSyncedToBackend: [], blockTreeStates: [], gbtStates: [], httpPostStub: null, httpPutStub: null};
         simulatePageLoad(state);
+        const initiallySyncedBlocks = [...debug(saveButton).syncedStates['theBlockTree']];
 
         simulateGlobalBlockAddition(state);         // Valid
         simulateBlockUpdate(state);                 // Valid
@@ -168,14 +159,19 @@ QUnit.module('SaveButton.jsx', hooks => {
 
         await simulateSaveButtonClick();
 
-        assert.deepEqual(saveButton.getChannelState('globalBlockTrees'), [],
-            'Should clear "globalBlockTrees" channel\'s state');
-        assert.deepEqual(saveButton.getChannelState('theBlockTree'), [...state.blockTreeStates.at(-1)],
-            'Should keep "theBlockTree" channel\'s state');
-
         const info = debug(saveButton);
         assert.equal(info.opHistory.length, 1);
         assert.equal(info.opHistoryCursor, 1);
+
+        assert.deepEqual(saveButton.getChannelState('globalBlockTrees', false), null,
+            'Should clear "globalBlockTrees" channel\'s state');
+        assert.deepEqual(saveButton.getChannelState('theBlockTree'), [...state.blockTreeStates.at(-1)],
+            'Should keep "theBlockTree" channel\'s state');
+        assert.deepEqual(info.states['globalBlockTrees'], []);
+        assert.equal(info.stateCursors['globalBlockTrees'], 0);
+        assert.deepEqual(info.states['theBlockTree'], [[...state.blockTreeStates.at(-1)]]);
+        assert.equal(info.stateCursors['theBlockTree'], 1);
+        assert.deepEqual(info.syncedStates['theBlockTree'], initiallySyncedBlocks);
 
         state.httpPostStub.restore();
         state.httpPutStub.restore();
@@ -188,11 +184,7 @@ QUnit.module('SaveButton.jsx', hooks => {
         await saveButton.syncQueuedOpsToBackend();
     }
     function simulatePageLoad(state) {
-        saveButton.initChannel('globalBlockTrees', []);
-        blockTreeUtils.globalBlockTreesRepo = new GlobalBlockTreesRepo;
-        state.gbtsSyncedToBackend = [{id: 'a', dataProp: 1}];
-        blockTreeUtils.globalBlockTreesRepo.setTrees(state.gbtsSyncedToBackend);
-
+        saveButton.initChannel('globalBlockTrees', [{id: 'a', dataProp: 1}]);
         state.blockTreeStates.push(createTestTheBlockTreeState('Lorem ipsum.'));
         saveButton.initChannel('theBlockTree', state.blockTreeStates.at(-1));
 
@@ -221,9 +213,9 @@ QUnit.module('SaveButton.jsx', hooks => {
             {event: 'insert-block-at', wasCurrentlySelectedBlock: false}
         );
     }
-    function simulateBlockUpdate(state) {
+    function simulateBlockUpdate(state, blockText = null) {
         state.blockTreeStates.push(blockTreeUtils.createMutation(state.blockTreeStates.at(-1), copy => {
-            writeBlockProps(copy[0], {html: 'not-relevant' + (Date.now())});
+            writeBlockProps(copy[0], {html: blockText || ('not-relevant' + (Date.now()))});
         }));
         saveButton.pushOp('theBlockTree', state.blockTreeStates.at(-1), {
             event: 'update-single-block-prop',
@@ -269,6 +261,7 @@ function createTestTheBlockTreeState(text) {
  *   opHistoryCursor: number;
  *   states: {[name: string]: Array<state>;};
  *   stateCursors: {[name: string]: number;};
+ *   syncedStates: {[name: string]: any;};
  * }} saveButton
  */
 function debug(saveButton) {
@@ -276,7 +269,7 @@ function debug(saveButton) {
         opHistory: objectUtils.cloneDeep(saveButton.opHistory),
         opHistoryCursor: saveButton.opHistoryCursor,
         states: objectUtils.cloneDeep(saveButton.states),
-        stateCursors: {...saveButton.stateCursors}
+        stateCursors: {...saveButton.stateCursors},
+        syncedStates: objectUtils.cloneDeep(saveButton.syncedStates),
     }
 }
-

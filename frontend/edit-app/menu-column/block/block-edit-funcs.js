@@ -4,7 +4,6 @@ import {
     blockTreeUtils,
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
-/** @typedef {import('../../includes/global-block-trees-repo.js').GlobalBlockTreesRepository} GlobalBlockTreesRepository */
 
 /**
  * @param {string} blockId
@@ -44,10 +43,12 @@ function createUpdateBlockPropOp(blockId, getChanges, flags = null, saveButton =
 }
 
 /**
- * Returns a new 'globalBlockTrees' state by adding all $treeIdOrTreeIds from $globalBlockTreesRepo. Example:
+ * Returns a new 'globalBlockTrees' state by adding all $treeIdOrTreeIds from
+ * $saveButton.getSyncedState('globalBlockTrees'). Example:
  * ```
  * const saveButton = api.saveButton.getInstance();
- * console.log(saveButton.getChannelState('globalBlockTrees')); // []
+ * cont noSynced = false;
+ * console.log(saveButton.getChannelState('globalBlockTrees', noSynced)); // []
  * const someId = '<pushId>';
  * const newState = createGbtsState(someId, saveButton);
  * console.log(newState); // [{id: '<pushId>', blocks: ...}]
@@ -56,22 +57,21 @@ function createUpdateBlockPropOp(blockId, getChanges, flags = null, saveButton =
  *
  * @param {string|Array<string>} treeIdOrTreeIds
  * @param {SaveButton} saveButton = api.saveButton.getInstance()
- * @param {GlobalBlockTreesRepository} globalBlockTreesRepo = blockTreeUtils.globalBlockTreesRepo
  * @returns {Array<GlobalBlockTree>}
  */
 function createGbtsState(
     treeIdOrTreeIds,
-    saveButton = api.saveButton.getInstance(),
-    globalBlockTreesRepo = blockTreeUtils.globalBlockTreesRepo
+    saveButton = api.saveButton.getInstance()
 ) {
     /** @type {Array<GlobalBlockTree>} */
     const state = saveButton.getChannelState('globalBlockTrees');
+    const synced = saveButton.getSyncedState('globalBlockTrees');
     return (Array.isArray(treeIdOrTreeIds) ? treeIdOrTreeIds : [treeIdOrTreeIds]).reduce((out, id) =>
         arrayUtils.findById(out, id)
             // treeIdOrTreeIds[i] already exists in the state, do nothing
             ? out
             // treeIdOrTreeIds[i] not found in state, find it from repo and add to state as a shallow copy
-            : [...out, {...arrayUtils.findById(globalBlockTreesRepo.getTrees(), id)}]
+            : [...out, {...arrayUtils.findById(synced, id)}]
     , state);
 }
 

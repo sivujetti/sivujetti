@@ -300,7 +300,9 @@ function createAddContentPlacementCfg(li, pos) {
  * @returns {Block}
  */
 function getVisibleBlock(maybeGbtRefBlock) {
-    return maybeGbtRefBlock.type !== 'GlobalBlockReference' ? maybeGbtRefBlock : blockTreeUtils.getTree(maybeGbtRefBlock.globalBlockTreeId).blocks[0];
+    return maybeGbtRefBlock.type !== 'GlobalBlockReference'
+        ? maybeGbtRefBlock
+        : blockTreeUtils.getTree(maybeGbtRefBlock.globalBlockTreeId).blocks[0];
 }
 
 /**

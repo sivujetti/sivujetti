@@ -1,13 +1,17 @@
 import {api, blockTreeUtils, http, objectUtils, writeBlockProps} from '@sivujetti-commons-for-edit-app';
+import globalData from '../edit-app/includes/globalData.js';
 import SaveButton from '../edit-app/menu-column/SaveButton.js';
-import {registerUpdateSyncedGbtsPatchers} from '../edit-app/menu-column/SaveButtonFuncs.js';
+import {registerSyncedItemsUpdater} from '../edit-app/menu-column/SaveButtonFuncs.js';
 /** @typedef {import('../edit-app/menu-column/SaveButton.js').HistoryItem} HistoryItem */
 /** @typedef {import('../edit-app/menu-column/SaveButton.js').state} state */
 
 QUnit.module('SaveButton.jsx', hooks => {
     let saveButton;
+    let globalDataThemeBefore;
     hooks.beforeEach(() => {
         saveButton = new SaveButton();
+        globalDataThemeBefore = objectUtils.cloneDeep(globalData.theme);
+        
         api.saveButton = {
             setInstance(cmp) { },
             getInstance() { return saveButton; }
@@ -19,6 +23,7 @@ QUnit.module('SaveButton.jsx', hooks => {
     });
     hooks.afterEach(() => {
         api.saveButton = {};
+        globalData.theme = globalDataThemeBefore;
     });
     QUnit.test('pushOp strips "is-throttled" items', assert => {
         [4, 3, 4, 1].forEach(steps => {
@@ -73,20 +78,20 @@ QUnit.module('SaveButton.jsx', hooks => {
         assert.equal(info.opHistory.length, 2, 'Should wipe the old history');
         assert.equal(info.opHistoryCursor, 2, 'Should wipe the old history');
         assert.deepEqual(info.states['theBlockTree'], [
-            state.blockTreeStates[1],
-            state.blockTreeStates[4],
+            state.blockTreeStates[0],
+            state.blockTreeStates[3],
         ]);
         assert.deepEqual(info.stateCursors['theBlockTree'], 2);
     });
-    QUnit.test('registerUpdateSyncedGbtsPatchers() adds non-synced gbts to syncedState after save', async assert => {
-        const state = {gbtsSyncedToBackend: [], httpStub: null};
+    QUnit.test('registerSyncedItemsUpdater(\'globalBlockTrees\') adds non-synced gbts to syncedState after save', async assert => {
+        const state = {gbtsSyncedToBackend: [], httpPostStub: null};
         simulatePageLoad(state);
-        const unreg = registerUpdateSyncedGbtsPatchers(saveButton);
+        const unreg = registerSyncedItemsUpdater('globalBlockTrees', saveButton);
         simulateGlobalBlockAddition(state);
-        stubHttpToReturnSuccesfully(state, 'post');
+        stubHttpToReturnSuccesfully(state, 'post'); // For POST "/api/global-block-trees/:gbtId/blocks"
         await simulateSaveButtonClick();
         verifyNewGbtWasAddedToSyncedState(assert, state);
-        state.httpStub.restore();
+        state.httpPostStub.restore();
         unreg[0]();
         unreg[1]();
 
@@ -100,7 +105,7 @@ QUnit.module('SaveButton.jsx', hooks => {
             state.secondState = [
                 {...state.gbtsSyncedToBackend[0]},
                 {id: 'b', dataProp: 1}
-            ]; // same as createGbtsState()
+            ];
             saveButton.pushOp(
                 'globalBlockTrees',
                 state.secondState,
@@ -115,9 +120,8 @@ QUnit.module('SaveButton.jsx', hooks => {
         }
     });
     QUnit.test('partiallyReset() clears single operation that was before the failed operation', async assert => {
-        const state = {gbtsSyncedToBackend: [], gbtStates: [], blockTreeStates: [], httpPostStub: null, httpPutStub: null};
+        const state = createSyncTestState();
         simulatePageLoad(state);
-        const initiallySyncedBlocks = [...debug(saveButton).syncedStates['theBlockTree']];
 
         simulateGlobalBlockAddition(state); // Valid
         simulateBlockUpdate(state);         // Erroneous
@@ -137,15 +141,14 @@ QUnit.module('SaveButton.jsx', hooks => {
         assert.equal(info.stateCursors['globalBlockTrees'], 0);
         assert.deepEqual(info.states['theBlockTree'], [[...state.blockTreeStates.at(-1)]]);
         assert.equal(info.stateCursors['theBlockTree'], 1);
-        assert.deepEqual(info.syncedStates['theBlockTree'], initiallySyncedBlocks);
+        assert.deepEqual(info.syncedStates['theBlockTree'], state.syncedBlockTree);
 
         state.httpPostStub.restore();
         state.httpPutStub.restore();
     });
     QUnit.test('partiallyReset() clears multiple operations that were before the failed operation', async assert => {
-        const state = {gbtsSyncedToBackend: [], blockTreeStates: [], gbtStates: [], httpPostStub: null, httpPutStub: null};
+        const state = createSyncTestState();
         simulatePageLoad(state);
-        const initiallySyncedBlocks = [...debug(saveButton).syncedStates['theBlockTree']];
 
         simulateGlobalBlockAddition(state);         // Valid
         simulateBlockUpdate(state);                 // Valid
@@ -171,26 +174,186 @@ QUnit.module('SaveButton.jsx', hooks => {
         assert.equal(info.stateCursors['globalBlockTrees'], 0);
         assert.deepEqual(info.states['theBlockTree'], [[...state.blockTreeStates.at(-1)]]);
         assert.equal(info.stateCursors['theBlockTree'], 1);
-        assert.deepEqual(info.syncedStates['theBlockTree'], initiallySyncedBlocks);
+        assert.deepEqual(info.syncedStates['theBlockTree'], state.syncedBlockTree);
 
         state.httpPostStub.restore();
         state.httpPutStub.restore();
     });
-    async function stubHttpToReturnSuccesfully(state, httpVerb = 'put') {
-        // For PUT|POST "/api/global-block-trees/${arg.id}/blocks"
-        state.httpStub = sinon.stub(http, httpVerb).returns(Promise.resolve({ok: 'ok'}));
+    QUnit.test('eka syncQueuedOpsToBackend() runs previously failed operation the second time', async assert => {
+        const state = createSyncTestState();
+        simulatePageLoad(state);
+
+        // -- first attempt ----
+        simulateBlockUpdate(state);                 // Erroneous
+        simulateGlobalBlockAddition(state);         // Valid
+
+        stubHttpToReturnWithValidationError(state); // For PUT "/api/pages/:pageType/:pageId/blocks"
+        stubHttpToReturnSuccesfully(state, 'post'); // For POST "/api/global-block-trees/:gbtId/blocks"
+        await simulateSaveButtonClick();
+
+        assert.equal(state.httpPostStub.calledOnce, false);
+        // ----
+
+        await wait(1);
+
+        // -- second attempt ----
+        simulateBlockUpdate(state);                 // Valid
+
+        state.httpPutStub.restore();
+        stubHttpToReturnSuccesfully(state, 'put');  // For PUT "/api/pages/:pageType/:pageId/blocks"
+        await simulateSaveButtonClick();
+
+        assert.equal(state.httpPostStub.calledOnce, true);
+
+        state.httpPostStub.restore();
+        state.httpPutStub.restore();
+
+        const info = debug(saveButton);
+        assert.deepEqual(info.syncedStates['globalBlockTrees'], state.gbtStates.at(-1));
+        // ----
+    });
+    QUnit.test('toka syncQueuedOpsToBackend() runs previously failed operation the second time', async assert => {
+        const state = createSyncTestState();
+        simulatePageLoad(state);
+
+        // -- first attempt ----
+        simulateBlockUpdate(state);                 // Erroneous
+        simulateGlobalBlockAddition(state);         // Valid
+        simulatePageMetaUpdate(state);              // Valid
+
+        stubHttpToReturnWithValidationError(state); // For PUT "/api/pages/:pageType/:pageId/blocks"
+        stubHttpToReturnSuccesfully(state, 'post'); // For POST "/api/global-block-trees/:gbtId/blocks"
+        await simulateSaveButtonClick();
+
+        assert.equal(state.httpPutStub.calledOnce, true);
+        assert.equal(state.httpPostStub.calledOnce, false);
+        // ----
+
+        await wait(1);
+
+        // -- second attempt ----
+        simulateBlockUpdate(state);                 // Valid
+
+        state.httpPutStub.restore();
+        stubHttpToReturnSuccesfully(state, 'put');  // For PUT "/api/pages/:pageType/:pageId/blocks" and
+                                                    // PUT "/api/pages/:pageType/:pageId"
+        await simulateSaveButtonClick();
+
+        assert.equal(state.httpPostStub.calledOnce, true);
+        assert.equal(state.httpPutStub.calledTwice, true);
+
+        state.httpPostStub.restore();
+        state.httpPutStub.restore();
+
+        const info = debug(saveButton);
+        assert.deepEqual(info.syncedStates['globalBlockTrees'], state.gbtStates.at(-1));
+        assert.deepEqual(saveButton.getChannelState('globalBlockTrees'), state.gbtStates.at(-1));
+        assert.deepEqual(saveButton.getChannelState('currentPageData'), state.pageMetaStates.at(-1));
+        // ----
+
+        function simulatePageMetaUpdate(state) {
+            const page = state.pageMetaStates.length ? state.pageMetaStates.at(-1) : state.syncedPageMeta;
+            state.pageMetaStates.push({...page, title: page.title + 'a'});
+            saveButton.pushOp(
+                'currentPageData',
+                state.pageMetaStates.at(-1),
+                {event: 'update-basic-info'},
+            );
+        }
+    });
+    QUnit.test('kolmas syncQueuedOpsToBackend() runs previously failed operation the second time', async assert => {
+        const state = {...createSyncTestState(), /** @type {StylesBundleWithId} */ syncedStyles: null, styleStates: []};
+        simulatePageLoadWithStyles(state);
+
+        // -- first attempt ----
+        simulateBlockUpdate(state);                 // Erroneous
+        simulateGlobalBlockAddition(state);         // Valid
+        simulateStyleUpdate(state);                 // Valid
+
+        stubHttpToReturnWithValidationError(state); // For PUT "/api/pages/:pageType/:pageId/blocks"
+        stubHttpToReturnSuccesfully(state, 'post'); // For POST "/api/global-block-trees/:gbtId/blocks"
+
+        await simulateSaveButtonClick();
+
+        assert.equal(state.httpPutStub.calledOnce, true);
+        assert.equal(state.httpPostStub.calledOnce, false);
+        // ----
+
+        await wait(1);
+
+        // -- second attempt ----
+        simulateBlockUpdate(state);                // Valid
+
+        state.httpPutStub.restore();
+        stubHttpToReturnSuccesfully(state, 'put'); // For PUT "/api/pages/:pageType/:pageId/blocks" and
+                                                   // PUT "/api/themes/:themeId/styles/all"
+        await simulateSaveButtonClick();
+
+        assert.equal(state.httpPostStub.calledOnce, true);
+        assert.equal(state.httpPutStub.calledTwice, true);
+
+        state.httpPostStub.restore();
+        state.httpPutStub.restore();
+
+        const info = debug(saveButton);
+        assert.deepEqual(info.syncedStates['globalBlockTrees'], state.gbtStates.at(-1));
+        assert.deepEqual(saveButton.getChannelState('globalBlockTrees'), state.gbtStates.at(-1));
+        assert.deepEqual(saveButton.getChannelState('stylesBundle'), state.styleStates.at(-1));
+        // ----
+
+        function simulatePageLoadWithStyles(state) {
+            simulatePageLoad(state);
+            state.syncedStyles = {
+                id: 1,
+                cachedCompiledCss: '@layer base-styles {\n:root{\n--foo:1;\n}\n',
+                cachedCompiledScreenSizesCssHashes: ['<hash>'],
+                styleChunks: [
+                    {id: 2, data: null, scope:  {kind: 'base-vars', layer: 'base-styles'}, scss: ':root {\n  --foo: 1;\n}'}
+                ],
+            };
+            state.styleStates.push({...state.syncedStyles});
+            saveButton.initChannel('stylesBundle', {...state.syncedStyles}, true);
+        }
+        function simulateStyleUpdate(state) {
+            const prevState = {...state.styleStates.at(-1)};
+            const baseVarsStyle = prevState.styleChunks.at(-1);
+            state.styleStates.push({
+                ...prevState,
+                styleChunks: [{...baseVarsStyle, scss: baseVarsStyle.scss.replace('1;', '2;')}],
+                cachedCompiledCss: prevState.cachedCompiledCss.replace('1;', '2;'),
+                id: prevState.id + 1,
+            });
+            saveButton.pushOp(
+                'stylesBundle',
+                {...state.styleStates.at(-1)},
+            );
+        }
+    });
+    function stubHttpToReturnSuccesfully(state, httpVerb = 'put') {
+        state[httpVerb === 'put' ? 'httpPutStub' : 'httpPostStub'] = sinon.stub(http, httpVerb).returns(Promise.resolve({ok: 'ok'}));
+    }
+    function stubHttpToReturnWithValidationError(state, httpVerb = 'put') {
+        const backendValidationErrors = ['linkTo is not valid'];
+        state.httpPutStub = sinon.stub(http, httpVerb).returns(Promise.reject(new Error('400 Bad Request', {
+            cause: {
+                error: backendValidationErrors,
+                response: new Response(JSON.stringify(backendValidationErrors), {status: 400, statusText: '400 Bad Request'}),
+            }
+        })));
     }
     async function simulateSaveButtonClick() {
         await saveButton.syncQueuedOpsToBackend();
     }
     function simulatePageLoad(state) {
-        saveButton.initChannel('globalBlockTrees', [{id: 'a', dataProp: 1}]);
-        state.blockTreeStates.push(createTestTheBlockTreeState('Lorem ipsum.'));
-        saveButton.initChannel('theBlockTree', state.blockTreeStates.at(-1));
+        globalData.theme = {id: '1'}; // missä resetointi?
 
-        saveButton.initChannel('currentPageData', {
+        state.syncedGbts = [{id: 'a', dataProp: 1}];
+        saveButton.initChannel('globalBlockTrees', [...state.syncedGbts]);
+        state.syncedBlockTree = createTestTheBlockTreeState('Lorem ipsum.');
+        saveButton.initChannel('theBlockTree', [...state.syncedBlockTree]);
+        state.syncedPageMeta = {
             id: '<pushId1>',
-            // title: 'a',
+            title: 'a',
             // slug: 'a',
             // path: 'a',
             type: 'Pages',
@@ -198,14 +361,13 @@ QUnit.module('SaveButton.jsx', hooks => {
             // layoutId: '',
             // status: 1,
             // isPlaceholderPage: false,
-        });
+        };
+        saveButton.initChannel('currentPageData', {...state.syncedPageMeta});
     }
     function simulateGlobalBlockAddition(state, createGbtState = null) {
+        const prevState = state.gbtStates?.length ? state.gbtStates : state.syncedGbts;
         state.gbtStates.push(!createGbtState
-            ? [
-                {...state.gbtsSyncedToBackend[0]},
-                {id: 'b', dataProp: 1}
-            ] // same as createGbtsState()
+            ? [...prevState, {id: 'b', dataProp: 1}]
             : createGbtState());
         saveButton.pushOp(
             'globalBlockTrees',
@@ -214,7 +376,8 @@ QUnit.module('SaveButton.jsx', hooks => {
         );
     }
     function simulateBlockUpdate(state, blockText = null) {
-        state.blockTreeStates.push(blockTreeUtils.createMutation(state.blockTreeStates.at(-1), copy => {
+        const prevState = state.blockTreeStates?.at(-1) || state.syncedBlockTree;
+        state.blockTreeStates.push(blockTreeUtils.createMutation(prevState, copy => {
             writeBlockProps(copy[0], {html: blockText || ('not-relevant' + (Date.now()))});
         }));
         saveButton.pushOp('theBlockTree', state.blockTreeStates.at(-1), {
@@ -223,9 +386,9 @@ QUnit.module('SaveButton.jsx', hooks => {
         }, null);
     }
     function stubHttpToReturnValidationErrorForBlockTreeSave(state) {
-        // For POST "/api/global-block-trees/${arg.id}/blocks"
+        // For POST "/api/global-block-trees/:gbtId/blocks"
         state.httpPostStub = sinon.stub(http, 'post').returns(Promise.resolve({ok: 'ok'}));
-        // For PUT "/api/pages/${page.type}/${page.id}/blocks"
+        // For PUT "/api/pages/:pageType/:pageId/blocks"
         const backendValidationErrors = ['linkTo is not valid'];
         state.httpPutStub = sinon.stub(http, 'put').returns(Promise.reject(new Error('400 Bad Request', {
             cause: {
@@ -250,9 +413,22 @@ function createTestTheBlockTreeState(text) {
             "propsData": [{"key": "html", "value": text}],
             "styleClasses": "",
             "children": [],
-            "html": text
+            "html": text,
         }
     ];
+}
+
+function createSyncTestState() {
+    return {
+        syncedBlockTree: null,
+        syncedGbts: null,
+        syncedPageMeta: null,
+        blockTreeStates: [],
+        gbtStates: [],
+        pageMetaStates: [],
+        httpPostStub: null,
+        httpPutStub: null
+    };
 }
 
 /**
@@ -272,4 +448,16 @@ function debug(saveButton) {
         stateCursors: {...saveButton.stateCursors},
         syncedStates: objectUtils.cloneDeep(saveButton.syncedStates),
     }
+}
+
+/**
+ * @param {number} millis
+ * @returns {Promise<void>}
+ */
+function wait(millis) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve();
+        }, millis);
+    });
 }

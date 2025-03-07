@@ -10,6 +10,7 @@ import './scss-utils-test.js';
 import './ScssWizardFuncsTest.js';
 import './short-id-gen-test.js';
 
+api.webPagePreview.updateCss = () => {};
 api.webPagePreview.reRenderBlock = () => {};
 api.webPagePreview.reRenderAllBlocks = () => {};
 toasters.editAppMain = () => {};

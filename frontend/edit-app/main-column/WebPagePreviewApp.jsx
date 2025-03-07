@@ -10,7 +10,7 @@ import {cloneDeep, getMetaKey, getBlockEl, traverseRecursively} from '../../shar
 import {isMetaBlock} from '../includes/block/utils.js';
 import globalData from '../includes/globalData.js';
 import {createTrier} from '../includes/utils.js';
-import {registerUpdateSyncedGbtsPatchers} from '../menu-column/SaveButtonFuncs.js';
+import {registerSyncedItemsUpdater} from '../menu-column/SaveButtonFuncs.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 /** @typedef {import('../../webpage-renderer-app/ReRenderingWebPage.jsx').ReRenderingWebPageMouseState} ReRenderingWebPageMouseState */
 
@@ -18,8 +18,8 @@ const broadcastInitialStateToListeners = true;
 
 const TITLE_LABEL_HEIGHT = 18; // at least
 
-/** @type {[Function, Function]} */
-let syncedGbtsUnregistrables = null;
+/** @type {Array<Function>} */
+let unregisterSyncUpdaterFns = [];
 
 class WebPagePreviewApp extends preact.Component {
     /**
@@ -431,8 +431,11 @@ function broadcastCurrentPageData(e) {
     globalData.layout = dataBundle.layout;
 
     saveButton.initChannel('currentPageData', dataBundle.page);
-    if (!syncedGbtsUnregistrables)
-        syncedGbtsUnregistrables = registerUpdateSyncedGbtsPatchers(saveButton);
+    if (!unregisterSyncUpdaterFns.length)
+        unregisterSyncUpdaterFns = [
+            ...registerSyncedItemsUpdater('globalBlockTrees', saveButton),
+            ...registerSyncedItemsUpdater('reusableBranches', saveButton),
+        ];
     saveButton.initChannel('globalBlockTrees', detachedGbts);
     saveButton.initChannel('reusableBranches', saveButton.DEFERRED); // see ../includes/reusable-branches/repository.js
     /** @type {StylesBundle} */

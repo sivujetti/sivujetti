@@ -49,11 +49,11 @@ interface SaveButton {
     initChannel(name: string, state: sbState, broadcastInitialStateToListeners: boolean = false): void;
     getChannelState(channelName: string, includeSynced: boolean = false): T|null;
     pushOp(channelName: string, state: sbState, userCtx: StateChangeUserContext = null, flags: blockPropValueChangeFlags = null): void;
-    pushOpGroup(...ops: Array<[string, sbState, StateChangeUserContext|null, blockPropValueChangeFlags]>): void;
+    pushOpGroup(...ops: Array<[string, sbState, StateChangeUserContext|null, blockPropValueChangeFlags?]>): void;
     setSyncedState<T>(channelName: string, data: T): void;
     getSyncedState<T>(channelName: string): T;
     on(when: 'before-items-synced'|'after-items-synced'|string, thenDo: (() => any)|((hadStopError: boolean, results: ScopedSyncResult[]) => any)): Function;
-    /** @deprecated */
+    /** @deprecated Use saveButton.on('after-items-synced', (hadStopError: boolean, results: ScopedSyncResult[]) => any) => {}); instead */
     onAfterItemsSynced(thenDo: () => any): Function;
     invalidateAll(): void;
     setHotkeyUndoLockIsOn(isOn: boolean): BiquadFilterNode;
@@ -643,6 +643,7 @@ interface SaveButtonChannelHandler<T = any> {
 
 interface SyncResult<T = any> {
     wasSuccess: boolean;
+    causeHttpStatus: number;
     data: T;
 }
 
@@ -708,3 +709,5 @@ type scssCodeInput = string|Array<string>;
 type translateVarInputToScssCodeTemplateFn = (varName: string, value: string) => scssCodeInput;
 
 type globalBlockReferenceBlockId = string;
+
+type WithId<T> = T & {id: string;};

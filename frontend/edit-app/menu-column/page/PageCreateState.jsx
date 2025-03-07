@@ -46,7 +46,8 @@ class PageCreateState extends preact.Component {
                     ? []
                     : [['stylesBundle', scssWizard.addManyNewChunksAndReturnAllRecompiled(initialPageBlocksStyles)]]),
             ]);
-            this.unregistrables.push(saveButton.onAfterItemsSynced(() => {
+            this.unregistrables.push(saveButton.on('after-items-synced', (hadStopError, _results) => {
+                if (hadStopError) return;
                 const {path} = saveButton.getChannelState('currentPageData');
                 const newPagePath = pathToFullSlug(path, '');
                 env.window.myRoute(newPagePath);

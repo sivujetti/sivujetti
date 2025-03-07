@@ -1,3 +1,4 @@
+import {Http} from '@sivujetti-commons-for-web-pages';
 import {
     __,
     api,
@@ -5,6 +6,7 @@ import {
     env,
     http,
     objectUtils,
+    stringUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../includes/block/utils.js';
 import toasters from '../includes/toasters.jsx';
@@ -12,13 +14,13 @@ import {pathToFullSlug} from '../includes/utils.js';
 import globalData from '../includes/globalData.js';
 
 const handlerFactoriesMap = {
-    currentPageData: createCurrentPageDataChannelHandler,
-    globalBlockTrees: createGlobalBlockTreesChannelHandler,
-    quicklyAddedPages: createQuicklyAddedPagesChannelHandler,
-    reusableBranches: createReusableBranchesChannelHandler,
-    stylesBundle: createStylesBundleChannelHandler,
-    theBlockTree: createBlockTreeChannelHandler,
-    pageTypes: createPageTypesChannelHandler,
+    'currentPageData': createCurrentPageDataChannelHandler,
+    'globalBlockTrees': createGlobalBlockTreesChannelHandler,
+    'quicklyAddedPages': createQuicklyAddedPagesChannelHandler,
+    'reusableBranches': createReusableBranchesChannelHandler,
+    'stylesBundle': createStylesBundleChannelHandler,
+    'theBlockTree': createBlockTreeChannelHandler,
+    'pageTypes': createPageTypesChannelHandler,
 };
 
 function createStylesBundleChannelHandler() {
@@ -83,7 +85,7 @@ function createBlockTreeChannelHandler() {
                 undefined,
                 true
             ), (message, level, err) =>
-                [err?.cause instanceof Http.ErrorCauseClass && err.cause.response.status === 403 ? 'You lack permissions to edit this content.' : message, level]
+                [__(err?.cause instanceof Http.ErrorCauseClass && err.cause.response.status === 403 ? 'You lack permissions to edit this content.' : message), level]
             );
         },
     };
@@ -105,13 +107,11 @@ function createReusableBranchesChannelHandler() {
          * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
-            const saveable = createSaveableItems(stateHistory);
-            const results = await Promise.all(saveable.map(({type, arg}) => type === 'insert'
-                ? http.post('/api/reusable-branches', arg)
-                : (window.console.error(`${type}:ng to backend not implemented yet`), {ok: 'ok'})
-            ));
-            const wasSuccess = results.every(resp => resp?.ok === 'ok');
-            return {wasSuccess, data: null};
+            return await sendHttpEach(stateHistory, ({type, arg}) =>
+                type === 'insert'
+                    ? doPostOrPut(http.post('/api/reusable-branches', arg, undefined, undefined, true))
+                    : (window.console.error(`${type}:ng to backend not implemented yet`), Promise.resolve({level: null, httpStatus: null}))
+            );
         }
     };
 }
@@ -138,82 +138,72 @@ function createGlobalBlockTreesChannelHandler() {
          * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
-            const saveables = createGbtSaveables(stateHistory);
-            let i = 0;
-            for (i; i < saveables.length; ++i) {
-                const {type, arg} = saveables[i];
-                try {
-                    const status = await doPostOrPut(type === 'update'
-                        ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks}, undefined, true)
-                        : http.post('/api/global-block-trees', arg, undefined, undefined, true))
-                    if (status === 'error') break;
-                } catch (err) {
-                    break;
-                }
-            }
-            const stoppedDueToError = i < saveables.length;
-            // This object is passed to the saveButton.on('after-items-synced') event
-            // (registered by registerUpdateSyncedGbtsPatchers() below) by the SaveButton
-            return {wasSuccess: !stoppedDueToError, data: saveables.slice(0, i - 1)};
+            return await sendHttpEach(stateHistory, ({type, arg}) =>
+                doPostOrPut(type === 'update'
+                    ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks}, undefined, true)
+                    : http.post('/api/global-block-trees', arg, undefined, undefined, true))
+            );
         }
     };
 }
 
 /**
+ * @template T extends {id: string;}
+ * @param {'globalBlockTrees'|'reusableBranches'} channelName 
  * @param {SaveButton} saveButton = api.saveButton.getInstance()
  * @returns {[Function, Function]}
  */
-function registerUpdateSyncedGbtsPatchers(saveButton = api.saveButton.getInstance()) {
-    /** @type {Array<GlobalBlockTree>} */
-    let latestGbtsJustBeforeSave = [];
+function registerSyncedItemsUpdater(channelName, saveButton = api.saveButton.getInstance()) {
+    let latestItemsJustBeforeSave = [];
     return [
         saveButton.on('before-items-synced', () => {
-            latestGbtsJustBeforeSave = saveButton.getChannelState('globalBlockTrees');
+            latestItemsJustBeforeSave = saveButton.getChannelState(channelName);
         }),
         saveButton.on('after-items-synced', (
             /** @type {boolean} */ hadStopError,
-            /** @type {Array<ScopedSyncResult<{type: 'insert'|'update'; arg: GlobalBlockTree;}[], GlobalBlockTree>>} */ results
+            /** @type {Array<ScopedSyncResult<{type: 'insert'|'update'; arg: WithId<T>;}[], WithId<T>>>} */ results
         ) => {
-            if (!latestGbtsJustBeforeSave.length) // Page didn't contain 'GlobalBlockReference' blocks
+            if (!latestItemsJustBeforeSave?.length) // Empty $channelName state
                 return;
-            const syncResult = results.find(it => it.queueItem.channelName === 'globalBlockTrees');
-            if (!syncResult) // Op queue didn't contain 'globalBlockTrees' items
+            const syncResult = results.find(it => it.queueItem.channelName === channelName);
+            if (!syncResult) // Op queue didn't contain $channelName items
                 return;
 
-            let gbtsMarkedAsSynced = null;
+            let markTheseItemsAsSynced = null;
 
             if (!hadStopError)
-                gbtsMarkedAsSynced = latestGbtsJustBeforeSave;
+                markTheseItemsAsSynced = latestItemsJustBeforeSave;
             else {
-                const succesfulHttpCalls = syncResult.result.data; 
-                gbtsMarkedAsSynced = succesfulHttpCalls.map(({arg}) => latestGbtsJustBeforeSave.find(({id}) => id === arg.id));
+                const succesfulHttpCalls = syncResult.result.data;
+                markTheseItemsAsSynced = succesfulHttpCalls.map(({arg}) => arrayUtils.findById(latestItemsJustBeforeSave, arg.id));
             }
 
-            if (gbtsMarkedAsSynced?.length)
-                saveButton.setSyncedState('globalBlockTrees', mergeGlobalBlockTrees(
-                    saveButton.getSyncedState('globalBlockTrees'),
-                    gbtsMarkedAsSynced,
+            if (markTheseItemsAsSynced?.length)
+                saveButton.setSyncedState(channelName, mergeItems(
+                    saveButton.getSyncedState(channelName),
+                    markTheseItemsAsSynced,
                 ));
 
-            latestGbtsJustBeforeSave = [];
+            latestItemsJustBeforeSave = [];
         })
     ];
 }
 
 /**
- * @param {Array<GlobalBlockTree>} mergeTo
- * @param {Array<GlobalBlockTree>} additions
- * @returns {Array<GlobalBlockTree>}
+ * @template T extends {id: string;}
+ * @param {Array<WithId<T>>} mergeTo
+ * @param {Array<WithId<T>>} additions
+ * @returns {Array<WithId<T>>}
  */
-function mergeGlobalBlockTrees(mergeTo, additions) {
+function mergeItems(mergeTo, additions) {
     const out = [...mergeTo];
     const append = [];
-    for (const gbt of additions) {
-        const pos = out.findIndex(({id}) => id === gbt.id);
+    for (const item of additions) {
+        const pos = out.findIndex(({id}) => id === item.id);
         if (pos < 0)
-            append.push(gbt);
+            append.push(item);
         else
-            out[pos] = gbt;
+            out[pos] = item;
     }
     return [...out, ...append];
 }
@@ -267,7 +257,6 @@ function createCurrentPageDataChannelHandler() {
                     stateHistory.initial,
                 );
             }
-            throw new Error('todo');
             return this.syncNewPageToBackend(stateHistory.latest);
         },
         /**
@@ -282,15 +271,20 @@ function createCurrentPageDataChannelHandler() {
             // Add code that redirects to the new path after SaveButton has finished syncQueuedOpsToBackend()
             if (data.path !== syncedPage.path && !unregisterNavigateToNewSlugHandler) {
                 const newPagePath = pathToFullSlug(data.path, '');
-                unregisterNavigateToNewSlugHandler = api.saveButton.getInstance().onAfterItemsSynced(() => {
-                    env.window.myRoute(newPagePath);
+                unregisterNavigateToNewSlugHandler = api.saveButton.getInstance().on('after-items-synced', (hadStopError, _results) => {
+                    if (!hadStopError)
+                        env.window.myRoute(newPagePath);
                     unregisterNavigateToNewSlugHandler();
                     unregisterNavigateToNewSlugHandler = null;
                 });
             }
 
             return doWrappedPostOrPut(
-                http.put(`/api/pages/${data.type}/${data.id}`, data)
+                http.put(`/api/pages/${data.type}/${data.id}`, data, undefined, true),
+                (message, level, _err) => [
+                    stringUtils.capitalize(`${__('page#genitive')} ${__('PageInfo')}`.toLowerCase()) + ': ' + message,
+                    level
+                ]
             );
         },
         /**
@@ -300,18 +294,15 @@ function createCurrentPageDataChannelHandler() {
          */
         syncNewPageToBackend(newPage) {
             const postData = pageToTransferable(newPage);
-            //
-            throw new Error('todo');
-            return http.post(`/api/pages/${postData.type}`, postData)
-                .then(resp => {
-                    if (Array.isArray(resp) && resp[0] === 'Page with identical slug already exists') {
-                        toasters.editAppMain(__('Page "%s" already exist', postData.slug), 'error');
-                        return false;
-                    }
-                    if (resp.ok !== 'ok') throw new Error('-');
-                    return true;
-                })
-                .catch(err => createAndLogError(err, null));
+            return doWrappedPostOrPut(
+                http.post(`/api/pages/${postData.type}`, postData, undefined, undefined, true),
+                (message, level, _err) => [
+                    message.indexOf('Page with identical slug already exists') > -1
+                        ? __('Page "%s" already exist', postData.slug)
+                        : message,
+                    level
+                ]
+            );
         }
     };
 }
@@ -343,40 +334,6 @@ function createPageTypesChannelHandler() {
 }
 
 /**
- * @param {string|Error} err
- * @param {adjustErrorToastArgsFn|null} adjustErrorToastArgs
- * @returns {ToastMessageSettings|null}
- */
-function createAndLogError(err, adjustErrorToastArgs) {
-    window.console.error(err);
-
-    let message1;
-    let level1;
-    if (err?.cause instanceof Http.ErrorCauseClass) {
-        const {response, error} = err.cause;
-        if (response.status === 400 && Array.isArray(error)) {
-            message1 = 'Error [' + JSON.stringify(error) + ']';
-            level1 = 'error';
-        } else if (response.status === 403) {
-            message1 = 'You lack permissions to do this action';
-            level1 = 'notice';
-        }
-    }
-    if (!message1) {
-        message1 = 'Something unexpected happened';
-        level1 = 'error';
-    }
-
-    const [message, level] = !adjustErrorToastArgs
-        ? [message1, level1]
-        : adjustErrorToastArgs(message1, level1, err);
-
-    toasters.editAppMain(__(message), level);
-
-    return [level, message];
-}
-
-/**
  * @param {Page & {[additionalProps: string]: any;}} page
  * @param {Array<keyof Page|string>} notTheseKeys = [] Example: ['id', 'blocks' ...]
  * @return {{[key: string]: any;}} Clean object
@@ -395,29 +352,88 @@ function pageToTransferable(page, notTheseKeys = []) {
  * @returns {Promise<SyncResult>}
  */
 async function doWrappedPostOrPut(httpCallPromise, adjustErrorToastArgs = null) {
-    const level = await doPostOrPut(httpCallPromise, adjustErrorToastArgs);
-    return {wasSuccess: level === null, data: null};
+    const info = await doPostOrPut(httpCallPromise, adjustErrorToastArgs);
+    const {level, httpStatus} = info || {level: null, httpStatus: null};
+    return {wasSuccess: level === null, causeHttpStatus: httpStatus, data: null};
 }
 
 /**
  * @param {Promise<Object|string>} httpCallPromise
  * @param {adjustErrorToastArgsFn} adjustErrorToastArgs = null
- * @returns {Promise<toastMessageLevel|null>}
+ * @returns {Promise<HttpCallResult|null>}
  */
 async function doPostOrPut(httpCallPromise, adjustErrorToastArgs = null) {
     try {
         await httpCallPromise;
         return null;
     } catch (err) {
-        return createAndLogError(err, adjustErrorToastArgs)[0];
+        window.console.error(err);
+
+        let message1;
+        let level1;
+        let httpStatus = null;
+        if (err?.cause instanceof Http.ErrorCauseClass) {
+            const {response, error} = err.cause;
+            if (response.status === 400 && Array.isArray(error)) {
+                message1 = 'Error [' + JSON.stringify(error) + ']';
+                level1 = 'error';
+            } else if (response.status === 403) {
+                message1 = 'You lack permissions to do this action';
+                level1 = 'notice';
+            }
+            httpStatus = response.status;
+        }
+        if (!message1) {
+            message1 = 'Something unexpected happened';
+            level1 = 'error';
+        }
+
+        const [message, level] = !adjustErrorToastArgs
+            ? [__(message1), level1]
+            : adjustErrorToastArgs(message1, level1, err);
+
+        toasters.editAppMain(message, level);
+
+        return {level, httpStatus};
     }
 }
 
 /**
  * @template T
  * @param {StateHistory} stateHistory
+ * @param {(saveable: Saveable<T>) => Promise<HttpCallResult|null>} sendRequest
+ * @returns {Promise<SyncResult>}
+ */
+async function sendHttpEach(stateHistory, sendRequest) {
+    const saveables = createSaveables(stateHistory);
+    let i = 0;
+    let stopInfo = null;
+    for (i; i < saveables.length; ++i) {
+        try {
+            const info = await sendRequest(saveables[i]);
+            if (info?.level === 'error') {
+                stopInfo = info;
+                break;
+            }
+        } catch (err) {
+            break;
+        }
+    }
+    const stoppedDueToError = i < saveables.length;
+    // This object is passed to the saveButton.on('after-items-synced') event
+    // (registered by registerSyncedItemsUpdater() below) by the SaveButton
+    return {
+        wasSuccess: !stoppedDueToError,
+        causeHttpStatus: stopInfo?.httpStatus,
+        data: saveables.slice(0, i - 1),
+    };
+}
+
+/**
+ * @template T
+ * @param {StateHistory} stateHistory
  * @param {string} key = 'id'
- * @returns {Array<{type: 'insert'|'update'; arg: T;}>}
+ * @returns {Saveable<T>[]}
  */
 function createSaveableItems({initial, latest}, key = 'id') {
     const out = [];
@@ -441,11 +457,12 @@ function createSaveableItems({initial, latest}, key = 'id') {
 }
 
 /**
- * @param {StateHistory} stateHistory
- * @returns {Array<{type: 'insert'|'update'; arg: GlobalBlockTree;}>}
+ * @template T extends {id: string;}
+ * @param {StateHistory<Array<T & {id: string;}>>} stateHistory
+ * @returns {Saveable<T>[]}
  */
-function createGbtSaveables({latest}) {
-    const alreadyExisting = api.saveButton.getInstance().getSyncedState('globalBlockTrees');
+function createSaveables({channelName, latest}) {
+    const alreadyExisting = api.saveButton.getInstance().getSyncedState(channelName);
     const out = [];
     for (const entity of latest) {
         const fromInitial = arrayUtils.findById(alreadyExisting, entity.id);
@@ -462,6 +479,7 @@ function createGbtSaveables({latest}) {
  * @returns {StateMap}
  */
 function getLatestItemsOfEachChannel(queue) {
+    /** @type {StateMap} */
     const out = {};
     for (const item of queue) {
         if (!item.latest) continue;
@@ -488,22 +506,34 @@ function createEventName(channelName) {
 
 /**
  * @typedef {any} state
- *
+ */
+
+/**
  * @typedef {{[channelName: string]: Array<state>;}} StateMap
- *
+ */
+
+/**
  * @typedef {(message: string, level: toastMessageLevel, err: Error|Object) => [string, toastMessageLevel]} adjustErrorToastArgsFn
- *
- * @typedef HistoryItem
- * @prop {string} channelName
- * @prop {any} userCtx
- * @prop {blockPropValueChangeFlags} flags
+ */
+
+/**
+ * @typedef {{channelName: string; userCtx: any; flags: blockPropValueChangeFlags;}} HistoryItem
+ */
+
+/**
+ * @template T
+ * @typedef {{type: 'insert'|'update'|string; arg: T;}} Saveable
+ */
+
+/**
+ * @typedef {{level: toastMessageLevel; httpStatus: number|null;}} HttpCallResult
  */
 
 export {
     createEventName,
     getLatestItemsOfEachChannel,
     handlerFactoriesMap,
-    mergeGlobalBlockTrees,
+    mergeItems,
     normalizeItem,
-    registerUpdateSyncedGbtsPatchers,
+    registerSyncedItemsUpdater
 };

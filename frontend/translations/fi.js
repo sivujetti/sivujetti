@@ -144,7 +144,7 @@ stringBundles.push({
     'Content management': 'Sisällönhallinta',
     // edit-app/src/left-column/panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Monista tämä sivu',
-    'this page': 'this page',
+    'this page': 'tämä sivu',
     'Show without edit mode': 'Näytä ilman muokkaustilaa',
     'On this page': 'Tällä sivulla',
     'Default content': 'Oletussisältö',

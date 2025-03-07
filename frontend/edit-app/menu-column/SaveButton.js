@@ -1,4 +1,4 @@
-import {__, env, Events} from '@sivujetti-commons-for-edit-app';
+import {__, env, Events, objectUtils} from '@sivujetti-commons-for-edit-app';
 import {getMetaKey} from '../../shared-inline.js';
 import {historyInstance, isMainColumnViewUrl} from '../main-column/MainColumnViews.jsx';
 import {
@@ -15,16 +15,8 @@ const saveButtonEvents = new Events;
 const saveButtonEvents2 = new Events;
 
 class SaveButton {
+    /** @type {undefined} */
     static DEFERRED = undefined;
-    // states;
-    // stateCursors;
-    // channelImpls;
-    // opHistory;
-    // opHistoryCursor;
-    // syncQueueFilters;
-    // hotkeyUndoLockIsOn;
-    // renderer;
-    // unregisterUnsavedChangesAlert;
     /**
      */
     constructor() {
@@ -97,7 +89,7 @@ class SaveButton {
         const prevPushIsThrottled = this.opHistoryCursor > 0 && this.opHistory[this.opHistoryCursor - 1].flags === 'is-throttled';
         const isThrottlePushTerminator = isNormalPush && prevPushIsThrottled;
         if (isThrottlePushTerminator) {
-            // @ts-ignore allow [].channelName -> undefined
+            // @ts-ignore allow [].channelName -> undefined (throttled items are always single push 'theBlockTree' states
             const firstI = this.opHistory.findIndex(it => it.channelName === channelName && it.flags === 'is-throttled');
             const lenBef = this.opHistoryCursor;
             this.opHistory = [
@@ -112,7 +104,7 @@ class SaveButton {
                 this.states[channelName].at(-1),
             ];
             this.stateCursors[channelName] = this.states[channelName].length;
-        } else {
+        } else if (flags !== 'is-group') {
             this.pushHistoryItem({channelName, userCtx, flags});
         }
     }
@@ -125,7 +117,7 @@ class SaveButton {
     pushOpGroup(...ops) {
         const group = ops.map(args => {
             this.pushOp(args[0], args[1], args[2], 'is-group');
-            return {channelName: args[0], userCtx: args[2], flags: args[3]};
+            return {channelName: args[0], userCtx: args[2], flags: args[3] || null};
         });
         this.pushHistoryItem(group);
     }
@@ -161,7 +153,7 @@ class SaveButton {
         return saveButtonEvents2.on(when, thenDo);
     }
     /**
-     * @deprecated Use saveButton.on('after-items-synced', (hadStopError: boolean, results: ScopedSyncResult[]) => any) => {});
+     * @deprecated Use saveButton.on('after-items-synced', (hadStopError: boolean, results: ScopedSyncResult[]) => any) => {}); instead
      * @param {() => any} thenDo
      * @returns {Function} Unregister
      * @access public
@@ -254,7 +246,7 @@ class SaveButton {
             // (undefined, true, etc.) -> interpret this as a success and continue
             const isStopSignal = result.wasSuccess === false;
             if (isStopSignal) {
-                this.partiallyReset(syncQueue, item);
+                this.partiallyReset(syncQueue, item, result.causeHttpStatus);
                 saveButtonEvents2.emit('after-items-synced', true, results);
                 return;
             }
@@ -366,7 +358,7 @@ class SaveButton {
      * @access private
      */
     createSyncQueuePre() {
-        const channelNamesOrdered = this.getHistoryChannelNames();
+        const channelNamesOrdered = this.getNonSyncedChannelNames();
         /** @type {StateMap} */
         const activeStates = {};
         const out = channelNamesOrdered.map(channelName => {
@@ -388,6 +380,7 @@ class SaveButton {
      */
     reset(latesStates, emitChange = false) {
         this.opHistory = [];
+        this.lastAttemptHistory = [];
         this.opHistoryCursor = 0;
 
         for (const channelName in this.states) {
@@ -406,11 +399,12 @@ class SaveButton {
     /**
      * @param {Array<StateHistory>} syncQueue
      * @param {StateHistory} stopItem
+     * @param {number} causeHttpStatus
      */
-    partiallyReset(syncQueue, stopItem) {
+    partiallyReset(syncQueue, stopItem, causeHttpStatus) {
         const pos = syncQueue.indexOf(stopItem);
         const before = syncQueue.slice(0, pos);
-        const afterIncludingStopItem = syncQueue.slice(pos);
+        const stopItemAndAfter = syncQueue.slice(pos);
         const latestStates = getLatestItemsOfEachChannel(syncQueue);
 
         // before -> update syncedState and clear state
@@ -420,18 +414,28 @@ class SaveButton {
         }
 
         // stopItem + after -> keep syncedState and set `state = [latestItem]`
-        for (const {channelName} of afterIncludingStopItem) {
+        for (const {channelName} of stopItemAndAfter) {
             const latestState = latestStates[channelName];
             this.states[channelName] = [latestState];
             this.stateCursors[channelName] = 1;
         }
+        // Don't preserve 'reusableBranches' state if httpStatus was 400 (since it won't pass on the next attempt either)
+        const stopWasDueToInvalidReusable = stopItemAndAfter[0].channelName === 'reusableBranches' && causeHttpStatus === 400;
+        if (stopWasDueToInvalidReusable)
+            this.clearStateOf('reusableBranches', null);
 
         // Add a history item for the stop item
-        // @ts-ignore allow [].channelName -> undefined
-        const firstStopItemChannelHistoryItem = this.opHistory.find(({channelName}) => channelName === stopItem.channelName);
+        const firstStopItemChannelHistoryItem = this.opHistory.find(it => normalizeItem(it).some(({channelName}) => channelName === stopItem.channelName));
+        const pos2 = this.opHistory.indexOf(firstStopItemChannelHistoryItem);
+        this.lastAttemptHistory = !stopWasDueToInvalidReusable
+            ? this.opHistory.slice(pos2)      // [stopItem, ...afterStopitem]
+            : this.opHistory.slice(pos2 + 1); // [...afterStopitem]
         this.opHistory = [];
-        this.opHistoryCursor = this.opHistory.push(firstStopItemChannelHistoryItem);
-        this.renderer.resetState(true);
+        this.opHistoryCursor = !stopWasDueToInvalidReusable
+            ? this.opHistory.push(firstStopItemChannelHistoryItem)
+            : 0;
+
+        this.renderer.resetState(this.opHistoryCursor > 0);
     }
     /**
      * @param {string} channelName
@@ -448,9 +452,9 @@ class SaveButton {
      * @returns {Array<string>}
      * @access private
      */
-    getHistoryChannelNames() {
+    getNonSyncedChannelNames() {
         const map = new Map;
-        for (const item of this.opHistory) {
+        for (const item of [...this.lastAttemptHistory, ...this.opHistory]) {
             for (const {channelName} of normalizeItem(item)) {
                 map.set(channelName, 1);
             }
@@ -538,6 +542,8 @@ class SaveButton {
         this.channelImpls = {};
         /** @type {Array<HistoryItem|Array<HistoryItem>>} */
         this.opHistory = [];
+        /** @type {Array<HistoryItem|Array<HistoryItem>>} */
+        this.lastAttemptHistory = [];
         this.opHistoryCursor = 0;
     }
 }

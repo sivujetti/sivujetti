@@ -3,10 +3,10 @@ import {generateShortId} from './short-id-gen.js';
 
 const arrayUtils = {
     /**
-     * @template T
-     * @param {Array<T & { id: string }>} from
+     * @template T extends {id: string;}
+     * @param {Array<WithId<T>>} from
      * @param {string} id
-     * @returns {T|undefined}
+     * @returns {WithId<T>|undefined}
      */
     findById(from, id) {
         return from.find(entity => entity.id === id);

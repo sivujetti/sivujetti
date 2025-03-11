@@ -2,12 +2,12 @@
 
 namespace Sivujetti\Tests\Page;
 
-use Sivujetti\Block\Entities\Block;
-use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\Tests\Utils\{BlockTestUtils};
 use Pike\{ArrayUtils, PikeException};
 use Pike\Interfaces\SessionInterface;
 use Sivujetti\Auth\ACL;
+use Sivujetti\Block\Entities\Block;
+use Sivujetti\PageType\Entities\PageType;
+use Sivujetti\Tests\Utils\{BlockTestUtils};
 
 final class OverwritePageBlocksTest extends PagesControllerTestCase {
     public function testOverwritePageBlocksSavesNewBlocksAndLastUpdatedAtToDb(): void {
@@ -89,9 +89,9 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
         $state->inputData = (object) ["blocks" => [(object) ["type" => "not-valid"]]];
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
-        $this->expectException(PikeException::class);
-        $this->expectExceptionMessage("Unknown block type `not-valid`");
         $this->sendOverwritePageBlocksRequest($state);
+        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+        $this->verifyResponseBodyEquals(["Unknown block type `not-valid`"], $state->spyingResponse);
     }
 
 

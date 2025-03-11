@@ -102,10 +102,12 @@ abstract class ValidationUtils {
     /**
      * @param list<RawPageTypeField>|\ArrayObject $properties pageType->ownFields or $blockType->defineProperties()
      * @param \Pike\Validation\ObjectValidator $to
+     * @param string $pathPrefix = ""
      * @return \Pike\Validation\ObjectValidator
      */
     public static function addRulesForProperties(array|\ArrayObject $properties,
-                                                 ObjectValidator $to): ObjectValidator {
+                                                 ObjectValidator $to,
+                                                 string $pathPrefix = ""): ObjectValidator {
         foreach ($properties as $prop) {
             $dt = $prop->dataType;
             $defaultRules = match ($dt->type) {
@@ -123,7 +125,8 @@ abstract class ValidationUtils {
             $userRules = $dt->validationRules ?? [];
             foreach (self::createMergedRules($userRules, $defaultRules) as $parts) {
                 $pathTmpl = array_shift($parts);
-                $propPath = (!$pathTmpl ? $prop->name : sprintf($pathTmpl, $prop->name)) .
+                $propPath = $pathPrefix .
+                            (!$pathTmpl ? $prop->name : sprintf($pathTmpl, $prop->name)) .
                             (!$dt->isNullable ? "" : "?");
                 $to->rule($propPath, ...$parts);
             }

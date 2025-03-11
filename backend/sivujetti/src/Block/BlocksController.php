@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Block;
 
-use Pike\{Request, Response, Validation};
+use Pike\{Request, Response};
 use Sivujetti\{AppEnv, SharedAPIContext};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
@@ -30,9 +30,7 @@ final class BlocksController {
                            TheWebsite $theWebsite,
                            SharedAPIContext $apiCtx,
                            AppEnv $appEnv): void {
-        if (($errors = self::validateRenderBlockInput($req->body)) ||
-            ($errors = $blockValidator->validateInsertOrUpdateData($req->body->block->type,
-                                                                   $req->body->block))) {
+        if (($errors = $blockValidator->validateInsertOrUpdateData($req->body->block))) {
             $res->status(400)->json($errors);
             return;
         }
@@ -109,14 +107,5 @@ final class BlocksController {
             $out[] = $b;
         }
         return $out;
-    }
-    /**
-     * @param object $input
-     * @return list<string> Error messages or []
-     */
-    private static function validateRenderBlockInput(object $input): array {
-        return Validation::makeObjectValidator()
-            ->rule("block.type", "type", "string")
-            ->validate($input);
     }
 }

@@ -231,14 +231,14 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
 
     public function testUpdatePlaceholderPageTypeRejectsInvalidBlockBlueprintFieldsInputs(): void {
         $state = $this->setupTest([
-            "blockBlueprintFields" => [(object) ["type" => "not-valid-block-blueprint"]],
+            "blockBlueprintFields" => [(object) ["blockType" => "not-valid-block-blueprint"]],
             "defaultFields" => self::createDefaultFieldsInput(),
             "ownFields" => self::createOwnFieldsInput(),
         ], "completeBasicFields");
         $this->insertPlaceholderPageTypeToDb();
         $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
-        $this->expectExceptionMessage("The value of blockType was not in the list");
+        $this->expectExceptionMessage("Unknown block type `not-valid-block-blueprint`");
         $this->sendUpdatePlaceholderPageTypeRequest($state);
     }
 }

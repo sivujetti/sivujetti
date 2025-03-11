@@ -2,10 +2,9 @@
 
 namespace Sivujetti\Tests\Block;
 
-use Sivujetti\Block\BlockValidator;
-use Sivujetti\Block\Entities\Block;
-use Sivujetti\UserSite\UserSiteAPI;
 use PHPUnit\Framework\TestCase;
+use Sivujetti\Block\BlockValidator;
+use Sivujetti\UserSite\UserSiteAPI;
 use Sivujetti\Tests\Utils\PageTestUtils;
 
 /* See also Block/RenderBlockTest.php and Page/OverwritePageBlocksTest.php */
@@ -31,6 +30,7 @@ final class BlockValidatorTest extends TestCase {
     private function setupTest(): \TestState {
         $state = new \TestState;
         $state->inputData = (object) [
+            "type" => "Text",
             "title" => "",
             "renderer" => "sivujetti:block-auto",
             "id" => "aaaaaaaaaaaaaaaaaaaa",
@@ -46,7 +46,7 @@ final class BlockValidatorTest extends TestCase {
     }
     private function invokeValidation(\TestState $state): void {
         $v = new BlockValidator($state->apiCtx);
-        $state->validationErrors = $v->validateInsertOrUpdateData(Block::TYPE_TEXT, $state->inputData);
+        $state->validationErrors = $v->validateInsertOrUpdateData($state->inputData);
     }
     private function registerAdditionalRenderer(string $fileId, \TestState $state): void {
         $userSiteApi = new UserSiteAPI("site", $state->apiCtx);

@@ -2,8 +2,6 @@
 
 namespace Sivujetti\Tests\GlobalBlockTree;
 
-use Pike\PikeException;
-
 final class CreateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase {
     public function testCreateGlobalBlockTreeInsertsDataToDb(): void {
         $state = $this->setupTest();
@@ -55,8 +53,8 @@ final class CreateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
         $state = $this->setupTest();
         $state->inputData->blocks = [(object) ["type" => "not-valid"]];
         $this->makeTestSivujettiApp($state);
-        $this->expectException(PikeException::class);
-        $this->expectExceptionMessage("Unknown block type `not-valid`");
         $this->sendCreateGlobalBlockTreeRequest($state);
+        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+        $this->verifyResponseBodyEquals(["Unknown block type `not-valid`"], $state->spyingResponse);
     }
 }

@@ -40,7 +40,8 @@ final class ExportDataTest extends TheWebsiteControllerTestCase {
         });
     }
     private function sendExportDataRequest(\TestState $state): void {
-        $req = $this->createApiRequest("/api/the-website/export", "POST");
+        $req = $this->createApiRequest("/api/the-website/export", "POST",
+                                       body: (object) ["resetEntities" => false]);
         $state->spyingResponse = $state->app->sendRequest($req);
     }
     private function verifyWroteFileThatContainsAllTheData(\TestState $state): void {

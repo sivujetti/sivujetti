@@ -11,6 +11,7 @@ use Sivujetti\Theme\ThemesController;
 
 /**
  * @phpstan-import-type BlockBlueprint from \Sivujetti\Block\Entities\Block
+ * @phpstan-import-type BlockBlueprintInput from \Sivujetti\Block\BlockValidator
  */
 final class ReusableBranchesController {
     private const T = "\${p}reusableBranches";
@@ -85,43 +86,45 @@ final class ReusableBranchesController {
             ->addRuleImpl(...ValidationUtils::createPushIdValidatorImpl())
             ->rule("id", "pushId")
             ->validate($input);
-        $errors2 = self::validateBlockBlueprints($input, $blockValidator, "blockBlueprints");
+        $errors2 = self::validateBlockBlueprints(
+            $input,
+            $blockValidator,
+            "blockBlueprints",
+            ThemesController::addRulesForStyleChunks(Validation::makeObjectValidator(), "initialStyles")
+        );
         return [...$errors1, ...$errors2];
     }
     /**
      * @param object $input
-     * @param \Sivujetti\Block\BlockValidator $blockValidator
+     * @param BlockValidator $blockValidator
      * @param string $propPath = "blockBlueprints"
+     * @param ?\Pike\Validation\ObjectValidator $validator = null
      * @return list<string> Error messages or []
-     */
+    */
     public static function validateBlockBlueprints(object $input,
                                                    BlockValidator $blockValidator,
-                                                   string $propPath = "blockBlueprintFields"): array {
+                                                   string $propPath = "blockBlueprintFields",
+                                                   ?ObjectValidator $validator = null): array {
         if (($errors = Validation::makeObjectValidator()
             ->rule($propPath, "minLength", 1, "array")
             ->validate($input))) {
             return $errors;
         }
-        $v = Validation::makeObjectValidator()
-            ->rule("blockType", "in", $blockValidator->getValidBlockTypeNames())
-            ->rule("initialOwnData", "type", "object");
-        // initialDefaultsData.title|renderer etc.
-        $v = $blockValidator->addRulesForDefaultProps($v, "initialDefaultsData.");
-        // initialStyles.scss|scope|data
-        $v = ThemesController::addRulesForStyleChunks($v, "initialStyles");
-        $v = $v->rule("initialChildren", "type", "array");
-        return self::doValidateBlockBlueprints($input->{$propPath}, $v);
+        return self::doValidateBlockBlueprints($input->{$propPath}, $blockValidator, $validator);
     }
     /**
-     * @param list<object> $input
-     * @param \Pike\Validation\ObjectValidator $v
+     * @param list<BlockBlueprintInput|object> $branch
+     * @param BlockValidator $blockValidator
+     * @param ?\Pike\Validation\ObjectValidator $validator = null
      * @return list<string> Error messages or []
      */
-    private static function doValidateBlockBlueprints(array $input, ObjectValidator $v): array {
-        foreach ($input as $bb) {
-            if (($errors = $v->validate($bb)))
+    private static function doValidateBlockBlueprints(array $branch,
+                                                      BlockValidator $blockValidator,
+                                                      ?\Pike\Validation\ObjectValidator $validator = null): array {
+        foreach ($branch as $blueprint) {
+            if (($errors = $blockValidator->validateInsertOrUpdateData($blueprint, $validator)))
                 return $errors;
-            if ($bb->initialChildren && ($errors2 = self::doValidateBlockBlueprints($bb->initialChildren, $v)))
+            if ($blueprint->initialChildren && ($errors2 = self::doValidateBlockBlueprints($blueprint->initialChildren, $blockValidator)))
                 return $errors2;
         }
         return [];

@@ -2,8 +2,7 @@
 
 namespace Sivujetti\PageType;
 
-use Pike\Db;
-use Pike\PikeException;
+use Pike\{Db, PikeException};
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\ReusableBranch\ReusableBranchesController;
 

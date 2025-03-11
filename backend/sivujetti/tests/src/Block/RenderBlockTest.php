@@ -2,8 +2,6 @@
 
 namespace Sivujetti\Tests\Block;
 
-use Pike\PikeException;
-
 final class RenderBlockTest extends RenderBlocksTestCase {
     public function testRenderBlockRendersBlockShallowly(): void {
         $state = $this->setupTest();
@@ -67,8 +65,8 @@ final class RenderBlockTest extends RenderBlocksTestCase {
         $state = $this->setupTest();
         $state->testBlock->type = "DoesNotExist";
         $this->makeTestSivujettiApp($state);
-        $this->expectException(PikeException::class);
-        $this->expectExceptionMessage("Unknown block type `DoesNotExist`");
         $this->sendRenderBlockRequest($state);
+        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+        $this->verifyResponseBodyEquals(["Unknown block type `DoesNotExist`"], $state->spyingResponse);
     }
 }

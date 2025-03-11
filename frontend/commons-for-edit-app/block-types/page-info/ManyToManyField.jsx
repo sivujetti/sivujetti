@@ -57,22 +57,25 @@ class ManyToManyItemSelector extends preact.Component {
      * @param {string} pageTypeName
      * @access private
      */
-    fetchManyToManyPagesToState(pageTypeName) {
+    async fetchManyToManyPagesToState(pageTypeName) {
         const saveButton = api.saveButton.getInstance();
         const pages = saveButton.getChannelState('quicklyAddedPages');
-        if (pages) {
+        const setPages = pages => {
             if (this.props.onItemsFetched) this.props.onItemsFetched(pages);
             this.setState({manyToManyPages: pages});
+        };
+        if (Array.isArray(pages)) {
+            setPages(pages);
             return;
         }
-        http.get(`/api/pages/${pageTypeName}`)
-            .then(pages => {
-                const baked = pages.map(createCompactPageFrom);
-                saveButton.initChannel('quicklyAddedPages', baked);
-                if (this.props.onItemsFetched) this.props.onItemsFetched(baked);
-                this.setState({manyToManyPages: baked});
-            })
-            .catch(env.window.console.error);
+        try {
+            const pages = await http.get(`/api/pages/${pageTypeName}`);
+            const baked = pages.map(createCompactPageFrom);
+            saveButton.initChannel('quicklyAddedPages', baked);
+            setPages(baked);
+        } catch (message) {
+            env.window.console.error(message);
+        }
     }
     /**
      * @param {Event} e

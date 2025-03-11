@@ -434,9 +434,11 @@ function broadcastCurrentPageData(e) {
     if (!unregisterSyncUpdaterFns.length)
         unregisterSyncUpdaterFns = [
             ...registerSyncedItemsUpdater('globalBlockTrees', saveButton),
+            ...registerSyncedItemsUpdater('quicklyAddedPages', saveButton),
             ...registerSyncedItemsUpdater('reusableBranches', saveButton),
         ];
     saveButton.initChannel('globalBlockTrees', detachedGbts);
+    saveButton.initChannel('quicklyAddedPages', saveButton.DEFERRED); // see ../../commons-for-edit-app/block-types/page-info/ManyToManyField.jsx
     saveButton.initChannel('reusableBranches', saveButton.DEFERRED); // see ../includes/reusable-branches/repository.js
     /** @type {StylesBundle} */
     const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');

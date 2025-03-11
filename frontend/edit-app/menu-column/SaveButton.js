@@ -1,4 +1,4 @@
-import {__, env, Events, objectUtils} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, Events, objectUtils} from '@sivujetti-commons-for-edit-app';
 import {getMetaKey} from '../../shared-inline.js';
 import {historyInstance, isMainColumnViewUrl} from '../main-column/MainColumnViews.jsx';
 import {
@@ -252,6 +252,8 @@ class SaveButton {
             }
         }
 
+        if (this.lastAttemptHistory.length)
+            api.toasters.editAppMain(__('Changes saved'), 'success');
         this.reset(getLatestItemsOfEachChannel(syncQueue));
         saveButtonEvents2.emit('after-items-synced', false, results);
     }

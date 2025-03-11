@@ -182,7 +182,7 @@ function createFormState(page) {
 }
 
 /**
- * @param {{[prop: string]: any;}|(current: Page) => {[prop: string]: any;}} changesOrMutator
+ * @param {{[prop: string]: any;}|((current: Page) => {[prop: string]: any;})} changesOrMutator
  * @param {boolean} _hasErrors = false
  * @param {blockPropValueChangeFlags} flags = null
  */

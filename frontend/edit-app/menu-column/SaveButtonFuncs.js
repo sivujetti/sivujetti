@@ -149,12 +149,15 @@ function createGlobalBlockTreesChannelHandler() {
 
 /**
  * @template T extends {id: string;}
- * @param {'globalBlockTrees'|'reusableBranches'} channelName 
+ * @param {'globalBlockTrees'|'quicklyAddedPages'|'reusableBranches'} channelName 
  * @param {SaveButton} saveButton = api.saveButton.getInstance()
  * @returns {[Function, Function]}
  */
 function registerSyncedItemsUpdater(channelName, saveButton = api.saveButton.getInstance()) {
     let latestItemsJustBeforeSave = [];
+    const ok = () => {
+        latestItemsJustBeforeSave = [];
+    };
     return [
         saveButton.on('before-items-synced', () => {
             latestItemsJustBeforeSave = saveButton.getChannelState(channelName);
@@ -163,28 +166,29 @@ function registerSyncedItemsUpdater(channelName, saveButton = api.saveButton.get
             /** @type {boolean} */ hadStopError,
             /** @type {Array<ScopedSyncResult<{type: 'insert'|'update'; arg: WithId<T>;}[], WithId<T>>>} */ results
         ) => {
+            if (!hadStopError) // Was success -> savebutton.js handles updating the synced state
+                return ok();
             if (!latestItemsJustBeforeSave?.length) // Empty $channelName state
-                return;
+                return ok();
             const syncResult = results.find(it => it.queueItem.channelName === channelName);
             if (!syncResult) // Op queue didn't contain $channelName items
-                return;
+                return ok();
 
-            let markTheseItemsAsSynced = null;
-
-            if (!hadStopError)
-                markTheseItemsAsSynced = latestItemsJustBeforeSave;
-            else {
-                const succesfulHttpCalls = syncResult.result.data;
-                markTheseItemsAsSynced = succesfulHttpCalls.map(({arg}) => arrayUtils.findById(latestItemsJustBeforeSave, arg.id));
-            }
-
-            if (markTheseItemsAsSynced?.length)
+            const succesfulHttpCalls = syncResult.result.data;
+            const markTheseItemsAsSynced = succesfulHttpCalls.map(({arg}) => arrayUtils.findById(latestItemsJustBeforeSave, arg.id));
+            if (markTheseItemsAsSynced?.length) {
+                console.log('set `'+channelName+'`s manually',objectUtils.cloneDeep(mergeItems(
+                    saveButton.getSyncedState(channelName),
+                    markTheseItemsAsSynced,
+                )));
+                
                 saveButton.setSyncedState(channelName, mergeItems(
                     saveButton.getSyncedState(channelName),
                     markTheseItemsAsSynced,
                 ));
+            }
 
-            latestItemsJustBeforeSave = [];
+            return ok();
         })
     ];
 }
@@ -224,12 +228,11 @@ function createQuicklyAddedPagesChannelHandler() {
          * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
-            const saveable = createSaveableItems(stateHistory);
-            const results = await Promise.all(saveable.map(({arg}) =>
-                http.post(`/api/pages/${arg.type}/upsert-quick`, arg)
-            ));
-            const wasSuccess = results.every(resp => resp?.ok === 'ok');
-            return {wasSuccess, data: null};
+            return await sendHttpEach(stateHistory, ({type, arg}) =>
+                type === 'insert'
+                    ? doPostOrPut(http.post(`/api/pages/${arg.type}/upsert-quick`, arg, undefined, undefined, true))
+                    : (window.console.error(`${type}:ng to backend not implemented yet`), Promise.resolve({level: null, httpStatus: null}))
+            );
         }
     };
 }
@@ -425,7 +428,7 @@ async function sendHttpEach(stateHistory, sendRequest) {
     return {
         wasSuccess: !stoppedDueToError,
         causeHttpStatus: stopInfo?.httpStatus,
-        data: saveables.slice(0, i - 1),
+        data: saveables.slice(0, i),
     };
 }
 

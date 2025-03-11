@@ -247,6 +247,7 @@ stringBundles.push({
     'You have unsaved changes, do you want to navigate away?': 'You have unsaved changes, do you want to navigate away?',
     'Undo latest change': 'Undo latest change',
     'Save changes': 'Save changes',
+    'Changes saved': 'Changes saved',
     // edit-app/src/right-column/WebPageIframe.js
     'Copy': 'Copy',
     // edit-app/src/block-types/menu/EditForm.jsx

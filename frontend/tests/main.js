@@ -14,6 +14,7 @@ api.webPagePreview.updateCss = () => {};
 api.webPagePreview.reRenderBlock = () => {};
 api.webPagePreview.reRenderAllBlocks = () => {};
 toasters.editAppMain = () => {};
+api.toasters = toasters;
 
 QUnit.config.autostart = false;
 QUnit.dump.maxDepth = 8; // default 5

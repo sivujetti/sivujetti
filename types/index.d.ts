@@ -239,7 +239,7 @@ interface PageTypeField {
     name: string;
     friendlyName: string;
     dataType: {
-        type: 'text'|'json'|'int'|'uint';
+        type: 'text'|'json'|'int'|'uint'|'many-to-many';
         isNullable: boolean;
         length?: number;
         validationRules?: Array;

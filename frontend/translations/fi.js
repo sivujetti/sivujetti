@@ -247,6 +247,7 @@ stringBundles.push({
     'You have unsaved changes, do you want to navigate away?': 'Sinulla on tallentamattomia muutoksia, haluatko poistua sivulta?',
     'Undo latest change': 'Kumoa viimeisin muutos',
     'Save changes': 'Tallenna muutokset',
+    'Changes saved': 'Muutokset tallennettiin',
     // edit-app/src/right-column/WebPageIframe.js
     'Copy': 'Kopio',
     // edit-app/src/block-types/menu/EditForm.jsx

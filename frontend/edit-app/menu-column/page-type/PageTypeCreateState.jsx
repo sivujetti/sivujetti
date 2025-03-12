@@ -17,20 +17,17 @@ const PAGETYPE_STATUS_DRAFT = 1;
  * Menu column state for #/page-types/create.
  */
 class PageTypeCreateState extends preact.Component {
-    // unregistrables;
-    // basicInfoForm;
-    // ownFieldsForm;
     /**
      * @access protected
      */
     componentWillMount() {
+        /** @type {Array<Function>} */
         this.unregistrables = [];
         this.basicInfoForm = preact.createRef();
         this.ownFieldsForm = preact.createRef();
         api.webPagePreview.onReady(() => { // make sure currentPageData is loaded
             const saveButton = api.saveButton.getInstance();
-            const syncedPageTypes = api.getPageTypes();
-            saveButton.initChannel('pageTypes', syncedPageTypes);
+            const syncedPageTypes = saveButton.getSyncedState('pageTypes');
             const withNewPageType = [...objectUtils.cloneDeep(syncedPageTypes), {
                 name: '',
                 friendlyName: '',
@@ -67,8 +64,9 @@ class PageTypeCreateState extends preact.Component {
                 return filter(out, _activeStates);
             }));
 
-            this.unregistrables.push(saveButton.onAfterItemsSynced(() => {
-                urlUtils.redirect('/_edit&show-message=page-type-created', true);
+            this.unregistrables.push(saveButton.on('after-items-synced', (hadStopError, _results) => {
+                if (!hadStopError)
+                    urlUtils.redirect('/_edit&show-message=page-type-created', true);
             }));
 
             this.setState({ready: true});
@@ -150,7 +148,7 @@ function createAddPageTypeSaveOpFilter(data, layout) {
     /**
      * @param {Array<StateHistory>} out
      * @param {any} _activeStates
-     * @returns {Promise<Array<StateHistory>|null>}
+     * @returns {Promise<Array<StateHistory>>|null}
      */
     return (out, _activeStates) => {
         const pageTypesHistory = out.find(({channelName}) => channelName === 'pageTypes');
@@ -160,7 +158,7 @@ function createAddPageTypeSaveOpFilter(data, layout) {
         const latestBlockTree = blockTreeHistory ? blockTreeHistory.latest : api.saveButton.getInstance().getChannelState('theBlockTree');
         // #1
         const l = pageTypesHistory.latest.length - 1;
-        const belongsToLayout = createBelongsToLayout(layout);
+        const belongsToLayout = createBelongsToLayoutFn(layout);
         const out2 = out.map(itm => itm !== pageTypesHistory ? itm : {
             ...itm,
             latest: itm.latest.map((s, i2) => i2 !== l ? s : {
@@ -184,7 +182,7 @@ function createAddPageTypeSaveOpFilter(data, layout) {
  * @param {Layout} layout
  * @returns {(block: Block) => boolean}
  */
-function createBelongsToLayout({structure}) {
+function createBelongsToLayoutFn({structure}) {
     return b => b.type === 'PageInfo' ||
         (b.type === 'GlobalBlockReference' && structure.some(p =>
             p.type === 'globalBlockTree' &&

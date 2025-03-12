@@ -44,7 +44,7 @@ interface InspectorPanel {
 }
 
 interface SaveButton {
-    static DEFERRED;
+    static DEFERRED: undefined;
     subscribeToChannel(name: string, fn: (state: sbState, userCtx: StateChangeUserContext, context: stateChangeContext) => any): Function;
     initChannel(name: string, state: sbState, broadcastInitialStateToListeners: boolean = false): void;
     getChannelState(channelName: string, includeSynced: boolean = false): T|null;
@@ -53,11 +53,9 @@ interface SaveButton {
     setSyncedState<T>(channelName: string, data: T): void;
     getSyncedState<T>(channelName: string): T;
     on(when: 'before-items-synced'|'after-items-synced'|string, thenDo: (() => any)|((hadStopError: boolean, results: ScopedSyncResult[]) => any)): Function;
-    /** @deprecated Use saveButton.on('after-items-synced', (hadStopError: boolean, results: ScopedSyncResult[]) => any) => {}); instead */
-    onAfterItemsSynced(thenDo: () => any): Function;
     invalidateAll(): void;
     setHotkeyUndoLockIsOn(isOn: boolean): BiquadFilterNode;
-    registerSyncQueueFilter<T>(fn: (queue: Array<StateHistory<T>>, activeState: Array<T>) => Array<StateHistory<T>>|null, toEnd: boolean = true): () => void;
+    registerSyncQueueFilter<T>(fn: (queue: Array<StateHistory<T>>, activeState: StateMap) => Promise<Array<StateHistory<T>>|null>, toEnd: boolean = true): () => void;
     replaceStateOf(channelName: string, createNewState: (channelState: Array<sbState>) => Array<sbState>): void;
     doUndo(): void;
     doRedo(): void;
@@ -650,6 +648,10 @@ interface SyncResult<T = any> {
 interface ScopedSyncResult<ResultT = any, EntityT = any> {
     result: SyncResult<ResultT>;
     queueItem: StateHistory<EntityT>;
+}
+
+interface StateMap {
+    [channelName: string]: Array<sbState>;
 }
 
 type sbState = any;

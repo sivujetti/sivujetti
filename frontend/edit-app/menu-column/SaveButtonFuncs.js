@@ -51,7 +51,9 @@ function createStylesBundleChannelHandler() {
             };
             return doWrappedPostOrPut(http.put(
                 `/api/themes/${globalData.theme.id}/styles/all`,
-                toTransferable(stateHistory.latest)
+                toTransferable(stateHistory.latest),
+                undefined,
+                true
             ));
         }
     };
@@ -107,7 +109,7 @@ function createReusableBranchesChannelHandler() {
          * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
-            return await sendHttpEach(stateHistory, ({type, arg}) =>
+            return await sendHttpEach(createSaveables(stateHistory), ({type, arg}) =>
                 type === 'insert'
                     ? doPostOrPut(http.post('/api/reusable-branches', arg, undefined, undefined, true))
                     : (window.console.error(`${type}:ng to backend not implemented yet`), Promise.resolve({level: null, httpStatus: null}))
@@ -138,7 +140,7 @@ function createGlobalBlockTreesChannelHandler() {
          * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
-            return await sendHttpEach(stateHistory, ({type, arg}) =>
+            return await sendHttpEach(createSaveables(stateHistory), ({type, arg}) =>
                 doPostOrPut(type === 'update'
                     ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks}, undefined, true)
                     : http.post('/api/global-block-trees', arg, undefined, undefined, true))
@@ -228,7 +230,7 @@ function createQuicklyAddedPagesChannelHandler() {
          * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
-            return await sendHttpEach(stateHistory, ({type, arg}) =>
+            return await sendHttpEach(createSaveables(stateHistory), ({type, arg}) =>
                 type === 'insert'
                     ? doPostOrPut(http.post(`/api/pages/${arg.type}/upsert-quick`, arg, undefined, undefined, true))
                     : (window.console.error(`${type}:ng to backend not implemented yet`), Promise.resolve({level: null, httpStatus: null}))
@@ -326,12 +328,11 @@ function createPageTypesChannelHandler() {
          * @returns {Promise<SyncResult>}
          */
         async syncToBackend(stateHistory, _otherHistories) {
-            const saveable = createSaveableItems(stateHistory, 'name');
-            const results = await Promise.all(saveable.map(({arg}) =>
-                http.post('/api/page-types', arg)
-            ));
-            const wasSuccess = results.every(resp => resp?.ok === 'ok');
-            return {wasSuccess, data: null};
+            return await sendHttpEach(createSaveables(stateHistory, 'name'), ({type, arg}) =>
+                type === 'insert'
+                    ? doPostOrPut(http.post('/api/page-types', arg, undefined, undefined, true))
+                    : (window.console.error(`${type}:ng to backend not implemented yet`), Promise.resolve({level: null, httpStatus: null}))
+            );
         }
     };
 }
@@ -403,12 +404,11 @@ async function doPostOrPut(httpCallPromise, adjustErrorToastArgs = null) {
 
 /**
  * @template T
- * @param {StateHistory} stateHistory
+ * @param {Array<Saveable<T>>} saveables
  * @param {(saveable: Saveable<T>) => Promise<HttpCallResult|null>} sendRequest
  * @returns {Promise<SyncResult>}
  */
-async function sendHttpEach(stateHistory, sendRequest) {
-    const saveables = createSaveables(stateHistory);
+async function sendHttpEach(saveables, sendRequest) {
     let i = 0;
     let stopInfo = null;
     for (i; i < saveables.length; ++i) {
@@ -460,15 +460,16 @@ function createSaveableItems({initial, latest}, key = 'id') {
 }
 
 /**
- * @template T extends {id: string;}
- * @param {StateHistory<Array<T & {id: string;}>>} stateHistory
+ * @template T
+ * @param {StateHistory<Array<T>>} stateHistory
+ * @param {string} key = 'id'
  * @returns {Saveable<T>[]}
  */
-function createSaveables({channelName, latest}) {
+function createSaveables({channelName, latest}, key = 'id') {
     const alreadyExisting = api.saveButton.getInstance().getSyncedState(channelName);
     const out = [];
     for (const entity of latest) {
-        const fromInitial = arrayUtils.findById(alreadyExisting, entity.id);
+        const fromInitial = alreadyExisting.find(it => it[key] === entity[key]);
         if (!fromInitial)
             out.push({type: 'insert', arg: entity});
         else if (JSON.stringify(fromInitial) !== JSON.stringify(entity))
@@ -506,14 +507,6 @@ function normalizeItem(ir) {
 function createEventName(channelName) {
     return `on-${channelName}-event`;
 }
-
-/**
- * @typedef {any} state
- */
-
-/**
- * @typedef {{[channelName: string]: Array<state>;}} StateMap
- */
 
 /**
  * @typedef {(message: string, level: toastMessageLevel, err: Error|Object) => [string, toastMessageLevel]} adjustErrorToastArgsFn

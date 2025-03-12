@@ -448,7 +448,7 @@ function broadcastCurrentPageData(e) {
         id: counter + 1,
     }, broadcastInitialStateToListeners);
     saveButton.initChannel('theBlockTree', blocks, broadcastInitialStateToListeners);
-    saveButton.initChannel('pageTypes', saveButton.DEFERRED); // see ../menu-column/page-type/PageTypeCreateState.jsx @componentWillMount
+    saveButton.initChannel('pageTypes', api.getPageTypes());
 
     events.emit('webpage-preview-iframe-loaded');
 }

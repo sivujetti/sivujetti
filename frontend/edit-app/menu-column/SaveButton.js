@@ -8,8 +8,6 @@ import {
     normalizeItem,
 } from './SaveButtonFuncs.js';
 /** @typedef {import('./SaveButtonFuncs.js').HistoryItem} HistoryItem */
-/** @typedef {import('./SaveButtonFuncs.js').StateMap} StateMap */
-/** @typedef {import('./SaveButtonFuncs.js').state} state */
 
 const saveButtonEvents = new Events;
 const saveButtonEvents2 = new Events;
@@ -26,7 +24,7 @@ class SaveButton {
     }
     /**
      * @param {string} name
-     * @param {(state: state, userCtx: StateChangeUserContext, context: stateChangeContext) => any} fn
+     * @param {(state: sbState, userCtx: StateChangeUserContext, context: stateChangeContext) => any} fn
      * @returns {Function}
      * @access public
      */
@@ -39,7 +37,7 @@ class SaveButton {
     }
     /**
      * @param {string} name
-     * @param {state|undefined} syncedState
+     * @param {sbState|undefined} syncedState
      * @param {boolean} broadcastInitialStateToListeners = false
      * @access public
      */
@@ -66,7 +64,7 @@ class SaveButton {
     }
     /**
      * @param {string} channelName
-     * @param {state} state
+     * @param {sbState} state
      * @param {StateChangeUserContext} userCtx = null
      * @param {blockPropValueChangeFlags} flags = null
      * @access public
@@ -111,7 +109,7 @@ class SaveButton {
     /**
      * Pushes multiple ops to the history that will be undone/redone as a group when undo/redo is called.
      *
-     * @param {Array<[string, state, StateChangeUserContext|null, blockPropValueChangeFlags]>} ops
+     * @param {Array<[string, sbState, StateChangeUserContext|null, blockPropValueChangeFlags]>} ops
      * @access public
      */
     pushOpGroup(...ops) {
@@ -153,15 +151,6 @@ class SaveButton {
         return saveButtonEvents2.on(when, thenDo);
     }
     /**
-     * @deprecated Use saveButton.on('after-items-synced', (hadStopError: boolean, results: ScopedSyncResult[]) => any) => {}); instead
-     * @param {() => any} thenDo
-     * @returns {Function} Unregister
-     * @access public
-     */
-    onAfterItemsSynced(thenDo) {
-        return saveButtonEvents2.on('after-items-synced', thenDo);
-    }
-    /**
      * @access public
      */
     invalidateAll() {
@@ -179,7 +168,7 @@ class SaveButton {
     }
     /**
      * @template T
-     * @param {(queue: Array<StateHistory<T>>, activeState: Array<T>) => Array<StateHistory<T>>|null} fn
+     * @param {(queue: Array<StateHistory<T>>, activeState: StateMap) => Promise<Array<StateHistory<T>>|null>} fn
      * @param {boolean} toEnd
      * @returns {() => void} Unregister
      * @access public
@@ -193,7 +182,7 @@ class SaveButton {
     }
     /**
      * @param {string} channelName
-     * @param {(channelState: Array<state>) => Array<state>} createNewState
+     * @param {(channelState: Array<sbState>) => Array<sbState>} createNewState
      * @access public
      */
     replaceStateOf(channelName, createNewState) {
@@ -232,7 +221,6 @@ class SaveButton {
      */
     async syncQueuedOpsToBackend() {
         saveButtonEvents2.emit('before-items-synced');
-        this.unregisterAndClearUnsavedChagesAlertIfSet();
         this.renderer.setState({isSubmitting: true});
 
         const syncQueue = await this.createSynctobackendQueue();
@@ -252,6 +240,7 @@ class SaveButton {
             }
         }
 
+        this.unregisterAndClearUnsavedChagesAlertIfSet();
         if (this.lastAttemptHistory.length)
             api.toasters.editAppMain(__('Changes saved'), 'success');
         this.reset(getLatestItemsOfEachChannel(syncQueue));
@@ -303,7 +292,7 @@ class SaveButton {
     }
     /**
      * @param {string} channelName
-     * @param {state} state
+     * @param {sbState} state
      * @param {StateChangeUserContext|null} userCtx
      * @param {stateChangeContext} context
      * @access private
@@ -315,7 +304,7 @@ class SaveButton {
     }
     /**
      * @template T
-     * @returns {state|T|null}
+     * @returns {sbState|T|null}
      * @access private
      */
     getHead(channelName, includeSynced = false) {
@@ -329,7 +318,7 @@ class SaveButton {
     /**
      * @param {string} channelName
      * @param {number} start = 1
-     * @returns {Array<state>}
+     * @returns {Array<sbState>}
      * @access private
      */
     getActiveState(channelName, start = 0) {
@@ -441,7 +430,7 @@ class SaveButton {
     }
     /**
      * @param {string} channelName
-     * @param {state|null} newSyncedState
+     * @param {sbState|null} newSyncedState
      * @access private
      */
     clearStateOf(channelName, newSyncedState) {
@@ -534,7 +523,7 @@ class SaveButton {
      * @access private
      */
     doInvalidateAll() {
-        /** @type {{[name: string]: Array<state>;}} */
+        /** @type {{[name: string]: Array<sbState>;}} */
         this.states = {};
         /** @type {{[name: string]: Object;}} */
         this.syncedStates = {};

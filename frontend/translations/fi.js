@@ -184,6 +184,10 @@ stringBundles.push({
     'Description': 'Kuvaus',
     'Listable': 'Listattava',
     'Default layout': 'Oletusivupohja',
+    // edit-app/main-column/popups/AuthReloginDialog.jsx
+    'The login information could not be found or it has expired – please log in again to continue.': 'Kirjautumistietoja ei löytynyt tai ne ehtivät erääntyä – kirjaudu uudelleen jatkaaksesi työskentelyä.',
+    'Login again': 'Kirjaudu uudelleen',
+    'Exit edit mode': 'Poistu muokkaustilasta',
     // edit-app/src/popups/reusable-branch/BlockSaveAsReusableDialog.jsx
     'This function saves this content as reusable content, which can be easily added to other pages later on.': 'Tämä toiminto tallentaa sisällön uudelleenkäytettäväksi sisällöksi, jota voidaan myöhemmin helposti lisätä myös muihin sivuihin.',
     'Name': 'Nimi',
@@ -248,6 +252,7 @@ stringBundles.push({
     'Undo latest change': 'Kumoa viimeisin muutos',
     'Save changes': 'Tallenna muutokset',
     'Changes saved': 'Muutokset tallennettiin',
+    'Login information not found': 'Kirjautumistietoja ei löytynyt',
     // edit-app/src/right-column/WebPageIframe.js
     'Copy': 'Kopio',
     // edit-app/src/block-types/menu/EditForm.jsx

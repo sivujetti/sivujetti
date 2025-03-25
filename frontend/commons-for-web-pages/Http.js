@@ -45,9 +45,9 @@ class Http {
      */
     async post(url, data, settings = {}, defaults = {method: 'POST'}, throwIfError = false) {
         const resp = await this.fetchFn(this.makeUrl(url), completeSettings({...defaults, ...settings}, data));
-        if (resp.status === 401)
+        if (!throwIfError && resp.status === 401)
             window.console.error('todo');
-        if (throwIfError && (resp.status === 400 || resp.status === 403)) {
+        if (throwIfError && (resp.status === 400 || resp.status === 403 || resp.status === 401)) {
             let error = null;
             try {
                 error = await resp.json();

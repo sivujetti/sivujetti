@@ -56,7 +56,8 @@ class FloatingDialog extends preact.Component {
      * @access public
      */
     open(Renderer, settings, rendererProps) {
-        const state = createState(settings, {Renderer, rendererProps});
+        this.settings = settings;
+        const state = createState({Renderer, rendererProps}, settings);
         this.currentHeight = state.height;
         this.setState(state);
     }
@@ -113,9 +114,14 @@ class FloatingDialog extends preact.Component {
                 smallify: 'remove',
             },
             callback: panel => {
-                panel.querySelector('.jsPanel-btn-close').innerHTML = iconAsString('x');
+                const closeBtn = panel.querySelector('.jsPanel-btn-close');
+                closeBtn.innerHTML = this.settings.noClose ? '' : iconAsString('x');
+                if (this.settings.backdrop)
+                    document.body.classList.add('with-backdrop');
             },
             onbeforeclose: () => {
+                if (this.settings.backdrop)
+                    document.body.classList.remove('with-backdrop');
                 this.closing = true;
                 this.close();
                 return true;
@@ -135,15 +141,33 @@ class FloatingDialog extends preact.Component {
 }
 
 /**
- * @param {FloatingDialogSettingsInput & {[key: string]: any;}} input
- * @param {{Renderer: preact.AnyComponent; rendererProps: Object;}} out
- * @returns {{title: string; width: number; height: number;}}
+ * @param {{Renderer: preact.ComponentType|string; rendererProps: Object;}} from
+ * @param {FloatingDialogSettingsInput} settings
+ * @returns {FloatingDialogState}
  */
-function createState(input, out) {
-    Object.assign(out, input);
-    out.width = out.width ? parseInt(out.width, 10) : 680;
-    out.height = out.height ? parseInt(out.height, 10) : 480;
-    return out;
+function createState(from, settings) {
+    return {
+        ...from,
+        title: settings.title || '-',
+        width: settings.width ? +settings.width : 680,
+        height: settings.height ? +settings.height : 480,
+    }
 }
 
-export {FloatingDialog, currentInstance};
+/** @typedef {{
+ *   setHeaderTitle: Function;
+ *   resize: Function;
+ *   close: Function;
+ *   [key: string]: any;
+ * } & HTMLDivElement} JsPanel */
+
+/** @typedef {{
+ *  Renderer: preact.ComponentType|string;
+ *  rendererProps: Object;
+ *  title: string;
+ *  width: number;
+ *  height: number;
+ *  className?: string;
+ * }} FloatingDialogState */
+
+export {FloatingDialogImpl as FloatingDialog, currentInstance};

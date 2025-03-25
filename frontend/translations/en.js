@@ -183,6 +183,10 @@ stringBundles.push({
     'Description': 'Description',
     'Listable': 'Listable',
     'Default layout': 'Default layout',
+    // edit-app/main-column/popups/AuthReloginDialog.jsx
+    'The login information could not be found or it has expired – please log in again to continue.': 'The login information could not be found or it has expired – please log in again to continue.',
+    'Login again': 'Login again',
+    'Exit edit mode': 'Exit edit mode',
     // edit-app/src/popups/reusable-branch/BlockSaveAsReusableDialog.jsx
     'This function saves this content as reusable content, which can be easily added to other pages later on.': 'This function saves this content as reusable content, which can be easily added to other pages later on.',
     'Name': 'Name',
@@ -248,6 +252,7 @@ stringBundles.push({
     'Undo latest change': 'Undo latest change',
     'Save changes': 'Save changes',
     'Changes saved': 'Changes saved',
+    'Login information not found': 'Login information not found',
     // edit-app/src/right-column/WebPageIframe.js
     'Copy': 'Copy',
     // edit-app/src/block-types/menu/EditForm.jsx

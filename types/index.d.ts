@@ -440,6 +440,8 @@ interface FloatingDialogSettingsInput {
     title: string;
     width?: number;
     height?: number;
+    backdrop?: boolean;
+    noClose?: boolean;
 }
 
 interface DragDropEventController {

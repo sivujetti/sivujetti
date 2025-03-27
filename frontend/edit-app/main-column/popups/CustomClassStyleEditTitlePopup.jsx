@@ -9,15 +9,16 @@ import {
     unhookForm,
     validationConstraints,
 } from '@sivujetti-commons-for-edit-app';
+import {createSaveButtonUndoHotkeyDisabler} from './CustomClassStyleEditCustomizationsDialog.jsx';
 
 /** @extends {preact.Component<CustomClassStyleEditTitlePopupProps, any>} */
 class CustomClassStyleEditTitlePopup extends preact.Component {
-    // titleInputRef;
     /**
      * @access protected
      */
     componentWillMount() {
         this.titleInputRef = preact.createRef();
+        this.disableGlobalUndoHotkeys = createSaveButtonUndoHotkeyDisabler();
         this.setState(hookForm(this, [
             {name: 'title', value: this.props.currentTitle, validations: [['required'],
             ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
@@ -45,7 +46,7 @@ class CustomClassStyleEditTitlePopup extends preact.Component {
         return <form onSubmit={ this.applyNewTitleAndClose.bind(this) } class="pb-1">
             <FormGroup>
                 <label htmlFor="styleChunkTitle" class="form-label pt-1">{ __('Style name') }</label>
-                <Input vm={ this } prop="title" id="styleChunkTitle" ref={ this.titleInputRef }/>
+                <Input vm={ this } prop="title" id="styleChunkTitle" ref={ this.titleInputRef } { ...this.disableGlobalUndoHotkeys }/>
                 <InputErrors vm={ this } prop="title"/>
             </FormGroup>
             <button class="btn btn-sm px-2" type="submit" disabled={ hasErrors(this) }>Ok</button>

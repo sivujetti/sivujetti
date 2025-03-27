@@ -20,6 +20,7 @@ class BackgroundImageValueInput extends preact.Component {
                     src={ valueAsString }
                     onSrcCommitted={ this.handleImageSrcCommitted.bind(this) }
                     inputId={ inputId }
+                    inputSize="tight"
                     showClearItem
                     omitClearButton/>
                 { isClearable

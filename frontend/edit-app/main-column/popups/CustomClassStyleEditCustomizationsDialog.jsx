@@ -457,3 +457,4 @@ function createSaveButtonUndoHotkeyDisabler() {
  */
 
 export default CustomClassStyleEditCustomizationsDialog;
+export {createSaveButtonUndoHotkeyDisabler};

@@ -905,6 +905,9 @@ a.popup-close-area {
 .styles-list.style-tweak-settings-list > li:not(.in-edit-mode) {
     padding-left: 3.6rem;
 }
+.icon-narrower.styles-list.style-tweak-settings-list > li:not(.in-edit-mode) {
+    padding-left: 2.6rem;
+}
 .styles-list.style-tweak-settings-list.edit-mode-is-on > li:not(.in-edit-mode):after {
     content: "";
     height: 100%;
@@ -921,6 +924,9 @@ a.popup-close-area {
 .styles-list.style-tweak-settings-list > li > button:first-child {
     left: 1.1rem;
     opacity: .5;
+}
+.icon-narrower.styles-list.style-tweak-settings-list > li > button:first-child {
+    left: 1.1rem;
 }
 .styles-list.style-tweak-settings-list > li > button:nth-child(4) {
     right: 5em;
@@ -961,7 +967,7 @@ a.popup-close-area {
 .has-visual-style-widgets .clear-style-btn,
 .has-visual-length-input .clear-style-btn {
     position: absolute;
-    right: -1.1rem;
+    right: -1.3rem;
     top: .4rem;
 }
 .has-visual-length-input .form-select.input-group-addon {
@@ -1313,6 +1319,9 @@ a.popup-close-area {
 }
 .panel-section:not(.on-this-page, .base-styles) {
     overflow-x: hidden;
+}
+#edit-app-sections-wrapper > .panel-section:last-child {
+    margin-bottom: 1rem;
 }
 .panel-section:not(:last-of-type) {
     border-bottom: 1px solid var(--color-section-separator);

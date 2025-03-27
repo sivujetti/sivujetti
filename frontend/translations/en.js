@@ -1,5 +1,6 @@
 import stringBundles from '@sivujetti-string-bundles';
-import validationStrings from './includes-internal/validation.fi.js';
+import authStrings from './includes-internal/auth-shared.en.js';
+import validationStrings from './includes-internal/validation.en.js';
 
 stringBundles.push({
     'Page': 'Page',
@@ -89,6 +90,8 @@ stringBundles.push({
     'Unordered': 'Unordered list',
     'Ordered': 'Ordered list',
     'Blockquote': 'Blockquote',
+    // edit-app/includes/http-patcher.js
+    'Login information not found': 'Login information not found',
     // edit-app/src/quill/*,
     'Image': 'Image',
     'File': 'File',
@@ -252,7 +255,6 @@ stringBundles.push({
     'Undo latest change': 'Undo latest change',
     'Save changes': 'Save changes',
     'Changes saved': 'Changes saved',
-    'Login information not found': 'Login information not found',
     // edit-app/src/right-column/WebPageIframe.js
     'Copy': 'Copy',
     // edit-app/src/block-types/menu/EditForm.jsx
@@ -537,4 +539,4 @@ stringBundles.push({
     'Contact form': 'Contact form',
     'Max width': 'Max width',
     'Align ↔': 'Align ↔',
-}, validationStrings);
+}, authStrings, validationStrings);

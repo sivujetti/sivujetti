@@ -3,6 +3,8 @@ An entry point for global file "public/sivujetti/sivujetti-edit-app.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
 import {__, api} from '@sivujetti-commons-for-edit-app';
+import makeHttp401Aware from './includes/http-patcher.js';
+makeHttp401Aware();
 import WebPagePreviewApp from './main-column/WebPagePreviewApp.jsx';
 import InspectorPanel from './menu-column/InspectorPanel.jsx';
 import patchQuillEditor from './includes/quill-customizations.js';

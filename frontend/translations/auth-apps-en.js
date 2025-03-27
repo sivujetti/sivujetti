@@ -1,11 +1,8 @@
 import stringBundles from '@sivujetti-string-bundles';
-import validationStrings from './includes-internal/validation.fi.js';
+import validationStrings from './includes-internal/validation.en.js';
+import sharedStrings from './includes-internal/auth-shared.en.js';
 
 stringBundles.push({
-    'Username': 'Username',
-    'Password': 'Password',
     'Login': 'Login',
     'Forgot password?': 'Forgot password?',
-    'Invalid credentials': 'Invalid credentials',
-    'Account not activated': 'Account not activated',
-}, validationStrings);
+}, validationStrings, sharedStrings);

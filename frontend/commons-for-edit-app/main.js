@@ -2,7 +2,7 @@
 An entry point for a global file "public/sivujetti/sivujetti-commons-for-edit-app.js" that
 can be imported by custom plugins (and the edit app).
 */
-import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
+import {env, http, Http, urlUtils} from '@sivujetti-commons-for-web-pages';
 import setFocusTo from './auto-focusers.js';
 import CrudList from './CrudList.jsx';
 import FileUploader from './FileUploader.jsx';
@@ -94,6 +94,7 @@ export {
     hasErrors,
     hookForm,
     http,
+    Http,
     Icon,
     iconAsString,
     Input,

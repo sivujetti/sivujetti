@@ -116,7 +116,7 @@ class UploadButton extends preact.Component {
         data.append('targetFileName', fileName);
         data.append('friendlyName', friendlyName);
         //
-        return http.post('/api/uploads', data, {headers: '@auto'})
+        return http.post('/api/uploads', data, {headers: '@auto'}, undefined, true)
             .then(info => {
                 if (!info.file) return 'Unexpected response';
                 return info.file;

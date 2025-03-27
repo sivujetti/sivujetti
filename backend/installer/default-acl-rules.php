@@ -54,6 +54,7 @@ $out->resources = (object) [
         "updateGlobalScriptsOf"     => 0b00000100,
         "export"                    => 0b00001000,
         "checkHealthOf"             => 0b00010000,
+        "doHeartbeat"               => 0b00100000,
     ],
     "uploads" => (object) [
         "list"              => 0b00000010,
@@ -62,6 +63,7 @@ $out->resources = (object) [
         "delete"            => 0b00010000,
     ],
 ];
+
 $out->userPermissions = (object) [
     ACL::ROLE_ADMIN => (object) [
         "blocks"            => ACL::makePermissions("*", $out->resources->blocks),
@@ -74,7 +76,7 @@ $out->userPermissions = (object) [
         "pageTypes"         => ACL::makePermissions("*", $out->resources->pageTypes),
         "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions("*", $out->resources->themes),
-        "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf","updateGlobalScriptsOf","checkHealthOf"], $out->resources->theWebsite),
+        "theWebsite"        => ACL::makePermissions("*", $out->resources->theWebsite) & ~$out->resources->theWebsite->export,
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
     ACL::ROLE_ADMIN_EDITOR => (object) [
@@ -88,7 +90,7 @@ $out->userPermissions = (object) [
         // pageTypes        -> none
         "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions("*", $out->resources->themes),
-        "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf","updateGlobalScriptsOf","checkHealthOf"], $out->resources->theWebsite),
+        "theWebsite"        => ACL::makePermissions("*", $out->resources->theWebsite) & ~$out->resources->theWebsite->export,
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
     ACL::ROLE_EDITOR => (object) [
@@ -102,7 +104,7 @@ $out->userPermissions = (object) [
         // pageTypes        -> none
         "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions(["view","updateGlobalStylesOf","visuallyEditStylesOf"], $out->resources->themes),
-        "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf"], $out->resources->theWebsite),
+        "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf","doHeartbeat"], $out->resources->theWebsite),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
     ACL::ROLE_AUTHOR => (object) [
@@ -116,7 +118,7 @@ $out->userPermissions = (object) [
         // pageTypes        -> none
         // reusableBranches -> none
         // themes           -> none
-        // theWebsite       -> none
+        "theWebsite"        => ACL::makePermissions(["doHeartbeat"], $out->resources->theWebsite),
         // uploads          -> none
     ]
 ];

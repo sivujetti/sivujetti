@@ -23,16 +23,14 @@ class Http {
     /**
      * @param {string} url esim. '/api/foo'
      * @param {RequestInit} settings = {}
+     * @param {boolean} throwIfError = false
      * @returns {Promise<Object>}
      * @access public
      */
-    get(url, settings = {}) {
-        return this.fetchFn(this.makeUrl(url), completeSettings({method: 'GET', ...settings}, null))
-            .then(resp => {
-                if (resp.status === 401)
-                    window.console.error('todo');
-                return readResponseBody(resp);
-            });
+    async get(url, settings = {}, throwIfError = false) {
+        const resp = await this.fetchFn(this.makeUrl(url), completeSettings({method: 'GET', ...settings}, null));
+        await throwErrorIfNeeded(resp, throwIfError);
+        return readResponseBody(resp);
     }
     /**
      * @param {string} url
@@ -45,20 +43,7 @@ class Http {
      */
     async post(url, data, settings = {}, defaults = {method: 'POST'}, throwIfError = false) {
         const resp = await this.fetchFn(this.makeUrl(url), completeSettings({...defaults, ...settings}, data));
-        if (!throwIfError && resp.status === 401)
-            window.console.error('todo');
-        if (throwIfError && (resp.status === 400 || resp.status === 403 || resp.status === 401)) {
-            let error = null;
-            try {
-                error = await resp.json();
-            } catch (e) {
-                error = e.message;
-            }
-            throw new Error(
-                resp.statusText, // '400 Bad Request', '403 Forbidden' etc.
-                {cause: new Http.ErrorCauseClass(error, resp)}
-            );
-        }
+        await throwErrorIfNeeded(resp, throwIfError);
         return readResponseBody(resp);
     }
     /**
@@ -83,6 +68,29 @@ class Http {
 }
 
 /**
+ * @param {Response} resp
+ * @param {boolean} throwIfError
+ * @returns {Promise<void>}
+ * @throws {Error}
+ */
+async function throwErrorIfNeeded(resp, throwIfError) {
+    if (!throwIfError)
+        return;
+    if (resp.status === 400 || resp.status === 403 || resp.status === 401) {
+        let error = null;
+        try {
+            error = await readResponseBody(resp);
+        } catch (e) {
+            error = e.message;
+        }
+        throw new Error(
+            resp.statusText, // '400 Bad Request', '403 Forbidden' etc.
+            {cause: new Http.ErrorCauseClass(error, resp)}
+        );
+    }
+}
+
+/**
  * @template T
  * @param {Response} resp 
  * @returns {Promise<T>}
@@ -92,7 +100,7 @@ function readResponseBody(resp) {
 }
 
 /**
- * @param {RequestInit & {headers: HeadersInit|'@auto';}} settings
+ * @param {RequestInit & {headers?: HeadersInit|'@auto';}} settings
  * @returns {RequestInit}
  */
 function completeSettings(settings, data) {

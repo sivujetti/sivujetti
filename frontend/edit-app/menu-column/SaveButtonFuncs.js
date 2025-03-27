@@ -4,7 +4,6 @@ import {
     api,
     arrayUtils,
     env,
-    floatingDialog,
     http,
     objectUtils,
     stringUtils,
@@ -13,7 +12,6 @@ import {treeToTransferable} from '../includes/block/utils.js';
 import toasters from '../includes/toasters.jsx';
 import {pathToFullSlug} from '../includes/utils.js';
 import globalData from '../includes/globalData.js';
-import AuthReloginDialog from '../main-column/popups/AuthReloginDialog.jsx';
 
 const handlerFactoriesMap = {
     'currentPageData': createCurrentPageDataChannelHandler,
@@ -388,31 +386,22 @@ async function doPostOrPut(httpCallPromise, adjustErrorToastArgs = null) {
                 level1 = 'notice';
             } else if (response.status === 401) {
                 message1 = '';
-                floatingDialog.open(AuthReloginDialog, {
-                    title: __('Login information not found'),
-                    height: 396,
-                    backdrop: true,
-                    noClose: true,
-                }, {
-                    onSuccesfulRelogin: () => {
-                        api.saveButton.getInstance().syncQueuedOpsToBackend();
-                    }
-                });
+                level1 = 'error';
             }
             httpStatus = response.status;
         }
+
         if (message1 === undefined) {
             message1 = 'Something unexpected happened';
             level1 = 'error';
         }
 
-        if (message1) {
-            const [message, level] = !adjustErrorToastArgs
-                ? [__(message1), level1]
-                : adjustErrorToastArgs(message1, level1, err);
+        const [message, level] = !adjustErrorToastArgs
+            ? [__(message1), level1]
+            : adjustErrorToastArgs(message1, level1, err);
 
+        if (!message1)
             toasters.editAppMain(message, level);
-        }
 
         return {level, httpStatus};
     }

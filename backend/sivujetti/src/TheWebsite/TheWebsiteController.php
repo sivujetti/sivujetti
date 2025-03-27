@@ -140,6 +140,15 @@ final class TheWebsiteController {
         $res->json($issues);
     }
     /**
+     * GET /api/the-website/do-heartbeat: A preflight-type route that can be used
+     * to catch 401 situations, for example.
+     *
+     * @param \Pike\Request $req
+     */
+    public function doHeartbeat(Response $res): void {
+        $res->json(["ok" => "ok"]);
+    }
+    /**
      * @param object $data
      * @param \Pike\Db\FluentDb2 $db2
      */

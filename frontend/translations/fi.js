@@ -1,4 +1,5 @@
 import stringBundles from '@sivujetti-string-bundles';
+import authStrings from './includes-internal/auth-shared.fi.js';
 import validationStrings from './includes-internal/validation.fi.js';
 
 stringBundles.push({
@@ -90,6 +91,8 @@ stringBundles.push({
     'Unordered': 'UL -lista',
     'Ordered': 'OL -lista',
     'Blockquote': 'Sitaatti',
+    // edit-app/includes/http-patcher.js
+    'Login information not found': 'Kirjautumistietoja ei löytynyt',
     // edit-app/src/quill/*
     'Image': 'Kuva',
     'File': 'Tiedosto',
@@ -252,7 +255,6 @@ stringBundles.push({
     'Undo latest change': 'Kumoa viimeisin muutos',
     'Save changes': 'Tallenna muutokset',
     'Changes saved': 'Muutokset tallennettiin',
-    'Login information not found': 'Kirjautumistietoja ei löytynyt',
     // edit-app/src/right-column/WebPageIframe.js
     'Copy': 'Kopio',
     // edit-app/src/block-types/menu/EditForm.jsx
@@ -537,4 +539,4 @@ stringBundles.push({
     'Contact form': 'Yhteydenottolomake',
     'Max width': 'Max. leveys',
     'Align ↔': 'Tasaus ↔',
-}, validationStrings);
+}, authStrings, validationStrings);

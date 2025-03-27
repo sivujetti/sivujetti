@@ -25,5 +25,9 @@ final class TheWebsiteModule {
             [TheWebsiteController::class, "getSecurityAndOtherIssues", ["consumes" => "application/json",
                                                                         "identifiedBy" => ["checkHealthOf", "theWebsite"]]]
         );
+        $router->map("GET", "/api/the-website/do-heartbeat",
+            [TheWebsiteController::class, "doHeartbeat", ["consumes" => "application/json",
+                                                          "identifiedBy" => ["doHeartbeat", "theWebsite"]]]
+        );
     }
 }

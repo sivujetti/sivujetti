@@ -1,11 +1,8 @@
 import stringBundles from '@sivujetti-string-bundles';
 import validationStrings from './includes-internal/validation.fi.js';
+import sharedStrings from './includes-internal/auth-shared.fi.js';
 
 stringBundles.push({
-    'Username': 'Käyttäjänimi',
-    'Password': 'Salasana',
     'Login': 'Kirjaudu',
     'Forgot password?': 'Unohtuiko salasana?',
-    'Invalid credentials': 'Virheellinen salasana tai käyttäjätunnus',
-    'Account not activated': 'Tiliä ei aktivoitu',
-}, validationStrings);
+}, validationStrings, sharedStrings);

@@ -1,4 +1,5 @@
 import Events from '../shared-includes/Events.js';
+import Filters from './includes-internal/Filters.js';
 import BlockTypesRegister from './BlockTypesRegister.js';
 import MainMenuPanelApi from './MainMenuPanelApi.js';
 import ScssWizard from './ScssWizard.js';
@@ -8,6 +9,8 @@ import {stringUtils} from './utils.js';
 const editAppBlockTypeRegister = new BlockTypesRegister;
 
 const editAppEventsInstance = new Events;
+
+const editAppFiltersInstance = new Filters;
 
 const editAppTranslatorInstance = new Translator;
 const __ = editAppTranslatorInstance.t.bind(editAppTranslatorInstance);
@@ -40,6 +43,8 @@ const api = {
     getAvailableUpdatePackages() { return dataFromBackend.availableUpdatePackages || []; },
     menuPanel: editAppMainMenuPanelApi,
     blockTypes: editAppBlockTypeRegister,
+    addFilter: editAppFiltersInstance.addFilter.bind(editAppFiltersInstance),
+    applyFilters: editAppFiltersInstance.applyFilters.bind(editAppFiltersInstance),
     export(name, item) {
         mainRegistry.set(name, item);
     },

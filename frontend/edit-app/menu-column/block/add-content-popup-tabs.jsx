@@ -17,7 +17,7 @@ import {
     createCustomClassChunkClassNameCreator,
     createIsDuplicateCustomClassChunkChecker,
 } from '../block-styles/CustomClassStylesList.jsx';
-import {mergeGlobalBlockTrees} from '../SaveButtonFuncs.js';
+import {mergeItems} from '../SaveButtonFuncs.js';
 import {createStyleShunkcScssIdReplacer} from './BlockTreeFuncs.js';
 
 const blockBtnClses = 'btn with-icon with-icon-inline focus-default';
@@ -32,7 +32,7 @@ class AddReusableContentTab extends preact.Component {
             .then(globalBlockTrees => {
                 const saveButton = api.saveButton.getInstance();
                 saveButton.setSyncedState('globalBlockTrees', globalBlockTrees);
-                const all = mergeGlobalBlockTrees(
+                const all = mergeItems(
                     saveButton.getSyncedState('globalBlockTrees'),
                     saveButton.getChannelState('globalBlockTrees')
                 );
@@ -307,6 +307,7 @@ function createContentTemplateSpawnDescriptor(template, props) {
     if (wrapInSectionBlock)
         newBlock = {
             ...createBlockFromType('Section'),
+            styleClasses: api.applyFilters('createStyleClassesForWrapperSection', []).join(' ').trim(),
             children: [newBlock],
         };
 

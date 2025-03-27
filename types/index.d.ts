@@ -9,6 +9,8 @@ interface SivujettiFrontendApi {
     user: UserApi;
     registerTranslationStrings(strings: {[key: string]: string}): void;
     webPagePreview: WebPagePreviewApp;
+    applyFilters<T>(forWhat: string, ret: T, ...args: any[]): T;
+    addFilter<T>(forWhat: string, fn: (item: T, ...args: any[]) => T): number;
     import(name: string): any|Array<any>;
     export(name: string, item: any): void;
     toasters: ToasterMap;

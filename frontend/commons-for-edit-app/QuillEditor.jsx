@@ -77,9 +77,9 @@ class QuillEditor extends preact.Component {
                const norm = url.split('_edit')[1] || url; // '/sivujetti/index.php?q=/_edit#foo' -> '#foo'
                                                           // '/sivujetti/index.php?q=/_edit' -> ''
                floatingDialog.open(PickUrlDialog, {
+                   title: __('Choose a link'),
                    width: 480,
                    height: getHeight('default')[0],
-                   title: __('Choose a link')
                }, {
                    mode,
                    url: norm,

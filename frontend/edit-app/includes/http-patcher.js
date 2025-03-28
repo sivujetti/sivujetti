@@ -59,7 +59,8 @@ async function doReloginDialog() {
     return new Promise(resolve => {
         floatingDialog.open(AuthReloginDialog, {
             title: __('Login information not found'),
-            height: 396,
+            height: 'auto',
+            adjustCalculatedHeight: height => height + 22 * 2, // For form validation error messages
             backdrop: true,
             noClose: true,
         }, {

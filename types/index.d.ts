@@ -435,13 +435,14 @@ interface FloatingDialog {
     close(): void;
     setTitle(title: string): void;
     setOnBeforeClose(fn: () => void): void;
-    setHeight(height: number, instructions: 'animate'|'' = ''): void;
+    setHeight(height: number|'auto', instructions: 'animate'|'' = ''): void;
 }
 
 interface FloatingDialogSettingsInput {
     title: string;
     width?: number;
-    height?: number;
+    height?: number|'auto';
+    adjustCalculatedHeight?: (height: number) => number;
     backdrop?: boolean;
     noClose?: boolean;
 }

@@ -242,7 +242,7 @@ class CustomClassStylesList extends preact.Component {
                     const currentDefs = this.state.styleChunksVisible[idx].data?.customizationSettings?.varDefs;
                     floatingDialog.open(CustomClassStyleEditCustomizationsDialog, {
                         title: __('Edit customization settings'),
-                        height: Math.min((currentDefs || []).length * 86 + 468, window.innerHeight - 48),
+                        height: 'auto',
                     }, {
                         currentSettings: currentDefs,
                         onSettingsChanged: newSettings => this.emitCustomClassSettingsData(idx, newSettings),
@@ -251,6 +251,8 @@ class CustomClassStylesList extends preact.Component {
                     this.setState({idxOfOpenDialogListItem: idx});
                     floatingDialog.open(CustomClassStylesReorderDialog, {
                         title: __('Reorder styles'),
+                        height: 'auto',
+                        adjustCalculatedHeight: height => height + 4,
                     }, {
                         styleChunks: this.state.styleChunksVisible,
                         onOrderSaved: newOrderedIds => {

@@ -1,6 +1,7 @@
 import {events} from './edit-app-singletons.js';
 import {iconAsString} from './Icon.jsx';
 
+/** @type {FloatingDialog} */
 let currentInstance = {
     open: null,
     getCurrentRendererCls: null,
@@ -12,35 +13,44 @@ let currentInstance = {
     setHeight: null,
 };
 
-class FloatingDialog extends preact.Component {
-    // currentEl;
-    // currenTitle;
-    // currentJsPanel;
-    // currentHeight;
-    // timeout;
-    // closing;
+/** @extends {preact.Component<{onCallback(panel: JsPanel): void;}, FloatingDialogState>} */
+class FloatingDialogImpl extends preact.Component {
     /**
      * @param {any} props
      */
     constructor(props) {
         super(props);
+        /** @type {HTMLElement} */
+        this.currentEl = null;
+        /** @type {NormalizedSettings} */
+        this.settings = null;
+        /** @type {NormalizedSettings} */
+        this.prevSettings = null;
+        /** @type {JsPanel} */
+        this.currentJsPanel = null;
+        /** @type {number} */
+        this.timeout = null;
+        /** @type {boolean} */
+        this.closing = null;
         this.state = {Renderer: null, rendererProps: null, title: null};
         currentInstance.open = this.open.bind(this);
         currentInstance.getCurrentRendererCls = () => this.state.Renderer;
         currentInstance.isOpen = () => !!currentInstance.getCurrentRendererCls();
         currentInstance.updateRendererProps = newProps => this.setState({rendererProps: {...this.state.rendererProps, ...newProps}});
         currentInstance.close = this.close.bind(this);
-        currentInstance.setTitle = title => { this.currenTitle = title; this.currentJsPanel.setHeaderTitle(title); };
+        currentInstance.setTitle = title => { this.settings.title = title; this.currentJsPanel.setHeaderTitle(title); };
         currentInstance.setOnBeforeClose = fn => { this.onBeforeClose = fn; };
         currentInstance.setHeight = (height, instructions = '') => {
-            if (this.currentHeight === height)
-                return;
-            this.currentHeight = height;
+            const heightNorm = height !== 'auto' ? height : this.getContentHeight();
+            const adjusted = !this.settings.adjustCalculatedHeight
+                ? heightNorm
+                : this.settings.adjustCalculatedHeight(heightNorm);
+            const final = Math.min(adjusted, window.innerHeight - 48);
             if (instructions === 'animate') {
                 if (this.timeout) clearTimeout(this.timeout);
                 this.currentJsPanel.classList.add('animating');
             }
-            this.currentJsPanel.resize({height});
+            this.currentJsPanel.resize({height: final});
             if (instructions === 'animate') {
                 this.timeout = setTimeout(() => { this.currentJsPanel.classList.remove('animating'); }, 400);
             }
@@ -56,10 +66,9 @@ class FloatingDialog extends preact.Component {
      * @access public
      */
     open(Renderer, settings, rendererProps) {
-        this.settings = settings;
-        const state = createState({Renderer, rendererProps}, settings);
-        this.currentHeight = state.height;
-        this.setState(state);
+        this.prevSettings = this.settings;
+        this.settings = createNormalizedSettings(settings);
+        this.setState({Renderer, rendererProps});
     }
     /**
      * @access public
@@ -71,10 +80,11 @@ class FloatingDialog extends preact.Component {
             // Call currentJsPanel.close(), which then calls this method again (see onbeforeclose)
             this.currentJsPanel.close();
         } else {
-            this.currenTitle = null;
+            this.settings = null;
+            this.prevSettings = null;
             this.currentJsPanel = null;
             if (this.onBeforeClose) this.onBeforeClose();
-            this.setState({Renderer: null, title: null, className: ''});
+            this.setState({Renderer: null, rendererProps: null, className: ''});
             this.closing = false;
         }
     }
@@ -96,16 +106,18 @@ class FloatingDialog extends preact.Component {
     handleDialogElChanged(el) {
         if (!el)
             return;
-        if (el === this.currentEl) {
-            if (this.state.title !== this.currenTitle)
-                currentInstance.setTitle(this.state.title);
+
+        if (el === this.currentEl && this.prevSettings) {
+            currentInstance.setTitle(this.settings.title);
+            this.adjustHeight(this.settings);
             return;
         }
+
+        const useAutoHeight = this.settings.height === 'auto';
         this.currentEl = el;
-        this.currenTitle = this.state.title || 'title';
         this.currentJsPanel = window.jsPanel.create({
             content: el,
-            headerTitle: this.currenTitle,
+            headerTitle: this.settings.title,
             theme: 'none',
             headerControls: {
                 minimize: 'remove',
@@ -132,29 +144,60 @@ class FloatingDialog extends preact.Component {
                 minHeight: 162
             },
             panelSize: {
-                width: this.state.width,
-                height: this.state.height,
+                width: this.settings.width,
+                ...(!useAutoHeight
+                    ? {height: this.settings.height}
+                    : {height: 0}
+                ),
             },
             position: 'left-top 350 35',
         });
+        if (useAutoHeight)
+            this.adjustHeight(this.settings);
+    }
+    /**
+     * @param {NormalizedSettings} settings
+     * @access private
+     */
+    adjustHeight({height}) {
+        currentInstance.setHeight(height !== 'auto'
+            ? height
+            : this.getContentHeight() +
+                parseInt(getComputedStyle(this.currentJsPanel.content).paddingBottom, 10)
+        );
+    }
+    /**
+     * @param {JsPanel} panel
+     * @returns {number}
+     * @access private
+     */
+    getContentHeight(panel = this.currentJsPanel) {
+        return [
+            panel.header,
+            // @ts-ignore
+            ...panel.content.children,
+        ].reduce((tot, {clientHeight}) =>
+            tot + clientHeight
+        , 0);
     }
 }
 
 /**
- * @param {{Renderer: preact.ComponentType|string; rendererProps: Object;}} from
  * @param {FloatingDialogSettingsInput} settings
- * @returns {FloatingDialogState}
+ * @returns {NormalizedSettings}
  */
-function createState(from, settings) {
+function createNormalizedSettings(settings) {
     return {
-        ...from,
+        ...settings,
         title: settings.title || '-',
         width: settings.width ? +settings.width : 680,
-        height: settings.height ? +settings.height : 480,
-    }
+        height: settings.height ? settings.height !== 'auto' ? +settings.height : 'auto' : 480,
+    };
 }
 
 /** @typedef {{
+ *   header: HTMLDivElement;
+ *   content: HTMLDivElement;
  *   setHeaderTitle: Function;
  *   resize: Function;
  *   close: Function;
@@ -164,10 +207,12 @@ function createState(from, settings) {
 /** @typedef {{
  *  Renderer: preact.ComponentType|string;
  *  rendererProps: Object;
- *  title: string;
- *  width: number;
- *  height: number;
  *  className?: string;
  * }} FloatingDialogState */
+
+/** @typedef {FloatingDialogSettingsInput & {
+ *  width: number;
+ *  height: number|'auto';
+ * }} NormalizedSettings */
 
 export {FloatingDialogImpl as FloatingDialog, currentInstance};

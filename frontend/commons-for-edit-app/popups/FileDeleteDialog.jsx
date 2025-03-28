@@ -43,12 +43,13 @@ class FileDeleteDialog extends preact.Component {
 
 /**
  * @param {UploadsEntry} file
- * @param {() => any} onSuccess todo 
+ * @param {() => void} onSuccess
  */
 function openFileDeleteDialog(file, onSuccess) {
     floatingDialog.open(FileDeleteDialog, {
         title: __('Delete %s', __('File').toLowerCase()),
-        height: 206,
+        height: 'auto',
+        adjustCalculatedHeight: height => height + 44, // For long slugs
     }, {
         file,
         onConfirmed: () => deleteFile(file, onSuccess),

@@ -53,7 +53,8 @@ class PageDeleteDialog extends preact.Component {
 function openPageDeleteDialog(pageSlug, pageTitle, onSuccess, pageTypeName = 'Pages') {
     floatingDialog.open(PageDeleteDialog, {
         title: __('Delete %s', __('page')),
-        height: 184,
+        height: 'auto',
+        adjustCalculatedHeight: height => height + 22, // For long slugs
     }, {
         pageSlug,
         pageTitle,

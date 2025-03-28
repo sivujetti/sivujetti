@@ -596,7 +596,7 @@ function showBlockTreeHelpPopup() {
     floatingDialog.open(BlockTreeShowHelpPopup, {
         title: __('Content tree'),
         width: 480,
-        height: 525,
+        height: 'auto',
     }, {});
 }
 

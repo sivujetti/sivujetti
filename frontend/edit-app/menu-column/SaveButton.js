@@ -69,7 +69,7 @@ class SaveButton {
      * @param {blockPropValueChangeFlags} flags = null
      * @access public
      */
-    pushOp(channelName, state, userCtx = null, flags = null) { 
+    pushOp(channelName, state, userCtx = null, flags = null) {
         const stateCursor = this.stateCursors[channelName];
         const stateArr = this.states[channelName];
         //      cursor

@@ -31,27 +31,26 @@ class AddContentPopup extends preact.Component {
                 onTabChanged={ this.handleTabChanged.bind(this) }
                 initialTabIdx={ this.initialTabIdx }
                 className="text-tinyish mt-0"/>
-            { (() => {
+            { ((props) => {
                 if (currentTabIdx === 0)
-                    return <AddReusableContentTab
-                        onContentPicked={ this.handleContentPicked.bind(this) }/>;
+                    return <AddReusableContentTab { ...props }/>;
                 if (currentTabIdx === 1)
-                    return <AddSimpleContentBlocksTab
-                        onContentPicked={ this.handleContentPicked.bind(this) }/>;
+                    return <AddSimpleContentBlocksTab { ...props }/>;
                 if (currentTabIdx === 2)
-                    return <AddTemplateContentTab
-                        getIsInsertAfterOrBeforeRootLevelBlock={ () => {
-                            if (this.props.insertPos === 'as-child' && !this.props.isReplace) // Not after|before
-                                return false;
-                            const [trid, blockId] = getRealTarget(this.props.targetInfo, null);
-                            if (trid !== 'main') // Inner gbt block, can't be a root level block
-                                return false;
-                            const block = api.saveButton.getInstance().getChannelState('theBlockTree').find(({id}) => id === blockId);
-                            const isRootLevel = !!block;
-                            return isRootLevel;
-                        } }
-                        onContentPicked={ this.handleContentPicked.bind(this) }/>;
-            })() }
+                    return <AddTemplateContentTab { ...props }/>;
+            })({
+                onContentPicked: this.handleContentPicked.bind(this),
+                getIsInsertAfterOrBeforeRootLevelBlock: () => {
+                    if (this.props.insertPos === 'as-child' && !this.props.isReplace) // Not after|before
+                        return false;
+                    const [trid, blockId] = getRealTarget(this.props.targetInfo, null);
+                    if (trid !== 'main') // Inner gbt block, can't be a root level block
+                        return false;
+                    const block = api.saveButton.getInstance().getChannelState('theBlockTree').find(({id}) => id === blockId);
+                    const isRootLevel = !!block;
+                    return isRootLevel;
+                },
+            }) }
         </div>;
     }
     /**

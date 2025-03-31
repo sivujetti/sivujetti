@@ -1,7 +1,6 @@
 import {
     __,
     api,
-    blockTreeUtils,
     env,
     http,
     Icon,
@@ -47,7 +46,7 @@ class AddReusableContentTab extends preact.Component {
     /**
      * @access protected
      */
-    render({onContentPicked}, {reusables, globalBlockTrees}) {
+    render(props, {reusables, globalBlockTrees}) {
         return <div class="block-buttons-list mt-1" data-list-of="reusables">
             { [
                 ...(reusables || []).map(reusable => {
@@ -55,7 +54,7 @@ class AddReusableContentTab extends preact.Component {
                     const blockType = api.blockTypes.get(root.blockType);
                     return <button
                         class={ blockBtnClses }
-                        onClick={ () => onContentPicked(createReusableBlockSpawnDescriptor(root)) }
+                        onClick={ () => handleContentPicked(createReusableBlockSpawnDescriptor(root), props) }
                         type="button">
                         <Icon iconId={ api.blockTypes.getIconId(root.blockType) } className="size-xs"/>
                         <span class="d-inline-block text-ellipsis">{ root.initialDefaultsData.title || __(blockType.friendlyName) }</span>
@@ -64,7 +63,7 @@ class AddReusableContentTab extends preact.Component {
                 ...(globalBlockTrees || []).map(gbt =>
                     <button
                         class={ `globalBlockTree-block ${blockBtnClses}` }
-                        onClick={ () => onContentPicked(createGbtBlockSpawnDescriptor(gbt)) }
+                        onClick={ () => handleContentPicked(createGbtBlockSpawnDescriptor(gbt), props) }
                         type="button">
                         <Icon iconId={ api.blockTypes.getIconId(gbt.blocks[0].type) } className="size-xs"/>
                         <span class="d-inline-block text-ellipsis">{ gbt.name }</span>
@@ -73,6 +72,24 @@ class AddReusableContentTab extends preact.Component {
             ] }
         </div>;
     }
+}
+
+/**
+ * @param {SpawnDescriptor} descr
+ * @param {AddContentTabProps} props
+ */
+function handleContentPicked(descr, props) {
+    const wrapInSectionBlock = descr.block.type !== 'Section' && props.getIsInsertAfterOrBeforeRootLevelBlock();
+    props.onContentPicked(wrapInSectionBlock
+        ? {
+            ...descr,
+            block: {
+                ...createBlockFromType('Section'),
+                styleClasses: api.applyFilters('createStyleClassesForWrapperSection', []).join(' ').trim(),
+                children: [descr.block],
+            },
+        }
+        : descr);
 }
 
 /**
@@ -120,7 +137,7 @@ class AddSimpleContentBlocksTab extends preact.Component {
     /**
      * @access protected
      */
-    render({onContentPicked}) {
+    render(props) {
         return <VerticalTabs tabs={ [
             {text: __('Common#plural')},
             {text: __('Other')},
@@ -139,7 +156,7 @@ class AddSimpleContentBlocksTab extends preact.Component {
                 { toList.map(([blockTypeName, blockType]) =>
                     <button
                         class={ blockBtnClses }
-                        onClick={ () => onContentPicked(createSimpleBlockSpawnDescriptor(blockTypeName)) }
+                        onClick={ () => handleContentPicked(createSimpleBlockSpawnDescriptor(blockTypeName), props) }
                         type="button">
                         <Icon iconId={ api.blockTypes.getIconId(blockType) } className="size-xs"/>
                         <span class="d-inline-block text-ellipsis">{ __(blockType.friendlyName) }</span>
@@ -195,7 +212,7 @@ function sort(selectableBlockTypes) {
 
 ////
 
-/** @extends {preact.Component<AddTemplateContentTabProps, any>} */
+/** @extends {preact.Component<AddContentTabProps, any>} */
 class AddTemplateContentTab extends preact.Component {
     // tabIds;
     // tabTitles;
@@ -220,7 +237,7 @@ class AddTemplateContentTab extends preact.Component {
     /**
      * @access protected
      */
-    render({onContentPicked}, {templates}) {
+    render(props, {templates}) {
         return <VerticalTabs tabs={ this.tabTitles } initialTabIdx={ 1 }>{ (tab, currentTabIdx) => {
             if (!templates)
                 return <LoadingSpinner className="ml-2 pl-1"/>;
@@ -230,13 +247,13 @@ class AddTemplateContentTab extends preact.Component {
                 <button onClick={ () => {
                     let descr;
                     try {
-                        descr = createContentTemplateSpawnDescriptor(tmpl, this.props);
+                        descr = createContentTemplateSpawnDescriptor(tmpl);
                     } catch (e) {
                         env.window.console.error(e);
                         env.window.alert(__('Failed to create block from template'));
                         return;
                     }
-                    onContentPicked(descr);
+                    handleContentPicked(descr, props);
                 } } class="btn no-color" type="button">
                     <figure><img src={ urlUtils.makeAssetUrl(tmpl.previewImgSrc) }/></figure>
                     <div class="text-ellipsis text-tinyish color-dimmed2 p-2">
@@ -257,10 +274,9 @@ function fetchContentTemplates() {
 
 /**
  * @param {ContentTemplate} template
- * @param {AddTemplateContentTabProps} props
  * @returns {SpawnDescriptor}
  */
-function createContentTemplateSpawnDescriptor(template, props) {
+function createContentTemplateSpawnDescriptor(template) {
     if (template.blockBlueprints.length > 1)
         throw new Error('template.blockBlueprints.length > 1 not implemented yet');
 
@@ -303,26 +319,14 @@ function createContentTemplateSpawnDescriptor(template, props) {
         });
     });
 
-    const wrapInSectionBlock = newBlock.type !== 'Section' && props.getIsInsertAfterOrBeforeRootLevelBlock();
-    if (wrapInSectionBlock)
-        newBlock = {
-            ...createBlockFromType('Section'),
-            styleClasses: api.applyFilters('createStyleClassesForWrapperSection', []).join(' ').trim(),
-            children: [newBlock],
-        };
-
     return {block: newBlock, isReusable: false, styles};
 }
 
 /**
  * @typedef {{
- *   onContentPicked: (descr: SpawnDescriptor) => void;
+ *   onContentPicked: (descr: SpawnDescriptor, automaticallyWrapToSectionIfNecessary?: boolean) => void;
+ *   getIsInsertAfterOrBeforeRootLevelBlock: () => boolean; // todo yhdistä
  * }} AddContentTabProps
- *
- * @typedef {{
- *   onContentPicked: (descr: SpawnDescriptor) => void;
- *   getIsInsertAfterOrBeforeRootLevelBlock: () => boolean;
- * }} AddTemplateContentTabProps
  */
 
 export {

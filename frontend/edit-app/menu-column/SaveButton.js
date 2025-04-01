@@ -154,7 +154,7 @@ class SaveButton {
      * @access public
      */
     invalidateAll() {
-        this.unregisterAndClearUnsavedChagesAlertIfSet();
+        this.clearUnsavedChangesAlertIfSet();
         this.doInvalidateAll();
         this.renderer.resetState();
         this.syncQueueFilters = [];
@@ -200,12 +200,17 @@ class SaveButton {
             const state = this.getHead(channelName, true);
             this.emitStateChange(channelName, state, userCtx, 'undo');
         }
-        this.renderer.setState(this.createCanUndoAndRedo());
+        const undoAndRedo = this.createCanUndoAndRedo();
+        if (!undoAndRedo.canUndo)
+            this.clearUnsavedChangesAlertIfSet();
+        this.renderer.setState(undoAndRedo);
     }
     /**
      * @access public
      */
     doRedo() {
+        if (!this.canUndo())
+            this.registerUnsavedChangesAlert();
         if (!this.canRedo()) return;
         const head = this.opHistory[this.opHistoryCursor];
         this.opHistoryCursor += 1;
@@ -240,7 +245,7 @@ class SaveButton {
             }
         }
 
-        this.unregisterAndClearUnsavedChagesAlertIfSet();
+        this.clearUnsavedChangesAlertIfSet();
         if (this.lastAttemptHistory.length)
             api.toasters.editAppMain(__('Changes saved'), 'success');
         this.reset(getLatestItemsOfEachChannel(syncQueue));
@@ -272,23 +277,7 @@ class SaveButton {
             this.opHistory.splice(this.opHistoryCursor);
         this.opHistoryCursor = this.opHistory.push(item);
         this.renderer.setState({isVisible: true, canUndo: true, canRedo: false});
-        if (!this.unregisterUnsavedChangesAlert) {
-            // #1 Register a function that will prompt the user for confirmation during the next navigation
-            const unregisterBlocker = historyInstance.block(__('You have unsaved changes, do you want to navigate away?'));
-            // #2 Register a function that calls this.reset() if the user accepted the confirmation from #1
-            const unregisterClearer = historyInstance.listen(({pathname}) => {
-                if (isMainColumnViewUrl(pathname) && !historyInstance.doRevertNextHashChange) {
-                    const queue = this.createSyncQueuePre()[0];
-                    const initialStates = queue.reduce((out, {channelName}) => ({...out, [channelName]: null}), {});
-                    this.reset(initialStates, true);
-                    this.unregisterAndClearUnsavedChagesAlertIfSet();
-                }
-            });
-            this.unregisterUnsavedChangesAlert = () => {
-                unregisterBlocker();
-                unregisterClearer();
-            };
-        }
+        this.registerUnsavedChangesAlert();
     }
     /**
      * @param {string} channelName
@@ -485,11 +474,31 @@ class SaveButton {
     /**
      * @access private
      */
-    unregisterAndClearUnsavedChagesAlertIfSet() {
-        if (this.unregisterUnsavedChangesAlert) {
-            this.unregisterUnsavedChangesAlert();
-            this.unregisterUnsavedChangesAlert = null;
-        }
+    registerUnsavedChangesAlert() {
+        if (this.unregisterUnsavedChangesAlertFn) return;
+        // #1 Register a function that will prompt the user for confirmation during the next navigation
+        const unregisterBlocker = historyInstance.block(__('You have unsaved changes, do you want to navigate away?'));
+        // #2 Register a function that calls this.reset() if the user accepted the confirmation from #1
+        const unregisterClearer = historyInstance.listen(({pathname}) => {
+            if (isMainColumnViewUrl(pathname) && !historyInstance.doRevertNextHashChange) {
+                const queue = this.createSyncQueuePre()[0];
+                const initialStates = queue.reduce((out, {channelName}) => ({...out, [channelName]: null}), {});
+                this.reset(initialStates, true);
+                this.clearUnsavedChangesAlertIfSet();
+            }
+        });
+        this.unregisterUnsavedChangesAlertFn = () => {
+            unregisterBlocker();
+            unregisterClearer();
+        };
+    }
+    /**
+     * @access private
+     */
+    clearUnsavedChangesAlertIfSet() {
+        if (!this.unregisterUnsavedChangesAlertFn) return;
+        this.unregisterUnsavedChangesAlertFn();
+        this.unregisterUnsavedChangesAlertFn = null;
     }
     /**
      * @access private

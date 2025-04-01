@@ -10,7 +10,7 @@ import {
     timingUtils,
 } from '@sivujetti-commons-for-edit-app';
 import CustomClassStyleEditCustomizationsDialog from '../../main-column/popups/CustomClassStyleEditCustomizationsDialog.jsx';
-import CustomClassStylesReorderDialog, {extractClassName} from '../../main-column/popups/CustomClassStyleReorderDialog.jsx';
+import CustomClassStylesReorderDialog, {classify, extractClassName} from '../../main-column/popups/CustomClassStyleReorderDialog.jsx';
 import EditTitlePopup from '../../main-column/popups/CustomClassStyleEditTitlePopup.jsx';
 import {createUpdateBlockPropOp, pushBlockChanges} from '../block/block-edit-funcs.js';
 import ScssEditor from './ScssEditor.jsx';
@@ -86,9 +86,9 @@ class CustomClassStylesList extends preact.Component {
                 ? styleChunksVisible.map((chunk, i) => {
                     const curIsActive = checkIsChunkActive(chunk);
                     const cls = extractClassName(chunk);
-                    const title = titleUncommitted && i === idxOfOpenPopupListItem
+                    const title = classify(titleUncommitted && i === idxOfOpenPopupListItem
                         ? titleUncommitted
-                        : (chunk.data?.title || cls);
+                        : (chunk.data?.title || cls));
                     return <li class={ `mt-1 py-1${!listItemIsOpens[chunk.id] ? '' : ' open'}` }>
                         <header class="p-relative">
                             <div>

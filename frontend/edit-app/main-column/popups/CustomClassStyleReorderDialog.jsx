@@ -39,7 +39,7 @@ class CustomClassStyleReorderDialog extends preact.Component {
                 class="list mb-2 style-tweak-settings-list styles-list icon-narrower"
                 ref={ this.activateSorting.bind(this) }>{ styleChunks.map(chunk => {
                 const cls = extractClassName(chunk);
-                const title = chunk.data?.title || cls;
+                const title = chunk.data?.title ? classify(chunk.data.title) : cls;
                 return <li data-id={ chunk.id } class="mt-1">
                     <button class="drag-handle with-icon" title={ __('Drag') } type="button">
                         <Icon iconId="grid-dots" className="size-xs mr-0"/>
@@ -105,6 +105,17 @@ function extractClassName({scss}, withDot = true) {
 }
 
 /**
+ * 'My class' -> '.my-class'
+ *
+ * @param {string} input
+ * @returns {string}
+ */
+function classify(input) {
+    const pcs = input.split('.');
+    return `.${pcs.at(-1).toLocaleLowerCase().trim().replaceAll(' ', '-')}`;
+}
+
+/**
  * @typedef {{
  *   styleChunks: Array<StyleChunk>;
  *   onOrderSaved: (orderedIds: Array<string>) => void;
@@ -112,4 +123,4 @@ function extractClassName({scss}, withDot = true) {
  */
 
 export default CustomClassStyleReorderDialog;
-export {extractClassName};
+export {classify, extractClassName};

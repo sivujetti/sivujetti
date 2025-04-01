@@ -8,6 +8,7 @@ import {
     createBlockTreeMoveToOps,
     getRealTarget,
 } from './tree-dnd-controller-funcs.js';
+import {isBrokenBlockId} from './utils.js';
 
 /**
  * @param {SaveButton} saveButton
@@ -64,13 +65,17 @@ function createDndController(saveButton) {
             // Do nothing
         },
         /**
-         * @param {DragDropInfo} _cand
+         * @param {DragDropInfo} cand
          * @param {DragDropInfo} _prevCand
          * @param {HTMLLIElement|null} _startLi
          * @returns {boolean|undefined}
          */
-        swap(_cand, _prevCand, _startLi) {
-            // Do nothing
+        swap(cand, _prevCand, _startLi) {
+            const disallow = (
+                cand.pos === 'as-child' &&
+                isBrokenBlockId(createBlockDescriptorFromLi(cand.li).blockId)
+            );
+            return !disallow;
         },
         /**
          * @param {number|null} _lastAcceptedSwapIdx

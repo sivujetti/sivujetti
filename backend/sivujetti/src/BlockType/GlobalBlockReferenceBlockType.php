@@ -4,6 +4,7 @@ namespace Sivujetti\BlockType;
 
 use Pike\Injector;
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
 
 class GlobalBlockReferenceBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterface {
@@ -38,6 +39,25 @@ class GlobalBlockReferenceBlockType implements BlockTypeInterface, RenderAwareBl
     public function fetchAndCacheGbt(string $gbtId,
                                      GlobalBlockTreesRepository $gbtRepo): void {
         $entry = $gbtRepo->getSingle($gbtId);
-        self::$trees[$gbtId] = $entry;
+        self::$trees[$gbtId] = $entry ?? self::createBrokenGbt($gbtId);
+    }
+    /**
+     * @param string $gbtId
+     * @return \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree
+     */
+    private static function createBrokenGbt(string $gbtId): GlobalBlockTree {
+        $out = new GlobalBlockTree;
+        $out->id = $gbtId;
+        $out->name = "-";
+        $out->blocks = [Block::fromObject((object) [
+            "type" => "Text",
+            "title" => "?",
+            "renderer" => "jsx",
+            "id" => "?",
+            "propsData" => [(object) ["key" => "html", "value" => "Content not found"]],
+            "styleClasses" => "",
+            "children" => [],
+        ])];
+        return $out;
     }
 }

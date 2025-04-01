@@ -112,6 +112,7 @@ stringBundles.push({
     'First, select the text you want to mark as an anchor.': 'First, select the text you want to mark as an anchor.',
     'First, highlight the entire text of the anchor you want to edit.': 'First, highlight the entire text of the anchor you want to edit.',
     // edit-app/src/left-column/block/BlockEditForm.jsx
+    'This unique reusable content no longer appears to be available. You can delete it from the context menu.': 'This unique reusable content no longer appears to be available. You can delete it from the context menu.',
     'Styles': 'Styles',
     'Styles (customizations)': 'Styles (customizations)',
     'Styles (definitions)': 'Styles (definitions)',

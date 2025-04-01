@@ -38,7 +38,7 @@ class ContextMenu extends preact.Component {
         openInstance = this;
     }
     /**
-     * @param {Event|null} e
+     * @param {Event=} e
      * @access public
      */
     close(e) {

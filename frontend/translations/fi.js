@@ -113,6 +113,7 @@ stringBundles.push({
     'First, select the text you want to mark as an anchor.': 'Maalaa ensin teksti jonka haluat merkata ankkuriksi.',
     'First, highlight the entire text of the anchor you want to edit.': 'Maalaa ensin muokattavan ankkurin teksti kokonaisuudessaan.',
     // edit-app/src/left-column/block/BlockEditForm.jsx
+    'This unique reusable content no longer appears to be available. You can delete it from the context menu.': 'Tämä uniikki uudelleenkäytettävä sisältö ei näyttäisi olevan enää saatavilla. Voit poistaa sen kontekstivalikosta.',
     'Styles': 'Tyylit',
     'Styles (customizations)': 'Tyylit (kustomoinnit)',
     'Styles (definitions)': 'Tyylit (määritykset)',

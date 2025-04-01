@@ -42,6 +42,14 @@ function isMetaBlock({type}) {
 
 /**
  * @param {string} blockId
+ * @returns {boolean}
+ */
+function isBrokenBlockId(blockId) {
+    return blockId === '?';
+}
+
+/**
+ * @param {string} blockId
  * @param {'mainTree'|Array<Block>} from
  * @returns {string|null}
  */
@@ -136,6 +144,7 @@ export {
     createBlockFromBlueprint,
     createBlockFromType,
     getIsStoredToTreeIdFrom,
+    isBrokenBlockId,
     isMetaBlock,
     treeToTransferable,
 };

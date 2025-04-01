@@ -111,7 +111,7 @@ type ToastMessageSettings = [toastMessageLevel|null, string|string[]];
 
 interface ContextMenu extends preact.Component {
     open(e: Event, controller: ContextMenuController): void;
-    close(e: Event|null): void;
+    close(e?: Event): void;
 }
 
 interface MainPopper extends preact.Component {

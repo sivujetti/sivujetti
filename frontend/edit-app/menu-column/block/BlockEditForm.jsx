@@ -12,7 +12,7 @@ import {
     Tabs,
     timingUtils,
 } from '@sivujetti-commons-for-edit-app';
-import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
+import {getIsStoredToTreeIdFrom, isBrokenBlockId, isMetaBlock} from '../../includes/block/utils.js';
 import {extractClassName} from '../../main-column/popups/CustomClassStyleReorderDialog.jsx';
 import CustomClassStylesList from '../block-styles/CustomClassStylesList.jsx';
 import StyleClassesPicker from '../block-styles/StyleClassesPicker.jsx';
@@ -21,13 +21,8 @@ import {pushBlockChanges} from './block-edit-funcs.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
 /** @typedef {import('../block-styles/style-tabs-commons.js').TabInfo} TabInfo */
 
+/** @extends {preact.Component<BlockEditFormProps, any>} */
 class BlockEditForm extends preact.Component {
-    // blockType;
-    // blockIsStoredToTreeId;
-    // editFormImpls;
-    // stylesEditForm;
-    // tabsInfo;
-    // unregistrables;
     /**
      * @access protected
      */
@@ -35,26 +30,36 @@ class BlockEditForm extends preact.Component {
         const saveButton = api.saveButton.getInstance();
         this.blockType = api.blockTypes.get(this.props.block.type);
         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(this.props.block.id, 'mainTree');
-        const editFormRenderer = this.blockType.editForm;
-        this.editFormImpls = [
-            ...(editFormRenderer ? [editFormRenderer] : []),
-            ...(!this.blockType.extends ? [] : [api.blockTypes.get(this.blockType.extends).editForm])
-        ];
-        this.userCanEditScss = api.user.can('editBlockCss');
-        this.stylesEditForm = this.blockType.stylesEditForm !== 'default'
-            ? this.blockType.stylesEditForm
-            : DefaultStyleCustomizatorForm;
+        if (!isBrokenBlockId(this.props.block.id)) {
+            const editFormRenderer = this.blockType.editForm;
+            this.editFormImpls = [
+                ...(editFormRenderer ? [editFormRenderer] : []),
+                ...(!this.blockType.extends ? [] : [api.blockTypes.get(this.blockType.extends).editForm])
+            ];
+            this.userCanEditScss = api.user.can('editBlockCss');
+            this.stylesEditForm = this.blockType.stylesEditForm !== 'default'
+                ? this.blockType.stylesEditForm
+                : DefaultStyleCustomizatorForm;
 
-        const [tabs, blockHasCustomizableStyles] = this.createTabsInfo();
-        this.tabsInfo = tabs;
-        const tabKind = createInitialTabKind(
-            getAndPutAndGetToLocalStorage('content', 'sivujettiLastBlockEditFormTabKind'),
-            this.tabsInfo
-        );
-        this.setState({
-            blockHasCustomizableStyles,
-            ...createState(tabKind, objectUtils.cloneDeep(this.props.block)),
-        });
+            const [tabs, blockHasCustomizableStyles] = this.createTabsInfo();
+            this.tabsInfo = tabs;
+            const tabKind = createInitialTabKind(
+                getAndPutAndGetToLocalStorage('content', 'sivujettiLastBlockEditFormTabKind'),
+                this.tabsInfo
+            );
+            this.setState({
+                blockHasCustomizableStyles,
+                ...createState(tabKind, objectUtils.cloneDeep(this.props.block)),
+            });
+        } else {
+            this.editFormImpls = [createMessageEditForm(__('This unique reusable content no longer appears to be available. You can delete it from the context menu.'))];
+            this.stylesEditForm = null;
+            this.tabsInfo = createTabsInfo([{kind: 'content'}]);
+            this.setState({
+                blockHasCustomizableStyles: false,
+                ...createState('content', objectUtils.cloneDeep(this.props.block)),
+            });
+        }
 
         const refreshBlockCopyForEditFormIfNeeded = (userCtx, ctx, flags, event, theTreeIn = null) => {
             const isIt = isUndoOrRedo(ctx);
@@ -113,7 +118,7 @@ class BlockEditForm extends preact.Component {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{block: Block; nthOfBlockId: number; inspectorPanel: preact.Component;}} props
+     * @param {BlockEditFormProps} props
      * @access protected
      */
     render({nthOfBlockId}, {currentTabKind, blockCopyForEditForm, lastBlockTreeChangeEventInfo, blockHasCustomizableStyles}) {
@@ -170,7 +175,9 @@ class BlockEditForm extends preact.Component {
                             key={ blockId }/>
                     );
                 } else if (itm.kind === 'user-styles') {
-                    const Renderer = this.userCanEditScss && !blockHasCustomizableStyles ? NoContentStyleCustomizationsEditForm : this.stylesEditForm;
+                    const Renderer = this.userCanEditScss && !blockHasCustomizableStyles
+                        ? createMessageEditForm(__('This content block currently has no styles active, or they don\'t contain customizable properties.'))
+                        : this.stylesEditForm;
                     content = <Renderer
                         blockId={ blockId }
                         blockType={ this.blockType }
@@ -243,7 +250,7 @@ class BlockEditForm extends preact.Component {
                 tabs = tabs.filter(({kind}) => kind !== 'user-styles');
             }
             if (!tabs.length) {
-                this.editFormImpls = [NoContentBlockEditForm];
+                this.editFormImpls = [createMessageEditForm(__('This content block does not have any editable properties.'))];
                 tabs = createTabsInfo([{kind: 'content'}]);
             }
         }
@@ -261,26 +268,21 @@ class BlockEditForm extends preact.Component {
     }
 }
 
-class NoContentBlockEditForm extends preact.Component {
-    /**
-     * @access protected
-     */
-    render() {
-        return <div class="pt-1">
-            { __('This content block does not have any editable properties.') }
-        </div>;
-    }
-}
-
-class NoContentStyleCustomizationsEditForm extends preact.Component {
-    /**
-     * @access protected
-     */
-    render() {
-        return <div class="pt-1">
-            { __('This content block currently has no styles active, or they don\'t contain customizable properties.') }
-        </div>;
-    }
+/**
+ * @param {preact.ComponentChildren} messageToShow
+ * @returns {preact.ComponentClass}
+ */
+function createMessageEditForm(messageToShow) {
+    return class extends preact.Component {
+        /**
+         * @access protected
+         */
+        render() {
+            return <div class="pt-1">
+                { messageToShow }
+            </div>;
+        }
+    };
 }
 
 /**
@@ -332,5 +334,11 @@ function getUserStyleTabHasContent({styleClasses}, tabsInfo) {
     }
     return false;
 }
+
+/** @typedef {{
+ *  block: Block;
+ *  nthOfBlockId: number;
+ *  inspectorPanel: InspectorPanel;
+ * }} BlockEditFormProps */
 
 export default BlockEditForm;

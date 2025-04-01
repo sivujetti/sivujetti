@@ -13,6 +13,7 @@ import createDndController, {
     createBlockDescriptorFromLi,
 } from '../../includes/block/create-block-tree-dnd-controller.js';
 import {getRealTarget} from '../../includes/block/tree-dnd-controller-funcs.js';
+import {isBrokenBlockId} from '../../includes/block/utils.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
 import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';
 import {historyInstance} from '../../main-column/MainColumnViews.jsx';
@@ -388,14 +389,24 @@ class BlockTree extends preact.Component {
             activeBlockBehaviours: block.type !== 'PageInfo' ? getActiveBehaviours(block, this.registeredBlockBehaviourDefs) : []};
         this.refElOfOpenMoreMenu = e.target;
         this.refElOfOpenMoreMenu.style.opacity = '1';
-        api.contextMenu.open(e, this.createContextMenuController(!!isRootBlockOf));
+        api.contextMenu.open(e, this.createContextMenuController(links => {
+            if (!isRootBlockOf)
+                return links;
+            const notThese = [
+                'save-block-as-reusable',
+                ...(!isBrokenBlockId(block.id)
+                    ? []
+                    : ['add-content-as-child', 'duplicate-block', 'toggle-is-behaviours-sub-nav-visible'])
+            ];
+            return links.filter(({id}) => notThese.indexOf(id) < 0);
+        }));
     }
     /**
-     * @param {boolean} isGbtRoot
+     * @param {(linksIn: Array<ContextMenuLink>) => Array<ContextMenuLink>} filterLinks
      * @returns {ContextMenuController}
      * @access private
      */
-    createContextMenuController(isGbtRoot) {
+    createContextMenuController(filterLinks) {
         const isPageInfo = this.openMoreMenuData.block.type === 'PageInfo';
         const spawnLinks = [
             {text: __('↑ Add content above'), title: __('↑ Add content above'), id: 'add-content-above'},
@@ -404,27 +415,23 @@ class BlockTree extends preact.Component {
             {text: __('↹ Replace with content'), title: __('Replace this content with'), id: 'replace-block-with'},
         ];
         return {
-            getLinks: () => {
-                const links = !isPageInfo
-                    ? [
-                        ...spawnLinks,
-                        {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
-                        ...(this.registeredBlockBehaviourDefs.length
-                            ? [{text: __('Behaviours'), title: __('Behaviours'), id: 'toggle-is-behaviours-sub-nav-visible',
-                                printChildNav: this.createBlockBehaviourSubNavPrinter()}]
-                            : []
-                        ),
-                        {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
-                        ...(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees') ? [
-                            {text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}
-                        ] : [])
-                    ]
-                    : [
-                        spawnLinks[1],
-                    ];
-                const notThese = isGbtRoot ? ['save-block-as-reusable'] : [];
-                return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
-            },
+            getLinks: () => filterLinks(!isPageInfo
+                ? [
+                    ...spawnLinks,
+                    {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
+                    ...(this.registeredBlockBehaviourDefs.length
+                        ? [{text: __('Behaviours'), title: __('Behaviours'), id: 'toggle-is-behaviours-sub-nav-visible',
+                            printChildNav: this.createBlockBehaviourSubNavPrinter()}]
+                        : []
+                    ),
+                    {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
+                    ...(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees') ? [
+                        {text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}
+                    ] : [])
+                ]
+                : [
+                    spawnLinks[1],
+                ]),
             onItemClicked: this.handleContextMenuLinkClicked.bind(this),
             onMenuClosed: this.onContextMenuClosed.bind(this),
         };

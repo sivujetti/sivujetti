@@ -9,16 +9,18 @@ function putToLocalStorage(value, key) {
 }
 
 /**
- * @returns {string|undefined}
+ * @template T
+ * @returns {T|undefined}
  */
 function getFromLocalStorage(key) {
     return env.window.localStorage[key];
 }
 
 /**
+ * @template T
  * @param {string} value
  * @param {string} key
- * @returns {string}
+ * @returns {T}
  */
 function getAndPutAndGetToLocalStorage(value, key) {
     const cur = getFromLocalStorage(key);

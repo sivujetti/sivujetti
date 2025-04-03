@@ -718,3 +718,9 @@ type translateVarInputToScssCodeTemplateFn = (varName: string, value: string) =>
 type globalBlockReferenceBlockId = string;
 
 type WithId<T> = T & {id: string;};
+
+interface WysiwygMiscStyleOption {
+    className: string;
+    label: string;
+    color?: string;
+}

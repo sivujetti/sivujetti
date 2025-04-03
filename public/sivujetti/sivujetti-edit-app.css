@@ -350,6 +350,12 @@ h2 {
 .ql-snow .ql-picker.ql-size {
     width: 76px;
 }
+.ql-snow .ql-picker.ql-misc-style {
+    width: 84px;
+}
+.ql-snow .ql-picker.ql-misc-style > .ql-picker-label {
+    width: calc(100% + .3rem);
+}
 .jsPanel.animating {
     transition: height cubic-bezier(0.73, -0.32, 0.58, 1) .325s;
 }

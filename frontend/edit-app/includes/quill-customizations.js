@@ -1,11 +1,13 @@
 import {
     __,
+    api,
     determineModeFromPreview,
     doubleNormalizeUrl,
     getVisibleSlug,
     iconAsString,
     stringUtils,
 } from '@sivujetti-commons-for-edit-app';
+import {getRegisteredQuillMiscStyleOptions} from './quill-funcs.js';
 
 const Quill = window.Quill;
 
@@ -369,6 +371,81 @@ const IdAttributor = new Parchment.Attributor('id-anchor', 'id', {
         : Parchment.Scope.INLINE_ATTRIBUTE
 });
 
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @param {Array<WysiwygMiscStyleOption>} options
+ * @param {Object} Quill = window.Quill
+ */
+function registerMiscStylePicker(options, Quill = window.Quill) {
+    const Parchment = Quill.import('parchment');
+
+    const {ClassAttributor, Scope} = Parchment;
+    const MiscStyleClass = new ClassAttributor('misc-style', 'ql-misc-style', {
+        scope: Scope.INLINE,
+        whitelist: options.map(({className}) => className),
+    });
+
+    Quill.register({
+        'attributors/class/misc-style': MiscStyleClass,
+        'formats/misc-style': MiscStyleClass,
+    }, true);
+
+    const el = getOrCreateHeadStyleEl();
+    el.innerHTML = createMiscClassQuillCss(options);
+}
+
+/**
+ * @returns {HTMLStyleElement}
+ */
+function getOrCreateHeadStyleEl() {
+    /** @type {HTMLStyleElement} */
+    let el = document.head.querySelector('style[data-injected-by="quill-misc-style-func"]');
+    if (!el) {
+        el = document.createElement('style');
+        el.setAttribute('data-injected-by', 'quill-misc-style-func');
+        document.head.appendChild(el);
+    }
+    return el;
+}
+
+const defClors = [
+    '#d0efff78',
+    '#d0ffd078',
+    '#ffd3d078',
+    '#e1d0ff78',
+];
+
+/**
+ * @param {Array<WysiwygMiscStyleOption>} options
+ * @returns {string}
+ */
+function createMiscClassQuillCss(options) {
+    return (
+`:root {
+    ${options.map((v, i) => `--col${i + 1}: ${v.color || defClors[i]}`).join('\n  ')}
+}
+.ql-snow .ql-picker.ql-misc-style .ql-picker-label:before,
+.ql-snow .ql-picker.ql-misc-style .ql-picker-item:before {
+    content: "${__('No style')}";
+}
+${options.map((v, i) =>
+`.ql-snow .ql-picker.ql-misc-style .ql-picker-item[data-value="${v.className}"] {
+    background: var(--col${i + 1});
+}
+.ql-snow .ql-picker.ql-misc-style .ql-picker-label[data-value="${v.className}"]:before,
+.ql-snow .ql-picker.ql-misc-style .ql-picker-item[data-value="${v.className}"]:before {
+    content: "${v.label}";
+}
+.ql-editor .ql-misc-style-${v.className} {
+    background: var(--col${i + 1});
+}`
+)}`
+    );
+}
+
+/** @typedef {string[] | Array<string | Record<string, unknown>>} QuillToolbarConfigItem */
+
 export default () => {
     Quill.debug('error');
     //
@@ -377,4 +454,24 @@ export default () => {
     Quill.register('modules/keyboard', MyKeyboard);
     Quill.register('formats/id-anchor', IdAttributor);
     Quill.register(MyLink);
+    api.addFilter('quillCreateToolbarConfig',
+    /**
+     * @param {Array<QuillToolbarConfigItem>} cfg
+     * @param {string} type
+     * @returns {Array<QuillToolbarConfigItem>}
+     */
+    (cfg, type) => {
+        if (type === 'longText') return cfg.map(line => {
+                // @ts-ignore
+                if (line.at(-1).list === 'bullet') {
+                    const options = getRegisteredQuillMiscStyleOptions();
+                    if (options.length) {
+                        registerMiscStylePicker(options, Quill);
+                        [...line, {'misc-style': [false, ...options.map(({className}) => className)]}]
+                    }
+                }
+                return line;
+            });
+        return cfg;
+    });
 };

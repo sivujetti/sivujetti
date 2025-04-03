@@ -12,6 +12,8 @@ stringBundles.push({
     'No results for "%s"': 'No results for "%s"',
     // commons-for-edit-app/block-types/section2/Section2CombinedBlockAndStylesEditForm.jsx
     'Add columnn': 'Add columnn',
+    // commons-for-edit-app/includes-internal/quill-commons.js
+    'No style': 'No style',
     // edit-app/src/commons/FileUploader.jsx
     'Images': 'Images',
     'Files': 'Files',

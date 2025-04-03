@@ -1,4 +1,4 @@
-import {__} from './edit-app-singletons.js';
+import {__, api} from './edit-app-singletons.js';
 import {currentInstance as  floatingDialog} from './FloatingDialog.jsx';
 import PickUrlDialog, {getHeight} from './includes-internal/PickUrlDialog.jsx';
 import {determineModeFrom} from './pick-url-utils.js';
@@ -35,9 +35,6 @@ const toolbarBundles = {
 };
 
 class QuillEditor extends preact.Component {
-    // quill;
-    // myChangeSource;
-    // contentMaybeHasLinks;
     /**
      * @param {{name: string; value: string; onChange: (html: string, source: 'default'|'undo'|null|undefined) => any; onBlur?: () => any; toolbarBundle?: 'simplest'|'simplestWithLink'|'full'; onInit?: (editor: QuillEditor) => any;}} props
      */
@@ -45,6 +42,7 @@ class QuillEditor extends preact.Component {
         super(props);
         this.quill = null;
         this.myChangeSource = 'default';
+        this.contentMaybeHasLinks = false;
     }
     /**
      * @param {string} newContents @allow raw html
@@ -61,8 +59,9 @@ class QuillEditor extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        let toolbar = toolbarBundles[this.props.toolbarBundle || 'simplest'];
-        if (!toolbar) toolbar = toolbarBundles['simplest'];
+        const type = this.props.toolbarBundle || 'simplest';
+        let toolbar = api.applyFilters('quillCreateToolbarConfig', toolbarBundles[type], type);
+        if (!toolbar) toolbar = api.applyFilters('quillCreateToolbarConfig', toolbarBundles['simplest'], 'simplest');
         this.contentMaybeHasLinks = toolbar.flat().indexOf('link') > -1;
         //
         const self = this;

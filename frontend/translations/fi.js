@@ -12,8 +12,6 @@ stringBundles.push({
     'No results for "%s"': 'Ei tuloksia hakusanalla "%s"',
     // commons-for-edit-app/block-types/section2/Section2CombinedBlockAndStylesEditForm.jsx
     'Add columnn': 'Lisää sarake',
-    // commons-for-edit-app/includes-internal/quill-commons.js
-    'No style': 'Ei tyyliä',
     // edit-app/src/commons/FileUploader.jsx
     'Images': 'Kuvat',
     'Files': 'Tiedostot',
@@ -114,6 +112,16 @@ stringBundles.push({
     'Anchor': 'Ankkuri',
     'First, select the text you want to mark as an anchor.': 'Maalaa ensin teksti jonka haluat merkata ankkuriksi.',
     'First, highlight the entire text of the anchor you want to edit.': 'Maalaa ensin muokattavan ankkurin teksti kokonaisuudessaan.',
+    'No style': 'Ei tyyliä',
+    'Here you can define site-specific CSS classes that are available for text formatting in the Quill editor.': 'Tässä voit määritellä sivustokohtaiset CSS-luokat, jotka ovat käytettävissä tekstin muotoiluun Quill-editorissa.',
+    'style class': 'tyyliluokka',
+    'No style classes yet': 'Tyyliluokkia ei vielä ole',
+    'Save classes': 'Tallenna luokat',
+    'Manage style classes': 'Hallitse tyyliluokkia',
+    'Name': 'Nimi',
+    'CSS class': 'CSS-luokka',
+    'Style selection name visible in the Quill editor': 'Quill-editorissa näkyvä tyylivalinnan nimi',
+    'CSS class applied to the formatted text': 'Muotoiltavaan tekstiin liitettävä CSS-luokka',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'This unique reusable content no longer appears to be available. You can delete it from the context menu.': 'Tämä uniikki uudelleenkäytettävä sisältö ei näyttäisi olevan enää saatavilla. Voit poistaa sen kontekstivalikosta.',
     'Styles': 'Tyylit',
@@ -196,7 +204,6 @@ stringBundles.push({
     'Exit edit mode': 'Poistu muokkaustilasta',
     // edit-app/src/popups/reusable-branch/BlockSaveAsReusableDialog.jsx
     'This function saves this content as reusable content, which can be easily added to other pages later on.': 'Tämä toiminto tallentaa sisällön uudelleenkäytettäväksi sisällöksi, jota voidaan myöhemmin helposti lisätä myös muihin sivuihin.',
-    'Name': 'Nimi',
     'e.g. Text and image, Footer': 'esim. Teksti ja kuva, Footer',
     'Type': 'Tyyppi',
     'Duplicating': 'Monistuva',
@@ -332,7 +339,6 @@ stringBundles.push({
     'Here you can define the elements displayed in the page listing and their order.': 'Tässä voit määritellä sivulistauksessa näytettävät osat sekä niiden järjestyksen.',
     'Add %s': 'Lisää %s',
     'part': 'osio',
-    'Select %s': 'Valitse %s',
     'Listing': 'Listaus',
     // edit-app/src/block-types/image.js
     'Image file': 'Kuvatiedosto',

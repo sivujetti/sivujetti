@@ -370,7 +370,6 @@ function generateName(cssPropExpr) {
 
 
 class OptionWidgetOptionEditForm extends preact.Component {
-    // disableGlobalUndoHotkeys;
     /**
      * @param {{item: OptionWidgetOption; onValueChanged: (value: string, key: keyof OptionWidgetOption) => void; done: () => void;}} props
      */
@@ -410,13 +409,13 @@ class OptionWidgetOptionEditForm extends preact.Component {
                 title={ __('Done') }
                 type="button">&lt;</button>
             <FormGroupInline className="mt-0 mb-2">
-                <label htmlFor="optionItemText" class="form-label">{ __('Option text') }</label>
-                <Textarea vm={ this } prop="label" id="optionItemText" rows="3" { ...this.disableGlobalUndoHotkeys }/>
+                <label htmlFor="optionLabel" class="form-label">{ __('Option text') }</label>
+                <Textarea vm={ this } prop="label" id="optionLabel" rows="3" { ...this.disableGlobalUndoHotkeys }/>
                 <InputErrors vm={ this } prop="label"/>
             </FormGroupInline>
             <FormGroupInline className="my-0">
-                <label htmlFor="selectOrRadioItemValue" class="form-label">{ __('Option value') }</label>
-                <Textarea vm={ this } prop="value" id="selectOrRadioItemValue" rows="3" { ...this.disableGlobalUndoHotkeys }/>
+                <label htmlFor="optionValue" class="form-label">{ __('Option value') }</label>
+                <Textarea vm={ this } prop="value" id="optionValue" rows="3" { ...this.disableGlobalUndoHotkeys }/>
                 <InputErrors vm={ this } prop="value"/>
             </FormGroupInline>
         </div>;

@@ -8,7 +8,7 @@ const validatorImplFactories = {
     'min':        () => ({doValidate: (value, min) => value >= min, errorMessageTmpl: __('min')}),
     'max':        () => ({doValidate: (value, max) => value <= max, errorMessageTmpl: __('max')}),
     'identifier': () => ({doValidate: value => /^[a-zA-Z_]{1}\w*$/.test(value), errorMessageTmpl: __('identifier')}),
-    'regexp':     () => ({doValidate: (value, pattern) => (new RegExp(pattern)).test(value), errorMessageTmpl: __('regexp')}),
+    'regexp':     () => ({doValidate: (value, pattern, flags) => (new RegExp(pattern, flags)).test(value), errorMessageTmpl: __('regexp')}),
 };
 
 /**

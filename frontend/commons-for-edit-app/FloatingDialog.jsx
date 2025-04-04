@@ -174,7 +174,6 @@ class FloatingDialogImpl extends preact.Component {
     getContentHeight(panel = this.currentJsPanel) {
         return [
             panel.header,
-            // @ts-ignore
             ...panel.content.children,
         ].reduce((tot, {clientHeight}) =>
             tot + clientHeight

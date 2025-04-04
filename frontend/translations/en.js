@@ -12,8 +12,6 @@ stringBundles.push({
     'No results for "%s"': 'No results for "%s"',
     // commons-for-edit-app/block-types/section2/Section2CombinedBlockAndStylesEditForm.jsx
     'Add columnn': 'Add columnn',
-    // commons-for-edit-app/includes-internal/quill-commons.js
-    'No style': 'No style',
     // edit-app/src/commons/FileUploader.jsx
     'Images': 'Images',
     'Files': 'Files',
@@ -113,6 +111,16 @@ stringBundles.push({
     'Anchor': 'Anchor',
     'First, select the text you want to mark as an anchor.': 'First, select the text you want to mark as an anchor.',
     'First, highlight the entire text of the anchor you want to edit.': 'First, highlight the entire text of the anchor you want to edit.',
+    'No style': 'No style',
+    'Here you can define site-specific CSS classes that are available for text formatting in the Quill editor.': 'Here you can define site-specific CSS classes that are available for text formatting in the Quill editor.',
+    'style class': 'style class',
+    'No style classes yet': 'No style classes yet',
+    'Save classes': 'Save classes',
+    'Manage style classes': 'Manage style classes',
+    'Name': 'Name',
+    'CSS class': 'CSS class',
+    'Style selection name visible in the Quill editor': 'Style selection name visible in the Quill editor',
+    'CSS class applied to the formatted text': 'CSS class applied to the formatted text',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'This unique reusable content no longer appears to be available. You can delete it from the context menu.': 'This unique reusable content no longer appears to be available. You can delete it from the context menu.',
     'Styles': 'Styles',
@@ -195,7 +203,6 @@ stringBundles.push({
     'Exit edit mode': 'Exit edit mode',
     // edit-app/src/popups/reusable-branch/BlockSaveAsReusableDialog.jsx
     'This function saves this content as reusable content, which can be easily added to other pages later on.': 'This function saves this content as reusable content, which can be easily added to other pages later on.',
-    'Name': 'Name',
     'e.g. Text and image, Footer': 'e.g. Text and image, Footer',
     'Type': 'Tyyppi',
     'Duplicating': 'Duplicating',
@@ -332,7 +339,6 @@ stringBundles.push({
     'Here you can define the elements displayed in the page listing and their order.': 'Here you can define the elements displayed in the page listing and their order.',
     'Add %s': 'Add %s',
     'part': 'part',
-    'Select %s': 'Select %s',
     'Listing': 'Listing',
     // edit-app/src/block-types/image.js
     'Image file': 'Image file',

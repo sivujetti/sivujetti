@@ -1,7 +1,17 @@
-import {api} from '@sivujetti-commons-for-edit-app';
+import globalData from './globalData.js';
 
+/**
+ * @returns {Array<WysiwygMiscStyleOption>}
+ */
 function getRegisteredQuillMiscStyleOptions() {
-    return api.applyFilters('createWysiwygMiscClassOptions', []);
+    return globalData.theme.miscWysiwygStyles;
 }
 
-export {getRegisteredQuillMiscStyleOptions};
+/**
+ * @param {Array<WysiwygMiscStyleOption>} newOptions
+ */
+function updateRegisteredQuillMiscStyleOptions(newOptions) {
+    globalData.theme.miscWysiwygStyles = newOptions;
+}
+
+export {getRegisteredQuillMiscStyleOptions, updateRegisteredQuillMiscStyleOptions};

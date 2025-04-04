@@ -7,13 +7,14 @@ let counter = 0;
 
 /**
  * @template T
+ * @extends {preact.Component<CrudListProps, any>}
  */
 class CrudList extends preact.Component {
     // editFormRef;
     // sortable; // public
     // itemWithNavOpened; // public
     /**
-     * @param {{items: Array<T>; onListMutated: (newList: Array<T>, prop?: string, subProp?: string) => void; createNewItem: (...varArgs: any) => T; editForm: preact.AnyComponent; editFormProps?: {[key: string]: any;}; itemTypeFriendlyName?: string; itemTitleKey?: string; getTitle?: (item: T) => preact.ComponentChild; contextMenuPos?: string; contextMenuZIndex?: number; onCreateCtxMenuCtrl?: (ctrl: ContextMenuController) => ContextMenuController; renderAddItemButton?: () => preact.ComponentChild;}} props
+     * @param {CrudListProps} props
      */
     constructor(props) {
         super(props);
@@ -66,12 +67,12 @@ class CrudList extends preact.Component {
                             <Icon iconId="dots" className="size-sm"/>
                         </button>
                     </div>
-                </li>) : <li>-</li> }
+                </li>) : <li>{ this.props.noItemsText || '-' }</li> }
             </ul>,
             renderAddItemButton ? renderAddItemButton() : <button
                 onClick={ () => this.addNewItem() }
                 title={ __('Add %s', itemTypeFriendlyName) }
-                class="btn btn-sm text-tiny with-icon-inline color-dimmed mt-1"
+                class={ `btn btn-sm text-tiny with-icon-inline color-dimmed mt-${this.props.uiDensity === 'default' ? 2 : 1}` }
                 type="button">
                 <Icon iconId="plus" className="size-xs mr-1"/>
                 { __('Add %s', itemTypeFriendlyName) }

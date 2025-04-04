@@ -427,6 +427,7 @@ function broadcastCurrentPageData(e) {
     const detachedGbts = detachGlobalBlockTrees(blocks); // Note: mutates blocks
 
     globalData.initialPageBlocksStyles = dataBundle.initialPageBlocksStyles;
+    dataBundle.theme.miscWysiwygStyles = JSON.parse(getAndInvalidate(dataBundle.theme, 'miscWysiwygStylesJson'));
     globalData.theme = dataBundle.theme;
     globalData.layout = dataBundle.layout;
 
@@ -509,9 +510,10 @@ function createUrlForIframe(url) {
 
 /**
  * @template T
+ * @template T2
  * @param {T} entity
  * @param {string} prop
- * @returns {T}
+ * @returns {T2}
  */
 function getAndInvalidate(entity, prop, keepDebugEntry = false) {
     const out = entity[prop];

@@ -210,6 +210,7 @@ interface PageContentLayoutPart {
 
 interface Theme {
     id: string; // Example '1'
+    miscWysiwygStyles: Array<WysiwygMiscStyleOption>;
 }
 
 interface CurrentPageData {
@@ -720,7 +721,24 @@ type globalBlockReferenceBlockId = string;
 type WithId<T> = T & {id: string;};
 
 interface WysiwygMiscStyleOption {
-    className: string;
-    label: string;
+    cssClass: string;
+    name: string;
     color?: string;
+}
+
+interface CrudListProps<T> {
+    items: Array<T>;
+    onListMutated: (newList: Array<T>, prop?: string, subProp?: string) => void;
+    createNewItem: (...varArgs: any[]) => T;
+    editForm: preact.AnyComponent;
+    editFormProps?: {[key: string]: any;};
+    itemTypeFriendlyName?: string;
+    itemTitleKey?: string;
+    getTitle?: (item: T) => preact.ComponentChild;
+    contextMenuPos?: string;
+    contextMenuZIndex?: number;
+    onCreateCtxMenuCtrl?: (ctrl: ContextMenuController) => ContextMenuController;
+    renderAddItemButton?: () => preact.ComponentChild;
+    uiDensity?: 'tight'|'default';
+    noItemsText?: string;
 }

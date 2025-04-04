@@ -7,6 +7,7 @@ import {
     iconAsString,
     stringUtils,
 } from '@sivujetti-commons-for-edit-app';
+import openManageMiscStylesDialog from '../main-column/popups/QuillMiscStylesManageDialog/Dialog.jsx';
 import {getRegisteredQuillMiscStyleOptions} from './quill-funcs.js';
 
 const Quill = window.Quill;
@@ -37,7 +38,6 @@ class MySnowTheme extends Quill.import('themes/snow') {
      */
     extendToolbar(toolbar) {
         super.extendToolbar(toolbar);
-        this.buildIdPicker(toolbar.container);
         //
         const el = this.tooltip.root;
         const [editLink, deleteLink] = [el.lastChild.previousSibling, el.lastChild];
@@ -132,9 +132,18 @@ class MySnowTheme extends Quill.import('themes/snow') {
      */
     buildPickers(selects, icons) {
         super.buildPickers(selects, icons);
-        const headingPicker = this.pickers.find(({select}) => select.classList.contains('ql-header'));
-        if (!headingPicker) return;
-        const {label, options} = headingPicker;
+        this.patchHeadingPicker();
+        this.patchMiscStylesPicker();
+        this.addIdPicker();
+    }
+    /**
+     * @access private
+     */
+    patchHeadingPicker() {
+        const picker = this.pickers.find(({select}) => select.classList.contains('ql-header'));
+        if (!picker) return;
+
+        const {label, options} = picker;
         label.setAttribute('data-h1-translated', `${__('Heading')} 1`);
         label.setAttribute('data-h2-translated', `${__('Heading')} 2`);
         label.setAttribute('data-h3-translated', `${__('Heading')} 3`);
@@ -150,8 +159,37 @@ class MySnowTheme extends Quill.import('themes/snow') {
     /**
      * @access private
      */
-    buildIdPicker(cont) {
-        const mainToolbarButton = cont.querySelector('.ql-id-anchor');
+    patchMiscStylesPicker() {
+        const picker = this.pickers.find(({select}) => select.classList.contains('ql-misc-style'));
+        if (!picker) return;
+
+        const tmp = document.createElement('div');
+        tmp.innerHTML = '<div ' +
+            'class="btn btn-link btn-xs c-pointer" ' +
+            'style="position: absolute; top: 1px; right: 0; height: 1rem" ' +
+            'tabindex="0" ' +
+            'role="button">' +
+            iconAsString('settings', 'size-xs color-dimmed3').replace('<svg', '<svg style="position: static"') +
+        '</div>';
+        const configBtn = tmp.firstElementChild;
+        const doOpenManageMiscStylesDialog = e => {
+            e.preventDefault();
+            e.stopPropagation();
+            openManageMiscStylesDialog();
+            picker.close();
+        };
+        configBtn.addEventListener('click', doOpenManageMiscStylesDialog);
+        configBtn.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => {
+            if (e.key === 'Enter')
+                doOpenManageMiscStylesDialog(e);
+        });
+        picker.options.appendChild(configBtn);
+    }
+    /**
+     * @access private
+     */
+    addIdPicker() {
+        const mainToolbarButton = this.modules.toolbar?.container.querySelector('.ql-id-anchor');
         if (!mainToolbarButton) return; // not defined in toolbar config
 
         let appliedVal;
@@ -383,7 +421,7 @@ function registerMiscStylePicker(options, Quill = window.Quill) {
     const {ClassAttributor, Scope} = Parchment;
     const MiscStyleClass = new ClassAttributor('misc-style', 'ql-misc-style', {
         scope: Scope.INLINE,
-        whitelist: options.map(({className}) => className),
+        whitelist: options.map(({cssClass}) => cssClass),
     });
 
     Quill.register({
@@ -430,14 +468,14 @@ function createMiscClassQuillCss(options) {
     content: "${__('No style')}";
 }
 ${options.map((v, i) =>
-`.ql-snow .ql-picker.ql-misc-style .ql-picker-item[data-value="${v.className}"] {
+`.ql-snow .ql-picker.ql-misc-style .ql-picker-item[data-value="${v.cssClass}"] {
     background: var(--col${i + 1});
 }
-.ql-snow .ql-picker.ql-misc-style .ql-picker-label[data-value="${v.className}"]:before,
-.ql-snow .ql-picker.ql-misc-style .ql-picker-item[data-value="${v.className}"]:before {
+.ql-snow .ql-picker.ql-misc-style .ql-picker-label[data-value="${v.cssClass}"]:before,
+.ql-snow .ql-picker.ql-misc-style .ql-picker-item[data-value="${v.cssClass}"]:before {
     content: "${v.label}";
 }
-.ql-editor .ql-misc-style-${v.className} {
+.ql-editor .ql-misc-style-${v.cssClass} {
     background: var(--col${i + 1});
 }`
 )}`
@@ -465,9 +503,10 @@ export default () => {
                 // @ts-ignore
                 if (line.at(-1).list === 'bullet') {
                     const options = getRegisteredQuillMiscStyleOptions();
-                    if (options.length) {
+                    const userCanConfigureStyles = true; // todo
+                    if (userCanConfigureStyles || options.length) {
                         registerMiscStylePicker(options, Quill);
-                        [...line, {'misc-style': [false, ...options.map(({className}) => className)]}]
+                        return [...line, {'misc-style': [false, ...options.map(({cssClass}) => cssClass)]}];
                     }
                 }
                 return line;

@@ -15,6 +15,8 @@ final class Theme extends \stdClass {
     public string $name;
     /** @var list<object{name: string, friendlyName: string, value: object{type: "color", value: list<string>}}> */
     public array $globalStyles;
+    /** @var string JSON form of `list<object{name: string, cssClass: string, color: string|null;}>` */
+    public string $miscWysiwygStylesJson;
     /** @var StylesBundle */
     public object $styles;
     /** @var list<string> ["_body_", "j-Text" ...] */
@@ -33,6 +35,7 @@ final class Theme extends \stdClass {
         $out->id = strval($row->themeId);
         $out->name = $row->themeName;
         $out->globalStyles = [];
+        $out->miscWysiwygStylesJson = '[{"name": "Fancy text", "color": null, "cssClass": "fancytext"}]'; // todo
         $out->styles = (object) [
             "styleChunks" => [],
             "cachedCompiledCss" => "",

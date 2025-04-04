@@ -67,8 +67,7 @@ return [
     `name` VARCHAR(92) NOT NULL,
     `styleChunkBundlesAll` JSON, -- see backend/sivujetti/src/Theme/Entities/Theme.php
     `cachedCompiledScreenSizesCssHashes` TEXT, -- 'dffd60...'
-    `stylesOrder` JSON,
-    `globalStyles` JSON,
+    `miscWysiwygStyles` JSON, -- see backend/sivujetti/src/TheWebsite/Entities/TheWebsite.php
     `isActive` TINYINT(1) NOT NULL,
     `generatedScopedStylesCss` TEXT,
     `stylesLastUpdatedAt` VARCHAR(54), -- '1701932634'

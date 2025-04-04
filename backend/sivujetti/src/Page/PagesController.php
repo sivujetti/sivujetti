@@ -646,17 +646,18 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Theme\Entities\Theme $theme
-     * @return (object{id: string, styles: StylesBundle|list<\Sivujetti\Theme\Entities\Style>} & \stClass)
+     * @return (object{id: string, styles: StylesBundle|list<\Sivujetti\Theme\Entities\Style>, miscWysiwygStylesJson: string} & \stClass)
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [
             "id" => $theme->id,
             "styles" => $theme->styles,
+            "miscWysiwygStylesJson" => $theme->miscWysiwygStylesJson,
         ];
     }
     /**
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-     * @return (object & \stClass)
+     * @return (object{name: string, langTag: string, description: string, hideFromSearchEngines: bool, versionId: string, headHtml: string, footHtml: string} & \stClass)
      */
     private static function theWebsiteToRaw(TheWebsite $theWebsite): object {
         return (object) [

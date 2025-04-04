@@ -13,14 +13,10 @@ final class Theme extends \stdClass {
     public string $id;
     /** @var string */
     public string $name;
-    /** @var list<object{name: string, friendlyName: string, value: object{type: "color", value: list<string>}}> */
-    public array $globalStyles;
     /** @var string JSON form of `list<object{name: string, cssClass: string, color: string|null;}>` */
     public string $miscWysiwygStylesJson;
     /** @var StylesBundle */
     public object $styles;
-    /** @var list<string> ["_body_", "j-Text" ...] */
-    public array $stylesOrder;
     /** @var list<int> An array of unix timestamps */
     public array $stylesLastUpdatedAt;
     /** @var list<object> */
@@ -34,8 +30,7 @@ final class Theme extends \stdClass {
         $out = new self;
         $out->id = strval($row->themeId);
         $out->name = $row->themeName;
-        $out->globalStyles = [];
-        $out->miscWysiwygStylesJson = '[{"name": "Fancy text", "color": null, "cssClass": "fancytext"}]'; // todo
+        $out->miscWysiwygStylesJson = $row->themeMiscWysiwygStylesJson;
         $out->styles = (object) [
             "styleChunks" => [],
             "cachedCompiledCss" => "",
@@ -44,7 +39,6 @@ final class Theme extends \stdClass {
                 $row->themeStylesCachedCompiledScreenSizesCssHashes
             ),
         ];
-        $out->stylesOrder = [];
         $out->stylesLastUpdatedAt = [0,0,0,0,0];
         $out->__stash = $rows;
         return $out;
@@ -58,9 +52,6 @@ final class Theme extends \stdClass {
         $this->stylesLastUpdatedAt = array_map(fn($s) => (int)$s, explode(",", $themeRow->themeStylesLastUpdatedAt));
 
         if ($stylesRow?->globalStyleChunkBundlesJson) {
-            $this->globalStyles = JsonUtils::parse($themeRow->themeGlobalStylesJson);
-            $this->stylesOrder = [];
-
             /** @var object{styleChunks: list<StyleChunk>, cachedCompiledCss: string}|null */
             $parsed = JsonUtils::parse($stylesRow->globalStyleChunkBundlesJson);
             $this->styles->cachedCompiledCss = $parsed->cachedCompiledCss;
@@ -71,7 +62,6 @@ final class Theme extends \stdClass {
                 ? [...$parsed->styleChunks, ...$parsed2]
                 : $parsed->styleChunks;
         }
-        unset($this->themeGlobalStylesJson);
         unset($this->themeStylesCachedCompiledScreenSizesCssHashes);
         $this->__stash = [];
     }

@@ -64,8 +64,7 @@ return [
     `name` TEXT NOT NULL,
     `styleChunkBundlesAll` JSON, -- see backend/sivujetti/src/Theme/Entities/Theme.php
     `cachedCompiledScreenSizesCssHashes` TEXT, -- 'dffd60...'
-    `stylesOrder` JSON,
-    `globalStyles` JSON,
+    `miscWysiwygStyles` JSON, -- see backend/sivujetti/src/TheWebsite/Entities/TheWebsite.php
     `isActive` INTEGER NOT NULL DEFAULT 0,
     `generatedScopedStylesCss` TEXT,
     `stylesLastUpdatedAt` TEXT -- '0'

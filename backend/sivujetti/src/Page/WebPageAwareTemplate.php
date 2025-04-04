@@ -285,17 +285,6 @@ final class WebPageAwareTemplate extends Template {
         };
 
         $theme = $this->__internal["theme"];
-        $commonCss = (
-            ($theme->globalStyles
-                ? (":root {" .
-                    implode(" ", array_map(fn($style) =>
-                        // Note: these are pre-validated
-                        "  --{$style->name}: {$this->cssValueToString($style->value)};"
-                    , $theme->globalStyles)) .
-                "}")
-                : "")
-        );
-        $common = $commonCss ? "<style>{$commonCss}</style>\n" : "";
         $externals = array_map($fileDefToTag, $this->__cssAndJsFiles->css);
         $site = $site ?? $this->__locals["site"];
         $stylesTags = "";
@@ -340,7 +329,7 @@ final class WebPageAwareTemplate extends Template {
                 "<style>" . self::getDefaultEditModeInlineCss() . "</style>\n"
             );
         }
-        return $common . $stylesTags;
+        return $stylesTags;
     }
     /**
      * @param ?\Sivujetti\TheWebsite\Entities\TheWebsite $site = null

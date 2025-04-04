@@ -33,7 +33,7 @@ final class TheWebsiteRepository {
                 //
                 "t.`id` AS `themeId`",
                 "t.`name` AS `themeName`",
-                "t.`globalStyles` AS `themeGlobalStylesJson`",
+                "t.`miscWysiwygStyles` AS `themeMiscWysiwygStylesJson`",
                 "t.`stylesLastUpdatedAt` AS `themeStylesLastUpdatedAt`",
                 //
                 "t.`cachedCompiledScreenSizesCssHashes` AS `themeStylesCachedCompiledScreenSizesCssHashes`",

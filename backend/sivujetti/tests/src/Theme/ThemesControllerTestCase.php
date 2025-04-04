@@ -27,8 +27,7 @@ abstract class ThemesControllerTestCase extends DbTestCase {
             "name" => $themeName,
             "styleChunkBundlesAll" => "{\"styleChunks\":[],\"cachedCompiledCss\":\"\"}",
             "cachedCompiledScreenSizesCssHashes" => "",
-            "stylesOrder" => json_encode([]),
-            "globalStyles" => "{}",
+            "miscWysiwygStyles" => "[]",
             "generatedScopedStylesCss" => "",
             "generatedScopedStylesCss" => "0",
         ];

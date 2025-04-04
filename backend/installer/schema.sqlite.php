@@ -63,7 +63,7 @@ return [
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
     `styleChunkBundlesAll` JSON, -- see backend/sivujetti/src/Theme/Entities/Theme.php
-    `cachedCompiledScreenSizesCssHashes` TEXT, -- 'dffd60...'
+    `cachedCompiledCssHash` TEXT, -- 'dffd60...'
     `miscWysiwygStyles` JSON, -- see backend/sivujetti/src/TheWebsite/Entities/TheWebsite.php
     `isActive` INTEGER NOT NULL DEFAULT 0,
     `generatedScopedStylesCss` TEXT,

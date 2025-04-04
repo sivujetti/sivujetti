@@ -36,7 +36,7 @@ final class TheWebsiteRepository {
                 "t.`miscWysiwygStyles` AS `themeMiscWysiwygStylesJson`",
                 "t.`stylesLastUpdatedAt` AS `themeStylesLastUpdatedAt`",
                 //
-                "t.`cachedCompiledScreenSizesCssHashes` AS `themeStylesCachedCompiledScreenSizesCssHashes`",
+                "t.`cachedCompiledCssHash` AS `themeCachedCompiledCssHash`",
             ])
             ->leftJoin("\${p}plugins p ON (1)")
             ->leftJoin("\${p}pageTypes pt ON (1)")

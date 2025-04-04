@@ -15,7 +15,7 @@ $statements = array_merge($statements, [
     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" => "y"
 ])."','abcdefg1','','')",
 
-"INSERT INTO `themes` (`id`,`name`,`styleChunkBundlesAll`,`cachedCompiledScreenSizesCssHashes`," .
+"INSERT INTO `themes` (`id`,`name`,`styleChunkBundlesAll`,`cachedCompiledCssHash`," .
     "`miscWysiwygStyles`,`isActive`,`generatedScopedStylesCss`,`stylesLastUpdatedAt`) VALUES
 ('1','test-suite-theme','{\"styleChunks\":[],\"cachedCompiledCss\":\"\"}','','[]',1,'" .
     \Sivujetti\Tests\Utils\CssGenTestUtils::generateScopedStyles($styles) .

@@ -68,7 +68,7 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
                 "name" => "themes",
                 "fieldsFrom" => "`id`,`name`,`styleChunkBundlesAll`,`cachedCompiledScreenSizesCssHashes`," .
                                 "'[]' AS `miscWysiwygStyles`,`isActive`,`generatedScopedStylesCss`,`stylesLastUpdatedAt`",
-                "fieldsInto" => "`id`,`name`,`styleChunkBundlesAll`,`cachedCompiledScreenSizesCssHashes`," .
+                "fieldsInto" => "`id`,`name`,`styleChunkBundlesAll`,`cachedCompiledCssHash`," .
                                 "`miscWysiwygStyles`,`isActive`,`generatedScopedStylesCss`,`stylesLastUpdatedAt`",
             ],
             [
@@ -117,20 +117,17 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
                 "INSERT INTO {$ttemp} ({$def["fieldsInto"]}) " .
                 "SELECT {$def["fieldsFrom"]} FROM {$treal}",
             ] as $stmt) {
-                var_dump("exec 1: " . $stmt);
                 $db->exec($stmt);
             }
         }
 
         // 2. [DROP TABLE {table2}, DROP TABLE {table1}, ...]
         foreach (array_reverse($tNames) as $tn) {
-                var_dump("exec 2: " . "DROP TABLE {$tn["treal"]}");
             $db->exec("DROP TABLE {$tn["treal"]}");
         }
 
         // 3. [RENAME {table2}_new -> {table2}, RENAME {table1}_new -> {table1}, ...]
         foreach (array_reverse($tNames) as $tn) {
-                var_dump("exec 3: " . "ALTER TABLE {$tn["ttemp"]} RENAME TO {$tn["treal"]}");
             $db->exec("ALTER TABLE {$tn["ttemp"]} RENAME TO {$tn["treal"]}");
         }
     }

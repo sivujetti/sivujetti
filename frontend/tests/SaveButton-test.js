@@ -306,7 +306,7 @@ QUnit.module('SaveButton.jsx', hooks => {
             state.syncedStyles = {
                 id: 1,
                 cachedCompiledCss: '@layer base-styles {\n:root{\n--foo:1;\n}\n',
-                cachedCompiledScreenSizesCssHashes: ['<hash>'],
+                cachedCompiledCssHash: '<hash>',
                 styleChunks: [
                     {id: 2, data: null, scope:  {kind: 'base-vars', layer: 'base-styles'}, scss: ':root {\n  --foo: 1;\n}'}
                 ],

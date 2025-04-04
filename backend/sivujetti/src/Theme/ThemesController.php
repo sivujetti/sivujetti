@@ -55,21 +55,21 @@ final class ThemesController {
 
         $whereArgs = ["`id` = ?", [$req->params->themeId]];
         $current = $db2->select("\${p}themes")
-            ->fields(["name", "cachedCompiledScreenSizesCssHashes", "stylesLastUpdatedAt"])
+            ->fields(["name", "cachedCompiledCssHash", "stylesLastUpdatedAt"])
             ->where(...$whereArgs)
-            ->fetch(fn(string $name, string $hashes, string $lastUpdated) => (object) [
+            ->fetch(fn(string $name, string $hash, string $lastUpdated) => (object) [
                 "name" => $name,
-                "cachedScreenSizesCssHashes" => explode(",", $hashes),
-                "stylesLastUpdatedAt" => array_map(fn($s) => (int)$s, explode(",", $lastUpdated)),
+                "cachedCompiledCssHash" => $hash,
+                "stylesLastUpdatedAt" => (int) $lastUpdated,
             ]);
         if (!$current)
             throw new PikeException("Theme `{$req->params->themeId}` doesn't exist", PikeException::BAD_INPUT);
 
         $newCompiledCss = $req->body->cachedCompiledCss;
         [
-            $newCompiledScreenHashes,
-            $newCompiledFilesData,
-            $newLastUpdatedAts,
+            $newCompiledCssHash,
+            $newCompiledFileData,
+            $newLastUpdatedAt,
         ] = self::createNewBundle($newCompiledCss, $current);
 
         [$globalChunks, $pageChunks] = self::splitChunksToStorageGoups($req->body->styleChunks);
@@ -80,8 +80,8 @@ final class ThemesController {
                     "styleChunks" => array_map(self::inputToStorableChunk(...), $globalChunks),
                     "cachedCompiledCss" => $newCompiledCss,
                 ]),
-                "cachedCompiledScreenSizesCssHashes" => implode(",", $newCompiledScreenHashes),
-                "stylesLastUpdatedAt" => implode(",", $newLastUpdatedAts),
+                "cachedCompiledCssHash" => $newCompiledCssHash,
+                "stylesLastUpdatedAt" => $newLastUpdatedAt,
             ])
             ->where(...$whereArgs)
             ->execute();
@@ -94,9 +94,8 @@ final class ThemesController {
             ])
             ->execute();
 
-        foreach ($newCompiledFilesData as $itm) {
-            if ($itm) $fs->write($itm["filePath"], $itm["contents"]);
-        }
+        if ($newCompiledFileData)
+            $fs->write($newCompiledFileData["filePath"], $newCompiledFileData["contents"]);
 
         $res->json(["ok" => "ok"]);
     }
@@ -178,17 +177,17 @@ final class ThemesController {
     }
     /**
      * @param string $newCompiledCss
-     * @param object{name: string, cachedScreenSizesCssHashes: list<string>, stylesLastUpdatedAt: list<int>} $currentTheme
-     * @return array{0: array{0: string}, 1: array{0: array{filePath: string, contents: string}|null}, 2: array{0: int}}
+     * @param object{name: string, cachedCompiledCssHash: string, stylesLastUpdatedAt: int} $currentTheme
+     * @return array{0: string, 1: array{filePath: string, contents: string}|null, 2: int}
      */
     private static function createNewBundle(string $newCompiledCss,
-                                             object $currentTheme): array {
+                                            object $currentTheme): array {
         $crypto = new Crypto;
-        $newHashes = [$crypto->hash("sha256", $newCompiledCss)];
+        $newHash = $crypto->hash("sha256", $newCompiledCss);
 
         $now = time();
         $at = self::createGenDate($now);
-        $newFilesData = [self::mediaScopeCssHasChanged(0, $newHashes, $currentTheme->cachedScreenSizesCssHashes)
+        $newFileData = self::cssHasChanged($newHash, $currentTheme->cachedCompiledCssHash)
             ? [
                 "filePath" => SIVUJETTI_INDEX_PATH . "public/{$currentTheme->name}-generated.css",
                 "contents" => (
@@ -199,15 +198,12 @@ final class ThemesController {
                     "\n/* ==== Generated styles end ==== */\n"
                 )
             ]
-            : null
-        ];
-
-        $newTimes = [$newFilesData[0] ? $now : $currentTheme->stylesLastUpdatedAt[0]];
+            : null;
 
         return [
-            $newHashes,
-            $newFilesData,
-            $newTimes,
+            $newHash,
+            $newFileData,
+            $newFileData ? $now : $currentTheme->stylesLastUpdatedAt,
         ];
     }
     /**
@@ -273,15 +269,14 @@ final class ThemesController {
     }
     /**
      * @param int $i
-     * @param list<string> $newCompiledScreenHashes
-     * @param list<string> $curCompiledScreenHashes
+     * @param string $newHash
+     * @param string $curHash
      * @return bool
      */
-    private static function mediaScopeCssHasChanged(int $i,
-                                                    array $newCompiledScreenHashes,
-                                                    array $curCompiledScreenHashes): bool {
-        $newHash = $newCompiledScreenHashes[$i] ?? "-";
-        $curHash = $curCompiledScreenHashes[$i] ?? "-";
+    private static function cssHasChanged(string $newHash,
+                                                    string $curHash): bool {
+        $newHash = $newHash ?? "-";
+        $curHash = $curHash ?? "-";
         return $newHash !== $curHash;
     }
     /**

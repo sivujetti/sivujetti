@@ -228,7 +228,7 @@ interface CurrentPageData {
 interface StylesBundle {
     styleChunks: Array<StyleChunkWithoutId>;
     cachedCompiledCss: string;
-    cachedCompiledScreenSizesCssHashes?: Array<string>;
+    cachedCompiledCssHash?: string;
 }
 
 interface StylesBundleWithId extends StylesBundle {

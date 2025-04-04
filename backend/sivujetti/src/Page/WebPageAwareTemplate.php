@@ -294,7 +294,7 @@ final class WebPageAwareTemplate extends Template {
                 implode("\n", [
                     ...$externals,
                     $fileDefToTag((object) [
-                        "url" => "{$theme->name}-generated.css?t={$theme->stylesLastUpdatedAt[0]}",
+                        "url" => "{$theme->name}-generated.css?t={$theme->stylesLastUpdatedAt}",
                         "attrs" => [],
                     ])
                 ]) .

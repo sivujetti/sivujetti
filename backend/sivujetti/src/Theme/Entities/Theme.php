@@ -6,7 +6,7 @@ use Sivujetti\JsonUtils;
 
 /**
  * @phpstan-import-type StyleChunk from \Sivujetti\Block\Entities\Block
- * @phpstan-type StylesBundle {styleChunks: list<StyleChunk>, cachedCompiledCss: string, cachedCompiledScreenSizesCssHashes: list<string>}
+ * @phpstan-type StylesBundle {styleChunks: list<StyleChunk>, cachedCompiledCss: string, cachedCompiledCssHash: string}
  */
 final class Theme extends \stdClass {
     /** @var string */
@@ -17,8 +17,8 @@ final class Theme extends \stdClass {
     public string $miscWysiwygStylesJson;
     /** @var StylesBundle */
     public object $styles;
-    /** @var list<int> An array of unix timestamps */
-    public array $stylesLastUpdatedAt;
+    /** @var int A unix timestamp */
+    public int $stylesLastUpdatedAt;
     /** @var list<object> */
     private array $__stash;
     /**
@@ -34,12 +34,9 @@ final class Theme extends \stdClass {
         $out->styles = (object) [
             "styleChunks" => [],
             "cachedCompiledCss" => "",
-            "cachedCompiledScreenSizesCssHashes" => explode(
-                ",",
-                $row->themeStylesCachedCompiledScreenSizesCssHashes
-            ),
+            "cachedCompiledCssHash" => $row->themeCachedCompiledCssHash,
         ];
-        $out->stylesLastUpdatedAt = [0,0,0,0,0];
+        $out->stylesLastUpdatedAt = 0;
         $out->__stash = $rows;
         return $out;
     }
@@ -49,7 +46,7 @@ final class Theme extends \stdClass {
     public function loadStyles(?object $stylesRow = null): void {
         if (!$this->__stash) return;
         $themeRow = $this->__stash[0];
-        $this->stylesLastUpdatedAt = array_map(fn($s) => (int)$s, explode(",", $themeRow->themeStylesLastUpdatedAt));
+        $this->stylesLastUpdatedAt = (int) $themeRow->themeStylesLastUpdatedAt;
 
         if ($stylesRow?->globalStyleChunkBundlesJson) {
             /** @var object{styleChunks: list<StyleChunk>, cachedCompiledCss: string}|null */
@@ -62,7 +59,7 @@ final class Theme extends \stdClass {
                 ? [...$parsed->styleChunks, ...$parsed2]
                 : $parsed->styleChunks;
         }
-        unset($this->themeStylesCachedCompiledScreenSizesCssHashes);
+        unset($this->themeCachedCompiledCssHash);
         $this->__stash = [];
     }
 }

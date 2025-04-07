@@ -159,6 +159,7 @@ final class PagesController {
                     "canEditGlobalStylesVisually" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
                     "canEditBlockStylesVisually" => $acl->can($userRole, "visuallyEditStylesOf", "themes"),
                     "canEditBlockCss" => $acl->can($userRole, "viaCssEditStylesOf", "themes"),
+                    "canEditWysiwygCssClassOptions" => $acl->can($userRole, "updateWysiwygOptionsOf", "themes"),
                     "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
                     "canCreatePages" => $acl->can($userRole, "create", "pages"),
                     "canCreateReusableBranches" => $acl->can($userRole, "create", "reusableBranches"),

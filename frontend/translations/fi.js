@@ -122,6 +122,10 @@ stringBundles.push({
     'CSS class': 'CSS-luokka',
     'Style selection name visible in the Quill editor': 'Quill-editorissa näkyvä tyylivalinnan nimi',
     'CSS class applied to the formatted text': 'Muotoiltavaan tekstiin liitettävä CSS-luokka',
+    'Example CSS': 'Esimerkki -CSS',
+    'Code which you can copy to the base styles\n(Edit menu > Styles > Code)': 'Koodi, jonka voit kopioida pohjatyyleihin\n(Muokkausvalikko > Tyylit > Koodi)',
+    'Duplicate {field} not allowed': 'Duplikaatti {field} ei sallittu',
+    'Style classes': 'Tyyliluokat',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'This unique reusable content no longer appears to be available. You can delete it from the context menu.': 'Tämä uniikki uudelleenkäytettävä sisältö ei näyttäisi olevan enää saatavilla. Voit poistaa sen kontekstivalikosta.',
     'Styles': 'Tyylit',

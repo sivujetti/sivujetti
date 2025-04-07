@@ -570,6 +570,9 @@ a.popup-close-area {
     left: 0;
     z-index: 3;
 }
+body:has(> .jsPanel) :is(ul.popup-menu.menu, a.popup-close-area) {
+    z-index: 101;
+}
 @keyframes reveal-anim {
     from { }
     to {

@@ -18,9 +18,9 @@ final class ThemesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb2 $db2
+     * @param \Pike\Db\FluentDb2 $db
      */
-    public function getStyles(Request $req, Response $res, FluentDb2 $db2): void {
+    public function getStyles(Request $req, Response $res, FluentDb2 $db): void {
         throw new \RuntimeException("todo");
     }
     /**
@@ -37,12 +37,12 @@ final class ThemesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb2 $db2
+     * @param \Pike\Db\FluentDb2 $db
      * @param \Pike\FileSystem $fs
      */
     public function upsertStyleChunksAll(Request $req,
                                          Response $res,
-                                         FluentDb2 $db2,
+                                         FluentDb2 $db,
                                          FileSystem $fs): void {
         $errors = self::addRulesForStyleChunks(Validation::makeObjectValidator())
             ->rule("cachedCompiledCss", "type", "string")
@@ -54,7 +54,7 @@ final class ThemesController {
         }
 
         $whereArgs = ["`id` = ?", [$req->params->themeId]];
-        $current = $db2->select("\${p}themes")
+        $current = $db->select("\${p}themes")
             ->fields(["name", "cachedCompiledCssHash", "stylesLastUpdatedAt"])
             ->where(...$whereArgs)
             ->fetch(fn(string $name, string $hash, string $lastUpdated) => (object) [
@@ -74,7 +74,7 @@ final class ThemesController {
 
         [$globalChunks, $pageChunks] = self::splitChunksToStorageGoups($req->body->styleChunks);
 
-        $db2->update("\${p}themes")
+        $db->update("\${p}themes")
             ->values((object) [
                 "styleChunkBundlesAll" => JsonUtils::stringify([
                     "styleChunks" => array_map(self::inputToStorableChunk(...), $globalChunks),
@@ -85,7 +85,7 @@ final class ThemesController {
             ])
             ->where(...$whereArgs)
             ->execute();
-        $db2->insert("\${p}pageThemeStyles", orReplace: true)
+        $db->insert("\${p}pageThemeStyles", orReplace: true)
             ->values((object) [
                 "chunks" => JsonUtils::stringify(array_map(self::inputToStorableChunk(...), $pageChunks)),
                 "pageId" => $req->body->pageId,
@@ -100,12 +100,32 @@ final class ThemesController {
         $res->json(["ok" => "ok"]);
     }
     /**
-     * PUT /api/themes/:themeId/styles/global: Overwrites $req->params->themeId
-     * theme's global styles.
+     * PUT /api/the-website/wysiwyg-styles: Overwrites database's `themes.miscWysiwygStyles`
+     * with `$req->body->options` where `themeId = $req->params->themeId`.
      *
+     * @param \Pike\Request $req
      * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb2 $db
      */
-    public function updateGlobalStyles(Response $res): void {
+    public function saveWysiwygStyles(Request $req,
+                                      Response $res,
+                                      FluentDb2 $db): void {
+        if (($errors = $this->validateSaveWysiwygStylesInput($req->body))) {
+            $res->status(400)->json($errors);
+            return;
+        }
+        //
+        $db->update("\${p}themes")
+            ->values((object) [
+                "miscWysiwygStyles" => JsonUtils::stringify(array_map(fn(object $opt) => (object) [
+                    "name" => $opt->name,
+                    "cssClass" => $opt->cssClass,
+                    "color" => $opt->color ?? null,
+                ], $req->body->options)),
+            ])
+            ->where("`id` = ?", [$req->params->themeId])
+            ->execute();
+        //
         $res->json(["ok" => "ok"]);
     }
     /**
@@ -174,6 +194,18 @@ final class ThemesController {
      */
     public static function createGenDate(?int $timestamp = null): string {
         return !defined("I_LIKE_TES") ? gmdate("D, M d Y H:i:s e", $timestamp) : self::tesDate($timestamp);
+    }
+    /**
+     * @param object $input
+     * @return list<string> Error messages or []
+     */
+    private function validateSaveWysiwygStylesInput(object $input): array {
+        return Validation::makeObjectValidator()
+            ->rule("options.*.name", "type", "string")
+            ->rule("options.*.name", "maxLength", 191)
+            ->rule("options.*.cssClass", "regexp", "/^[\\p{L}\\p{N}_-]+\$/u")
+            ->rule("options.*.color?", "regexp", "/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})\$/")
+            ->validate($input);
     }
     /**
      * @param string $newCompiledCss

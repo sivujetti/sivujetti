@@ -67,7 +67,19 @@ interface SaveButton {
 }
 
 interface UserApi {
-    can(doWhat: 'doAnything'|'editGlobalStylesVisually'|'editBlockCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'editTheWebsitesGlobalScripts'|'checkTheWebsitesHealth'|'listUploads'): boolean;
+    can(doWhat: 'doAnything'|
+        'editGlobalStylesVisually'|
+        'editBlockCss'|
+        'editWysiwygCssClassOptions'|
+        'createPageTypes'|
+        'createPages'|
+        'createReusableBranches'|
+        'createGlobalBlockTrees'|
+        'specializeGlobalBlocks'|
+        'editTheWebsitesBasicInfo'|
+        'editTheWebsitesGlobalScripts'|
+        'checkTheWebsitesHealth'|
+        'listUploads'): boolean;
     getRole(): number;
     ROLE_SUPER_ADMIN: number;
     ROLE_ADMIN: number;
@@ -304,9 +316,6 @@ interface TheWebsite {
 }
 
 interface TheWebsiteBundle {
-    baseUrl: string;
-    assetBaseUrl: string;
-    currentPageSlug: string;
     website: TheWebsite;
     pageTypes: Array<PageType>;
     activeTheme: {id: string;};
@@ -316,6 +325,7 @@ interface TheWebsiteBundle {
         canEditGlobalStylesVisually: boolean;
         canEditBlockStylesVisually: boolean;
         canEditBlockCss: boolean;
+        canEditWysiwygCssClassOptions: boolean;
         canCreatePageTypes: boolean;
         canCreatePages: boolean;
         canCreateReusableBranches: boolean;
@@ -327,34 +337,9 @@ interface TheWebsiteBundle {
         canListUploads: boolean;
     };
     userRole: number;
+    availableUpdatePackages: Array<string>;
     showGoToDashboardMode?: boolean;
     dashboardUrl?: string;
-    availableUpdatePackages: Array<string>;
-}
-
-interface TheWebsiteBundle2 {
-    website: TheWebsite;
-    pageTypes: Array<PageType>;
-    activeTheme: {id: string;};
-    userPermissions: {
-        canDoAnything: boolean;
-        canEditGlobalStylesVisually: boolean;
-        canEditBlockStylesVisually: boolean;
-        canEditBlockCss: boolean;
-        canCreatePageTypes: boolean;
-        canCreatePages: boolean;
-        canCreateReusableBranches: boolean;
-        canCreateGlobalBlockTrees: boolean;
-        canSpecializeGlobalBlocks: boolean;
-        canEditTheWebsitesBasicInfo: boolean;
-        canEditTheWebsitesGlobalScripts: boolean;
-        canCheckTheWebsitesHealth: boolean;
-        canListUploads: boolean;
-    };
-    userRole: number;
-    showGoToDashboardMode?: boolean;
-    dashboardUrl?: string;
-    availableUpdatePackages: Array<string>;
 }
 
 interface EnvConfig {

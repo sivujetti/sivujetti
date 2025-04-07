@@ -165,12 +165,13 @@ class MySnowTheme extends Quill.import('themes/snow') {
 
         const tmp = document.createElement('div');
         tmp.innerHTML = '<div ' +
-            'class="btn btn-link btn-xs c-pointer" ' +
-            'style="position: absolute; top: 1px; right: 0; height: 1rem" ' +
+            'class="btn btn-link btn-xs p-0 c-pointer" ' +
+            'style="position: absolute; top: 4px; right: 3px; height: 1rem" ' +
             'tabindex="0" ' +
             'role="button">' +
-            iconAsString('settings', 'size-xs color-dimmed3').replace('<svg', '<svg style="position: static"') +
+            iconAsString('settings', 'size-xs color-dimmed3').replace('<svg', '<svg style="position: static; margin: 0;"') +
         '</div>';
+        if (!api.user.can('editWysiwygCssClassOptions')) return;
         const configBtn = tmp.firstElementChild;
         const doOpenManageMiscStylesDialog = e => {
             e.preventDefault();
@@ -473,7 +474,7 @@ ${options.map((v, i) =>
 }
 .ql-snow .ql-picker.ql-misc-style .ql-picker-label[data-value="${v.cssClass}"]:before,
 .ql-snow .ql-picker.ql-misc-style .ql-picker-item[data-value="${v.cssClass}"]:before {
-    content: "${v.label}";
+    content: "${v.name}";
 }
 .ql-editor .ql-misc-style-${v.cssClass} {
     background: var(--col${i + 1});
@@ -503,8 +504,7 @@ export default () => {
                 // @ts-ignore
                 if (line.at(-1).list === 'bullet') {
                     const options = getRegisteredQuillMiscStyleOptions();
-                    const userCanConfigureStyles = true; // todo
-                    if (userCanConfigureStyles || options.length) {
+                    if (options.length || api.user.can('editWysiwygCssClassOptions')) {
                         registerMiscStylePicker(options, Quill);
                         return [...line, {'misc-style': [false, ...options.map(({cssClass}) => cssClass)]}];
                     }

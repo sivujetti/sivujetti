@@ -48,6 +48,7 @@ $out->resources = (object) [
         "updateGlobalStylesOf"      => 0b00000100,
         "visuallyEditStylesOf"      => 0b00001000,
         "viaCssEditStylesOf"        => 0b00010000,
+        "updateWysiwygOptionsOf"    => 0b00100000,
     ],
     "theWebsite" => (object) [
         "updateBasicInfoOf"         => 0b00000010,

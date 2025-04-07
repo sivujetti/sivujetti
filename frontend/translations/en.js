@@ -121,6 +121,10 @@ stringBundles.push({
     'CSS class': 'CSS class',
     'Style selection name visible in the Quill editor': 'Style selection name visible in the Quill editor',
     'CSS class applied to the formatted text': 'CSS class applied to the formatted text',
+    'Example CSS': 'Example CSS',
+    'Code which you can copy to the base styles\n(Edit menu > Styles > Code)': 'Code which you can copy to the base styles\n(Edit menu > Styles > Code)',
+    'Duplicate {field} not allowed': 'Duplicate {field} not allowed',
+    'Style classes': 'Style classes',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'This unique reusable content no longer appears to be available. You can delete it from the context menu.': 'This unique reusable content no longer appears to be available. You can delete it from the context menu.',
     'Styles': 'Styles',

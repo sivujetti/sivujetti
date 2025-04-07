@@ -1,10 +1,13 @@
 import {
     __,
+    api,
     CrudList,
     floatingDialog,
     handleSubmit,
+    http,
 } from '@sivujetti-commons-for-edit-app';
-import {getRegisteredQuillMiscStyleOptions} from '../../../includes/quill-funcs.js';
+import globalData from '../../../includes/globalData.js';
+import {getRegisteredQuillMiscStyleOptions, updateRegisteredQuillMiscStyleOptions} from '../../../includes/quill-funcs.js';
 import EditOptionForm from './EditOptionForm.jsx';
 
 /** @extends {preact.Component<any, any>} */
@@ -12,36 +15,45 @@ class TheDialog extends preact.Component {
     componentWillMount() {
         this.boundDoHandleSubmit = this.doHandleSubmit.bind(this);
         const options = getRegisteredQuillMiscStyleOptions();
-        this.options = options.map(d => ({...d}));
+        this.setState({options: options.map(d => ({...d})), disableSaveButton: false});
     }
     /**
      * @access protected
      */
-    render() {
+    render(_, {options, disableSaveButton}) {
         return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
             <p class="text-prose mb-2">{
                 __('Here you can define site-specific CSS classes that are available for text formatting in the Quill editor.')
             }</p>
             <div class="my-2 py-2">
                 <CrudList
-                    items={ this.options }
+                    items={ options }
                     itemTitleKey="name"
                     onListMutated={ (updatedOptions) => {
-                        if (updatedOptions.length !== this.options.length)
+                        if (updatedOptions.length !== options.length)
                             updateDialogHeight();
-                        this.options = updatedOptions.map(d => ({...d}));
+                        this.setState({options: updatedOptions.map(d => ({...d}))});
                     } }
-                    createNewItem={ () => createOption(this.options) }
+                    createNewItem={ () => createOption(this.state.options) }
                     editForm={ EditOptionForm }
-                    editFormProps={ {updateDialogHeight: () => updateDialogHeight('animate')} }
+                    editFormProps={ {
+                        allOptions: options,
+                        updateDialogHeight: () => updateDialogHeight('animate'),
+                    } }
                     itemTypeFriendlyName={ __('style class') }
+                    onTabChanged={ to => {
+                        this.setState({disableSaveButton: to === 'edit'});
+                    } }
                     noItemsText={ __('No style classes yet') }
                     uiDensity="default"/>
             </div>
             <div class="mt-8">
                 <button
                     class="btn btn-primary mr-2"
-                    type="submit">{ __('Save classes') }</button>
+                    disabled={ disableSaveButton }
+                    type="submit">
+                    { __('Save classes') }
+                    </button>
                 <button
                     onClick={ () => floatingDialog.close() }
                     class="btn btn-link"
@@ -54,7 +66,21 @@ class TheDialog extends preact.Component {
      * @access private
      */
     async doHandleSubmit() {
-        // todo
+        try {
+            const resp = await http.put(
+                `/api/themes/${globalData.theme.id}/wysiwyg-styles`,
+                {options: this.state.options},
+                undefined,
+                true
+            );
+            if (resp.ok !== 'ok') throw new Error('');
+            updateRegisteredQuillMiscStyleOptions(this.state.options);
+            floatingDialog.close();
+            api.toasters.editAppMain(__('%s updated', __('Style classes')), 'success');
+        } catch (err) {
+            window.console.error(err);
+            api.toasters.editAppMain(__('Something went wrong.'), 'error');
+        }
     }
 }
 

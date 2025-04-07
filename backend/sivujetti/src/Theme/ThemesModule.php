@@ -21,9 +21,9 @@ final class ThemesModule {
             [ThemesController::class, "upsertStyleChunksAll", ["consumes" => "application/json",
                                                                "identifiedBy" => ["visuallyEditStylesOf", "themes"]]],
         );
-        $router->map("PUT", "/api/themes/[i:themeId]/styles/global",
-            [ThemesController::class, "updateGlobalStyles", ["consumes" => "application/json",
-                                                             "identifiedBy" => ["updateGlobalStylesOf", "themes"]]],
+        $router->map("PUT", "/api/themes/[i:themeId]/wysiwyg-styles",
+            [ThemesController::class, "saveWysiwygStyles", ["consumes" => "application/json",
+                                                           "identifiedBy" => ["updateWysiwygOptionsOf", "themes"]]]
         );
     }
 }

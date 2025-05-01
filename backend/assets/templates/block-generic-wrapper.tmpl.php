@@ -1,4 +1,4 @@
-<?php // @deprecated, see src/BlockType/Columns|Section|Section2BlockType->render()
+<?php // @deprecated, see src/BlockType/Columns|Section->render()
  if ($props->type === \Sivujetti\Block\Entities\Block::TYPE_COLUMNS):
     echo "<div class=\"j-", $props->type, " num-cols-", $this->e($props->numColumns),
         ($props->takeFullWidth ? "" : " inline"),

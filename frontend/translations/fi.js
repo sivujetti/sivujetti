@@ -10,8 +10,6 @@ stringBundles.push({
     'Services#partitive': 'Palvelua',
     'Service': 'Palvelu',
     'No results for "%s"': 'Ei tuloksia hakusanalla "%s"',
-    // commons-for-edit-app/block-types/section2/Section2CombinedBlockAndStylesEditForm.jsx
-    'Add columnn': 'Lisää sarake',
     // edit-app/src/commons/FileUploader.jsx
     'Images': 'Kuvat',
     'Files': 'Tiedostot',

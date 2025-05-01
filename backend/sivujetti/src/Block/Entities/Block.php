@@ -14,6 +14,7 @@ final class Block extends \stdClass {
     public const TYPE_BUTTON           = "Button";
     public const TYPE_CODE             = "Code";
     public const TYPE_COLUMNS          = "Columns";
+    public const TYPE_PLACEHODER       = "ContentOrRowPlaceholder";
     public const TYPE_GLOBAL_BLOCK_REF = "GlobalBlockReference";
     public const TYPE_HEADING          = "Heading";
     public const TYPE_IMAGE            = "Image";
@@ -22,8 +23,8 @@ final class Block extends \stdClass {
     public const TYPE_PAGE_INFO        = "PageInfo";
     public const TYPE_PARAGRAPH        = "Paragraph";
     public const TYPE_RICH_TEXT        = "RichText";
+    public const TYPE_ROOT_SECTION     = "RootSection";
     public const TYPE_SECTION          = "Section";
-    public const TYPE_SECTION2         = "Section2";
     public const TYPE_TEXT             = "Text";
     public const TYPE_WRAPPER          = "Wrapper";
     /** @var string self::TYPE_* */
@@ -52,6 +53,9 @@ final class Block extends \stdClass {
     /* If self::TYPE_COLUMNS
     public int|null $numColumns;
     public int|null $takeFullWidth; */
+
+    /* If self::TYPE_PLACEHODER
+    public string $dum; */
 
     /* If self::TYPE_TYPE_GLOBAL_BLOCK_REF
     public string $globalBlockTreeId;
@@ -87,11 +91,11 @@ final class Block extends \stdClass {
     /* If self::TYPE_RICH_TEXT
     public string $html; */
 
+    /* If self::TYPE_ROOT_SECTION
+    public object $config; */
+
     /* If self::TYPE_SECTION
     public string|null $bgImage; */
-
-    /* If self::TYPE_SECTION2
-    public todo $settings; */
 
     /* If self::TYPE_TEXT
     public string $html; */

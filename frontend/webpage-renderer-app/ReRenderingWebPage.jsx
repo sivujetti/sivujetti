@@ -237,13 +237,13 @@ class RenderAll extends preact.Component {
                 }
                 return;
             }
-            const isBlock = isBlockEl(target);
-            if (!isBlock && stack.length && isBlockEl(stack.at(-1))) {
+            const isEditableBlock = isBlockEl(target) && target.getAttribute('data-block-type') !== 'ContentOrRowPlaceholder';
+            if (!isEditableBlock && stack.length && isBlockEl(stack.at(-1))) {
                 if (stack.at(-1).contains(e.target)) // Enter .j-Something > child
                     return;
             }
             stack.push(e.target);
-            if (isBlock) {
+            if (isEditableBlock) {
                 beginHover(target);
             }
         }, true);

@@ -1,3 +1,15 @@
+const plusIcon = pathIcon('<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>');
+
+const rowColor = '#0ccfa0';
+
+const contentColor = '#404040';
+
+const buttonCommonCss = 'border: transparent; color: #fff; cursor: pointer;';
+
+const buttonHoverCss = 'opacity: 0.8;';
+
+const addButtonCommonCss = 'border-radius: 3px;';
+
 /**
  * @returns {InContextEditingApp}
  */
@@ -8,7 +20,7 @@ function createInContextEditingApp() {
     let rect2 = null;
     /** @type {HTMLElement} */
     let rect3 = null;
-    /** @type {'Structure'|'Columns'|'Content'|''} */
+    /** @type {'RootSection'|'Columns'|'Content'|''} */
     let curHover = null;
     const clearRect = (rect, isSoftClear) => {
         if (!isSoftClear)
@@ -23,7 +35,7 @@ function createInContextEditingApp() {
          * @access public
          */
         onBlockHoverStarted(blockType, {posRect}) {
-            if (blockType === 'Structure') {
+            if (blockType === 'RootSection') {
                 showRect(rect1, posRect);
                 rect2.style.cssText = '';
                 rect3.style.cssText = '';
@@ -44,13 +56,13 @@ function createInContextEditingApp() {
          * @access public
          */
         onBlockHoverEnded(isSoftClear = false) {
-            if (curHover === 'Structure') {
+            if (curHover === 'RootSection') {
                 clearRect(rect1, isSoftClear);
                 curHover = '';
             } else if (curHover === 'Columns') {
                 rect1.style.borderColor = '';
                 clearRect(rect2, isSoftClear);
-                curHover = 'Structure';
+                curHover = 'RootSection';
             } else if (curHover === 'Content') {
                 rect2.style.borderColor = '';
                 clearRect(rect3, isSoftClear);
@@ -83,6 +95,76 @@ function createInContextEditingApp() {
             /** @type {Array<HTMLElement>} */
             const [r1, r2, r3] = [...shadow.querySelectorAll('.rect')];
 
+            { // RootSection
+            const [addAboveBtn, editBtn, delBtn, cloneBtn, addBelowBtn] = [...r1.querySelectorAll('button')];
+            addAboveBtn.addEventListener('click', e => {
+                console.log('stru add above cliekd');
+                e.stopPropagation();
+            });
+            editBtn.addEventListener('click', e => {
+                console.log('stru edit cliekd');
+                e.stopPropagation();
+            });
+            delBtn.addEventListener('click', e => {
+                console.log('stru del cliekd');
+                e.stopPropagation();
+            });
+            cloneBtn.addEventListener('click', e => {
+                console.log('stru clone cliekd');
+                e.stopPropagation();
+            });
+            addBelowBtn.addEventListener('click', e => {
+                console.log('stru add below cliekd');
+                e.stopPropagation();
+            });
+            }
+            { // Columns
+            const [addAboveBtn, editBtn, delBtn, cloneBtn, addBelowBtn] = [...r2.querySelectorAll('button')];
+            addAboveBtn.addEventListener('click', e => {
+                console.log('cols add above cliekd');
+                e.stopPropagation();
+            });
+            editBtn.addEventListener('click', e => {
+                console.log('cols edit cliekd');
+                e.stopPropagation();
+            });
+            delBtn.addEventListener('click', e => {
+                console.log('cols del cliekd');
+                e.stopPropagation();
+            });
+            cloneBtn.addEventListener('click', e => {
+                console.log('cols clone cliekd');
+                e.stopPropagation();
+            });
+            addBelowBtn.addEventListener('click', e => {
+                console.log('cols add below cliekd');
+                e.stopPropagation();
+            });
+            }
+            { // Content
+            const [addAboveBtn, editBtn, delBtn, cloneBtn, addBelowBtn] = [...r3.querySelectorAll('button')];
+            addAboveBtn.addEventListener('click', e => {
+                console.log('content add above cliekd');
+                e.stopPropagation();
+            });
+            editBtn.addEventListener('click', e => {
+                console.log('content edit cliekd');
+                e.stopPropagation();
+            });
+            delBtn.addEventListener('click', e => {
+                console.log('content del cliekd');
+                e.stopPropagation();
+            });
+            cloneBtn.addEventListener('click', e => {
+                console.log('content clone cliekd');
+                e.stopPropagation();
+            });
+            addBelowBtn.addEventListener('click', e => {
+                console.log('content add below cliekd');
+                e.stopPropagation();
+            });
+            }
+
             rect1 = r1;
             rect2 = r2;
             rect3 = r3;
@@ -97,7 +179,6 @@ function getTemplateContent() {
     const editIcon = pathIcon('<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"></path><circle cx="12" cy="12" r="3"></circle>');
     const cloneIcon = pathIcon('<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><rect x="8" y="4" width="12" height="12" rx="2"></rect><path d="M16 16v2a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-8a2 2 0 0 1 2 -2h2"></path>');
     const deleteIcon = pathIcon('<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><line x1="4" y1="7" x2="20" y2="7"></line><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>');
-    const plusIcon = pathIcon('<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>');
     return (
 `<style>
     .rect {
@@ -112,23 +193,21 @@ function getTemplateContent() {
         pointer-events: none;
     }
     #rect2 {
-      --col: #0ccfa0;
+      --col: ${rowColor};
     }
     #rect3 {
-      --col: #404040;
+      --col: ${contentColor};
     }
     .rect button {
         background: var(--col);
-        border: transparent;
-        color: #fff;
+        ${buttonCommonCss}
         pointer-events: all;
-        cursor: pointer;
         display: flex;
         align-items: center;
         padding: 2px;
     }
     .rect button:hover {
-        opacity: 0.8;
+        ${buttonHoverCss}
     }
     .rect button svg {
         --rectIconSize: 15px;
@@ -138,7 +217,7 @@ function getTemplateContent() {
     .rect > button {
         height: 14px;
         padding: 2px 6px;
-        border-radius: 3px;
+        ${addButtonCommonCss}
         position: absolute;
         left: 50%;
     }
@@ -241,3 +320,11 @@ function showRect(rectSpan, posRect) {
  */
 
 export default createInContextEditingApp;
+export {
+    addButtonCommonCss,
+    buttonCommonCss,
+    buttonHoverCss,
+    contentColor,
+    plusIcon,
+    rowColor,
+};

@@ -61,6 +61,7 @@ class BlockTree extends preact.Component {
         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
         this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
         this.disablePageInfo = this.props.containingView === 'CreatePageType';
+        this.userIsTechnical = api.user.getRole() <= api.user.ROLE_ADMIN_EDITOR;
         this.mouseDownHoverClearerHookedUp = false;
         /** @type {HTMLLIElement} */
         this.currentlyHoveredLi = null;
@@ -170,7 +171,7 @@ class BlockTree extends preact.Component {
         if (block.type !== 'PageInfo') {
         const type = api.blockTypes.get(block.type);
         const title = getShortFriendlyName(block, type);
-        const c = !block.children.length ? [] : this.doRenderBranch(block.children, uiStateEntry.children, getTreeBlocks, nth2DepthCls, depth + 1, block, ref);
+        const c = !block.children.length || (block.type === 'RootSection' && !this.userIsTechnical) ? [] : this.doRenderBranch(block.children, uiStateEntry.children, getTreeBlocks, nth2DepthCls, depth + 1, block, ref);
         const rootRefBlockId = ref && block.id === getTreeBlocks(ref)[0].id ? ref.id : null;
         const isStoredTo = !ref ? 'main' : 'globalBlockTree';
         return [<li

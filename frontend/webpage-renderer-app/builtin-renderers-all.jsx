@@ -1,6 +1,14 @@
 import {env, http, urlAndSlugUtils, urlUtils} from '@sivujetti-commons-for-web-pages';
 import {completeImageSrc} from '../shared-inline.js';
-import {htmlStringToVNodeArray,} from './ReRenderingWebPageFuncs.js';
+import {htmlStringToVNodeArray} from './ReRenderingWebPageFuncs.js';
+import {
+    addButtonCommonCss,
+    buttonCommonCss,
+    buttonHoverCss,
+    contentColor,
+    plusIcon,
+    rowColor,
+} from './in-context-editing.js';
 
 class ButtonBlock extends preact.Component {
     /**
@@ -71,6 +79,56 @@ class ColumnsBlock extends preact.Component {
             { renderChildren() }
         </div>;
     }
+}
+
+class PlaceholderBlock extends preact.Component {
+    constructor(props) {
+        super(props);
+        /** @type {ShadowRoot} */
+        this.shadow = null;
+    }
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({block, createDefaultProps}) {
+        return <span { ...createDefaultProps() } ref={ el => {
+            if (!el) return;
+            if (this.shadow) {
+                this.shadow.querySelector('button').remove();
+                this.shadow.appendChild(createAddButton(block));
+                return;
+            }
+            const shadow = el.attachShadow({mode: 'open'});
+            const sheet = new CSSStyleSheet();
+            const isContentPlacholder = block.outerBlockType === 'row';
+            const color = isContentPlacholder ? contentColor : rowColor;
+            sheet.replaceSync([
+                'button { ', buttonCommonCss, addButtonCommonCss, ' height: 16px; padding: 1px 6px; background: ', color, '; ', ' } ',
+                'button svg { width: 14px; height: 14px; } ',
+                'button:hover { ', buttonHoverCss, ' }',
+            ].join(''));
+            shadow.adoptedStyleSheets = [sheet];
+
+            shadow.appendChild(createAddButton(block));
+            this.shadow = shadow;
+        } }></span>;
+    }
+}
+
+/**
+ * @param {Block} block
+ * @access protected
+ */
+function createAddButton(block) {
+    const button = document.createElement('button');
+    button.innerHTML = plusIcon;
+    const isContentPlacholder = block.outerBlockType === 'row';
+    button.title = isContentPlacholder ? 'Add content or row' : 'Add row';
+    button.addEventListener('click', e => {
+        e.stopPropagation();
+    });
+    return button;
 }
 
 class ImageBlock extends preact.Component {
@@ -215,6 +273,18 @@ function menuPrintBranch(branch, block, depth = 0) {
     }) }</ul>;
 }
 
+class RootSectionBlock extends preact.Component {
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({renderChildren, createDefaultProps}) {
+        return <div { ...createDefaultProps() }>
+            { renderChildren() }
+        </div> ;
+    }
+}
+
 class SectionBlock extends preact.Component {
     /**
      * @param {BlockRendererProps} props
@@ -229,20 +299,6 @@ class SectionBlock extends preact.Component {
                 { renderChildren() }
             </div>
         </section>;
-    }
-}
-
-class Section2Block extends preact.Component {
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({renderChildren, createDefaultProps}) {
-        return <div { ...createDefaultProps() }>
-            <div class="j-Section2-cols">
-                { renderChildren() }
-            </div>
-        </div>;
     }
 }
 
@@ -276,11 +332,12 @@ const builtInRenderers = {
     Button: ButtonBlock,
     Code: CodeBlock,
     Columns: ColumnsBlock,
+    ContentOrRowPlaceholder: PlaceholderBlock,
     Image: ImageBlock,
     Listing: ListingBlock,
     Menu: MenuBlock,
+    RootSection: RootSectionBlock,
     Section: SectionBlock,
-    Section2: Section2Block,
     Text: TextBlock,
     Wrapper: WrapperBlock,
 };

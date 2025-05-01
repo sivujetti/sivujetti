@@ -119,7 +119,7 @@ function createReusableBlockSpawnDescriptor(rootBlock) {
 
 ////
 
-const unspawnables = ['Heading', 'PageInfo', 'Paragraph', 'RichText', 'Section2'];
+const unspawnables = ['Heading', 'PageInfo', 'Paragraph', 'RichText'];
 const common = ['Text', 'Image', 'Button', 'Section', 'Columns', 'JetIconsIcon', 'Wrapper'];
 const other = ['Listing', 'Menu', 'Code'];
 

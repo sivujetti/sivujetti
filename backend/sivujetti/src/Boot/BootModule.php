@@ -11,9 +11,9 @@ use Pike\Defaults\DefaultUserRepository;
 use Pike\Interfaces\{FileSystemInterface, SessionInterface};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, CodeBlockType, ColumnsBlockType,
-                         GlobalBlockReferenceBlockType, HeadingBlockType, ImageBlockType,
-                         ListingBlockType, MenuBlockType, PageInfoBlockType,
-                         ParagraphBlockType, RichTextBlockType, Section2BlockType,
+                         ContentOrRowPlaceholderBlockType, GlobalBlockReferenceBlockType,
+                         HeadingBlockType, ImageBlockType, ListingBlockType, MenuBlockType,
+                         PageInfoBlockType, ParagraphBlockType, RichTextBlockType, RootSectionBlockType,
                          SectionBlockType, TextBlockType, WrapperBlockType};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\PageType\Entities\PageType;
@@ -131,6 +131,7 @@ class BootModule {
         $blockTypes->{Block::TYPE_BUTTON} = new ButtonBlockType;
         $blockTypes->{Block::TYPE_CODE} = new CodeBlockType;
         $blockTypes->{Block::TYPE_COLUMNS} = new ColumnsBlockType;
+        $blockTypes->{Block::TYPE_PLACEHODER} = new ContentOrRowPlaceholderBlockType;
         $blockTypes->{Block::TYPE_GLOBAL_BLOCK_REF} = new GlobalBlockReferenceBlockType;
         $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
         $blockTypes->{Block::TYPE_IMAGE} = new ImageBlockType;
@@ -139,8 +140,8 @@ class BootModule {
         $blockTypes->{Block::TYPE_PAGE_INFO} = new PageInfoBlockType;
         $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
         $blockTypes->{Block::TYPE_RICH_TEXT} = new RichTextBlockType;
+        $blockTypes->{Block::TYPE_ROOT_SECTION} = new RootSectionBlockType;
         $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
-        $blockTypes->{Block::TYPE_SECTION2} = new Section2BlockType;
         $blockTypes->{Block::TYPE_TEXT} = new TextBlockType;
         $blockTypes->{Block::TYPE_WRAPPER} = new WrapperBlockType;
         if ($doCreateBlockTypes) $apiCtx->blockTypes = $blockTypes;

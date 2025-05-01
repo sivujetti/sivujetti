@@ -430,6 +430,7 @@ final class WebPageAwareTemplate extends Template {
                 "userFlags" => $includeUserFlags ? [
                     "useShortIds" => defined("USE_SHORT_IDS"),
                     "useBlockIdPickerScope" => defined("USE_BLOCK_ID_PICKER_SCOPE"),
+                    "useInContextEditing" => defined("USE_INCONTEXT_EDITING"),
                 ] : null,
             ])) . ")"
         );

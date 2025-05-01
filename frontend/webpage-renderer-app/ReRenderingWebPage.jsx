@@ -2,6 +2,7 @@ import {urlUtils} from '@sivujetti-commons-for-web-pages';
 import {getMetaKey, getBlockEl, traverseRecursively} from '../shared-inline.js';
 import {stringHtmlPropToVNodeArray} from './ReRenderingWebPageFuncs.js';
 import builtInRenderers from './builtin-renderers-all.jsx';
+/** @typedef {import('./in-context-editing.js').InContextEditingApp} InContextEditingApp */
 
 const useCtrlClickBasedFollowLinkLogic = true;
 
@@ -31,12 +32,21 @@ const api = {
     },
 };
 
+/** @extends {preact.Component<ReRenderingWebPageProps, any>} */
 class RenderAll extends preact.Component {
-    // messagePortToEditApp;
-    // curHoveredBlock;
-    // metaKeyIsPressed;
-    // baseUrl;
-    // isLocalLink;
+    constructor(props) {
+        super(props);
+        /** @type {MessagePort} */
+        this.messagePortToEditApp = null;
+        /** @type {{el: HTMLElement; blockId: string; nthOfId: number;}} */
+        this.curHoveredBlock = null;
+        /** @type {boolean} */
+        this.metaKeyIsPressed = false;
+        /** @type {string} */
+        this.baseUrl = null;
+        /** @type {(link: HTMLAnchorElement) => boolean} */
+        this.isLocalLink = null;
+    }
     /**
      * @param {MessagePort} messagePortToEditApp
      * @param {ReRenderingWebPageMouseState|null} prevIframeMouseState
@@ -111,11 +121,11 @@ class RenderAll extends preact.Component {
     }
     /**
      * @param {preact.Component} Cls
-     * @param {Block} block
+     * @param {Block} _block
      * @returns {preact.Component}
      * @access protected
      */
-    createRendererCls(Cls/*, block*/) {
+    createRendererCls(Cls, _block) {
         return Cls;
     }
     /**
@@ -164,7 +174,7 @@ class RenderAll extends preact.Component {
      */
     hookUpEventHandlers() {
         const docBody = this.props.outerEl;
-        this.addHoverHanders(docBody);
+        this.addHoverHanders(docBody, this.props.inContextEditingApp);
         //
         if (useCtrlClickBasedFollowLinkLogic)
             this.addClickHandlersCtrlClickVersion(docBody);
@@ -173,8 +183,9 @@ class RenderAll extends preact.Component {
     }
     /**
      * @param {HTMLBodyElement} docBody
+     * @param {Object} inContextEditingApp = null
      */
-    addHoverHanders(docBody) {
+    addHoverHanders(docBody, inContextEditingApp = null) {
         const handleMouseEntered = el => {
             this.curHoveredBlock = {
                 el: el,
@@ -201,6 +212,62 @@ class RenderAll extends preact.Component {
             this.messagePortToEditApp.postMessage(['onTextBlockChildElHoverEnded']);
         };
         const stack = [];
+        if (inContextEditingApp) {
+        const beginHover = (el) => {
+            this.curHoveredBlock = {
+                el,
+                blockId: getBlockId(el),
+                nthOfId: [...docBody.querySelectorAll(`[data-block="${getBlockId(el)}"]`)].indexOf(el) + 1,
+            };
+            inContextEditingApp.onBlockHoverStarted(
+                this.curHoveredBlock.el.getAttribute('data-block-type'),
+                {posRect: el.getBoundingClientRect()}
+            );
+        };
+        docBody.addEventListener('mouseenter', e => {
+            if (e.target.className === 'incontext-app-container')
+                return;
+            /** @type {HTMLElement} */
+            const {target} = e;
+            if (e.relatedTarget?.className === 'incontext-app-container') {
+                const el = isBlockEl(target) ? target : (target.closest ? target : {closest: () => undefined}).closest('[data-block]');
+                if (el) {
+                    beginHover(el);
+                    stack.push(target);
+                }
+                return;
+            }
+            const isBlock = isBlockEl(target);
+            if (!isBlock && stack.length && isBlockEl(stack.at(-1))) {
+                if (stack.at(-1).contains(e.target)) // Enter .j-Something > child
+                    return;
+            }
+            stack.push(e.target);
+            if (isBlock) {
+                beginHover(target);
+            }
+        }, true);
+
+        docBody.addEventListener('mouseleave', e => {
+            if (e.target.className === 'incontext-app-container')
+                return;
+            if (e.target === document.body) {
+                inContextEditingApp.clearAll();
+                stack.splice(0, stack.length);
+                return;
+            }
+            if (e.relatedTarget?.className === 'incontext-app-container') {
+                inContextEditingApp.onBlockHoverEnded(true);
+                stack.pop();
+                return;
+            }
+            if (stack.at(-1) === e.target && isBlockEl(e.target))
+                inContextEditingApp.onBlockHoverEnded();
+            else if (stack.length > 1 && stack.at(-1).contains(e.target))
+                return;
+            stack.pop();
+        }, true);
+        } else {
         docBody.addEventListener('mouseenter', e => {
             if (stack.indexOf(e.target) > -1) return;
             stack.push(e.target);
@@ -244,6 +311,7 @@ class RenderAll extends preact.Component {
             }
             stack.pop();
         }, true);
+        }
     }
     /**
      * @param {HTMLBodyElement} docBody
@@ -397,6 +465,13 @@ api.export('ReRenderingWebPage', RenderAll);
  *   getMouseState(): ReRenderingWebPageMouseState;
  *   handleEditAppMetaKeyPressedOrReleased(isDown: boolean): void;
  * } & preact.Component} ReRenderingWebPage
+ *
+ * @typedef {{
+ *   blocks: Array<Block>;
+ *   outerEl:HTMLBodyElement;
+ *   inContextEditingApp?: InContextEditingApp;
+ *   metaKeyIsPressed?: boolean;
+ * }} ReRenderingWebPageProps
  *
  * @typedef {{
  *   metaKeyIsPressed: boolean;

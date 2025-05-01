@@ -3,6 +3,7 @@ An entry point for global file "public/sivujetti/sivujetti-webpage-renderer-app.
 Included by backend/sivujetti/src/Page/WebPageAwareTemplate.php jsFiles().
 */
 import {cloneDeep} from '../shared-inline.js';
+import createInContextEditingApp from './in-context-editing.js';
 import {api} from './ReRenderingWebPage.jsx';
 /** @typedef {import('./ReRenderingWebPage.jsx').ReRenderingWebPage} ReRenderingWebPage */
 
@@ -16,6 +17,10 @@ function mountWebPageRendererApp(dataBundle) {
     const withNested__globalBlockTrees = cloneDeep(dataBundle.page.blocks);
     printBlockWarnings(withNested__globalBlockTrees);
 
+    const inContextEditingApp = window.parent.sivujettiUserFlags?.useInContextEditing
+        ? createInContextEditingApp()
+        : null;
+
     /** @type {preact.RefObject<ReRenderingWebPage>} */
     const reRenderingWebPage = preact.createRef();
     const outerEl = document.body;
@@ -24,7 +29,12 @@ function mountWebPageRendererApp(dataBundle) {
         <ReRenderingWebPage
             blocks={ withNested__globalBlockTrees }
             outerEl={ outerEl }
-            ref={ reRenderingWebPage }/>,
+            inContextEditingApp={ inContextEditingApp }
+            ref={ cmp => {
+                if (!cmp || reRenderingWebPage.current) return;
+                reRenderingWebPage.current = cmp;
+                inContextEditingApp?._init(reRenderingWebPage.current, document.body);
+            } }/>,
         outerEl
     );
 

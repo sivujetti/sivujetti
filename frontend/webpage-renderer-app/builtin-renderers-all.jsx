@@ -140,7 +140,8 @@ function createAddButton(block) {
     button.title = isContentPlacholder ? 'Add content or row' : 'Add row';
     button.addEventListener('click', e => {
         e.stopPropagation();
-        messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked', block.id, button.getBoundingClientRect()]);
+        messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked', {isContent: isContentPlacholder},
+            block.id, button.getBoundingClientRect()]);
     });
     return button;
 }

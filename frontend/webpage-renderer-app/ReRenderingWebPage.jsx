@@ -221,6 +221,7 @@ class RenderAll extends preact.Component {
                 nthOfId: [...docBody.querySelectorAll(`[data-block="${getBlockId(el)}"]`)].indexOf(el) + 1,
             };
             inContextEditingApp.onBlockHoverStarted(
+                this.curHoveredBlock.blockId,
                 this.curHoveredBlock.el.getAttribute('data-block-type'),
                 {posRect: el.getBoundingClientRect()}
             );

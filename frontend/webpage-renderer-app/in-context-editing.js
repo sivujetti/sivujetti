@@ -23,31 +23,39 @@ function createInContextEditingApp() {
     /** @type {'RootSection'|'Columns'|'Content'|''} */
     let curHover = null;
     const clearRect = (rect, isSoftClear) => {
-        if (!isSoftClear)
+        if (!isSoftClear) {
             rect.style.cssText = '';
-        else
+            rect.classList.add('buttons-side');
+        } else
             rect.style.borderColor = '';
     };
     return {
         /**
+         * @param {string} blockId
          * @param {string} blockType
          * @param {{posRect: DOMRect;}} info
          * @access public
          */
-        onBlockHoverStarted(blockType, {posRect}) {
+        onBlockHoverStarted(blockId, blockType, {posRect}) {
             if (blockType === 'RootSection') {
                 showRect(rect1, posRect);
+                rect1.setAttribute('data-block-id', blockId);
                 rect2.style.cssText = '';
+                rect2.classList.remove('buttons-side');
                 rect3.style.cssText = '';
                 curHover = blockType;
             } else if (blockType === 'Columns') {
                 rect1.style.borderColor = 'transparent';
                 showRect(rect2, posRect);
+                rect2.setAttribute('data-block-id', blockId);
+                if (posRect.height < 40)
+                    rect2.classList.add('buttons-side');
                 rect3.style.cssText = '';
                 curHover = blockType;
             } else {
                 rect2.style.borderColor = 'transparent';
                 showRect(rect3, posRect);
+                rect3.setAttribute('data-block-id', blockId);
                 curHover = 'Content';
             }
         },
@@ -160,8 +168,10 @@ function createInContextEditingApp() {
                 e.stopPropagation();
             });
             addBelowBtn.addEventListener('click', e => {
-                console.log('content add below cliekd');
                 e.stopPropagation();
+                const isContent = true;
+                reRenderingWebPage.messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked',
+                    {isContent, pos: 'after'}, rect3.getAttribute('data-block-id'), addBelowBtn.getBoundingClientRect()]);
             });
             }
 
@@ -221,6 +231,9 @@ function getTemplateContent() {
         position: absolute;
         left: 50%;
     }
+    .rect.buttons-side > button {
+        transform: translateX(27px);
+    }
     .rect > span > button {
         height: 21px;
         padding: 2px;
@@ -228,8 +241,8 @@ function getTemplateContent() {
     .rect > span {
         display: flex;
     }
-    .rect-adj > span {
-        transform: translateX(60px);
+    .rect.buttons-side > span {
+        transform: translateY(-20px);
     }
     .rect > button:nth-of-type(1) {
         top: 0;
@@ -313,7 +326,7 @@ function showRect(rectSpan, posRect) {
 
 /**
  * @typedef {{
- *   onBlockHoverStarted(blockType: string, info: {posRect: DOMRect;}): void;
+ *   onBlockHoverStarted(blockId: string, blockType: string, info: {posRect: DOMRect;}): void;
  *   onBlockHoverEnded(isSoftClear?: boolean): void;
  *   clearAll(): void;
  * }} InContextEditingApp

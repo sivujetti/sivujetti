@@ -62,17 +62,7 @@ class AddContentPopup extends preact.Component {
         const [targetTrid, targetBlockId] = isReplace && targetInfo.isGbtRefRoot
             ? [targetInfo.data.refBlockIsStoredToTreeId, targetInfo.data.refBlockId] // replace ref block, not findTree(<ref block>).blocks[0]
             : getRealTarget(targetInfo, insertPos);
-        const insertOrReplaceBlockOp = createBlockTreeInsertOrReplaceAtOp(descr.block, targetTrid, targetBlockId,
-            insertPos, isReplace, wasCurrentlySelectedBlock);
-        if (!descr.styles?.length) {
-            api.saveButton.getInstance().pushOp(...insertOrReplaceBlockOp);
-        } else {
-            const updatedAll = scssWizard.addManyNewChunksAndReturnAllRecompiled(descr.styles);
-            api.saveButton.getInstance().pushOpGroup(
-                insertOrReplaceBlockOp,
-                ['stylesBundle', updatedAll]
-            );
-        }
+        pushInserBlockOp(descr, targetBlockId, targetTrid, insertPos, isReplace, wasCurrentlySelectedBlock);
         api.mainPopper.close();
     }
     /**
@@ -82,6 +72,28 @@ class AddContentPopup extends preact.Component {
     handleTabChanged(toIdx) {
         if (this.state.currentTabIdx !== toIdx)
             this.setState({currentTabIdx: toIdx});
+    }
+}
+
+/**
+ * @param {SpawnDescriptor} descr
+ * @param {string} targetBlockId
+ * @param {string} targetTrid
+ * @param {dropPosition} insertPos
+ * @param {boolean} isReplace
+ * @param {boolean} wasCurrentlySelectedBlock
+ */
+function pushInserBlockOp(descr, targetBlockId, targetTrid, insertPos, isReplace, wasCurrentlySelectedBlock) {
+    const insertOrReplaceBlockOp = createBlockTreeInsertOrReplaceAtOp(descr.block, targetTrid, targetBlockId,
+        insertPos, isReplace, wasCurrentlySelectedBlock);
+    if (!descr.styles?.length) {
+        api.saveButton.getInstance().pushOp(...insertOrReplaceBlockOp);
+    } else {
+        const updatedAll = scssWizard.addManyNewChunksAndReturnAllRecompiled(descr.styles);
+        api.saveButton.getInstance().pushOpGroup(
+            insertOrReplaceBlockOp,
+            ['stylesBundle', updatedAll]
+        );
     }
 }
 
@@ -97,3 +109,4 @@ class AddContentPopup extends preact.Component {
  */
 
 export default AddContentPopup;
+export {pushInserBlockOp};

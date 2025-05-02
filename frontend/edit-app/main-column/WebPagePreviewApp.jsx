@@ -12,6 +12,7 @@ import globalData from '../includes/globalData.js';
 import {createTrier} from '../includes/utils.js';
 import {registerSyncedItemsUpdater} from '../menu-column/SaveButtonFuncs.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
+import {showAddRowPopup} from './WebPagePreviewAppFuncs.js';
 /** @typedef {import('../../webpage-renderer-app/ReRenderingWebPage.jsx').ReRenderingWebPageMouseState} ReRenderingWebPageMouseState */
 
 const broadcastInitialStateToListeners = true;
@@ -298,6 +299,12 @@ class WebPagePreviewApp extends preact.Component {
                             const [_, blockId, nthOfId] = e.data; // [_, string|null, number|null]
                             if (blockId)
                                 events.emit('web-page-click-received', blockId, nthOfId);
+                        } else if (e.data[0] === 'onAddContentOrRowButtonClicked') {
+                            const [_, blockId, buttonRect] = e.data; // [_, string, DOMRect]
+                            showAddRowPopup(blockId, {
+                                x: buttonRect. x + buttonRect.width / 2,
+                                y: buttonRect.y + buttonRect.height
+                            });
                         }
                     });
                     this.messageChannel.port1.start();

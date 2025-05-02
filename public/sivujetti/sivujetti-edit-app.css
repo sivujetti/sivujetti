@@ -44,6 +44,9 @@ Structure:
     --color-bg-button-selected-hover: rgb(223, 223, 232);
     --components-color-highlight-outline: 156, 234, 237;
     --color-highlight-outline: rgb(var(--components-color-highlight-outline));
+    --row-color-h: 165.54deg;
+    --row-color-s: 89.04%;
+    --row-color-l: 42.94%;
 
     --color-icon-normal-block: var(--color-accent2);
 
@@ -1261,6 +1264,18 @@ body:has(> .jsPanel) :is(ul.popup-menu.menu, a.popup-close-area) {
     z-index: 2;
     cursor: not-allowed;
     backdrop-filter: blur(3px);
+}
+/* EditApp: Components: row picker */
+.row-picker > button {
+    gap: .2rem;
+}
+.row-picker > button > span {
+    border: 1px solid hsl(var(--row-color-h) var(--row-color-s) var(--row-color-l));
+    background: hsl(var(--row-color-h) var(--row-color-s) calc(var(--row-color-l) * 2.28));
+    border-radius: 3px;
+}
+.row-picker > button:hover > span {
+    border-color: hsl(var(--row-color-h) var(--row-color-h) calc(var(--row-color-l) - 6));
 }
 
 

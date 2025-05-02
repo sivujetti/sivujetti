@@ -11,7 +11,14 @@ class ColumnsBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
      * @inheritdoc
      */
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
-        return $this->addDefaultProperties($builder)->getResult();
+        return $builder
+            ->newProperty("numColumns")->dataType($builder::DATA_TYPE_UINT, isNullable: true)
+            ->newProperty("isRow")->dataType($builder::DATA_TYPE_UINT)
+            ->newProperty("config")->dataType(
+                $builder::DATA_TYPE_OBJECT,
+                sanitizeWith: fn(object $obj) => $obj // todo
+            )
+            ->getResult();
     }
     /**
      * @inheritdoc
@@ -20,22 +27,15 @@ class ColumnsBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
                            \Closure $createDefaultProps,
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array {
-        $numCols = $block->numColumns ?? null;
+        $numCols = $block->numColumns ?? 1;
         $extraClasses = implode(" ", [
-            ...($numCols ? ["num-cols-" . ((int) $numCols)] : []),
-            ...($block->takeFullWidth === false ? ["inline"] : []),
+            ...(($block->isRow ?? null) ? ["is-row"] : []),
+            ...($numCols > 1 ? ["num-cols-" . ((int) $numCols)] : []),
+            ...(($block->config->takeFullWidth ?? null) === 0 ? ["d-inline-grid"] : []),
+            ...(($block->config->alignY ?? null) === "center" ? ["align-center"] : []),
         ]);
         return el("div", $createDefaultProps($extraClasses),
             ...$renderChildren()
         );
-    }
-    /**
-     * @param \Sivujetti\BlockType\PropertiesBuilder $to
-     * @return \Sivujetti\BlockType\PropertiesBuilder
-     */
-    protected function addDefaultProperties(PropertiesBuilder $to): PropertiesBuilder {
-        return $to
-            ->newProperty("numColumns")->dataType($to::DATA_TYPE_UINT, isNullable: true)
-            ->newProperty("takeFullWidth")->dataType($to::DATA_TYPE_UINT, isNullable: true);
     }
 }

@@ -10,6 +10,16 @@ import {
     rowColor,
 } from './in-context-editing.js';
 
+/** @type {MessagePort} */
+let messagePortToEditApp;
+
+/**
+ * @param {MessagePort} port
+ */
+function setMessagePort(port) {
+    messagePortToEditApp = port;
+}
+
 class ButtonBlock extends preact.Component {
     /**
      * @param {BlockRendererProps} props
@@ -70,10 +80,13 @@ class ColumnsBlock extends preact.Component {
      * @access protected
      */
     render({block, renderChildren, createDefaultProps}) {
-        const numCols = block.numColumns ?? null;
+        const numCols = block.numColumns || 1;
+        const {config} = block;
         const extraClasses = [
-            ...(numCols ? [`num-cols-${numCols}`] : []),
-            ...(block.takeFullWidth === false ? ['inline'] : []),
+            ...(block.isRow ? ['is-row'] : []),
+            ...(numCols > 1 ? [`num-cols-${numCols}`] : []),
+            ...(config.takeFullWidth === 0 ? ['d-inline-grid'] : []),
+            ...(config.alignY === 'center' ? ['align-center'] : []),
         ].join(' ');
         return <div { ...createDefaultProps(extraClasses) }>
             { renderChildren() }
@@ -127,6 +140,7 @@ function createAddButton(block) {
     button.title = isContentPlacholder ? 'Add content or row' : 'Add row';
     button.addEventListener('click', e => {
         e.stopPropagation();
+        messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked', block.id, button.getBoundingClientRect()]);
     });
     return button;
 }
@@ -343,3 +357,4 @@ const builtInRenderers = {
 };
 
 export default builtInRenderers;
+export {setMessagePort};

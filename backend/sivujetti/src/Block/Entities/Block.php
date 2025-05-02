@@ -52,7 +52,7 @@ final class Block extends \stdClass {
 
     /* If self::TYPE_COLUMNS
     public int|null $numColumns;
-    public int|null $takeFullWidth; */
+    public object{takeFullWidth? int, alignY?: "center"} & \stdClass $config; */
 
     /* If self::TYPE_PLACEHODER
     public string $dum; */

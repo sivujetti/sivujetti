@@ -93,46 +93,45 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
 
 
     public function testRenderBlockRendersColumns(): void {
-        $makeExpectedHtml = fn($b, $inline = "", $cls = "") =>
-            "<div class=\"j-Columns num-cols-{$b->numColumns}{$inline}{$cls}\"" .
+        $makeExpectedHtml = fn($b, $cls = "") =>
+            "<div data-block=\"{$b->id}\"" .
             " data-block-type=\"Columns\"" .
-            " data-block=\"{$b->id}\">" .
+            " class=\"j-Columns{$cls}\">" .
             "</div>";
         //
         $state = $this->setupRenderColumnBlocksTest();
         $this->makeTestSivujettiApp($state);
         $b = $state->testBlocks;
-        $expectedHtml = $makeExpectedHtml($b[0]);
+        $expectedHtml = $makeExpectedHtml($b[0], " num-cols-2");
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $expectedHtml = $makeExpectedHtml($b[1], " inline");
+        $expectedHtml = $makeExpectedHtml($b[1], " d-inline-grid");
         $this->renderAndVerify($state, 1, $expectedHtml);
         //
-        $expectedHtml = $makeExpectedHtml($b[2], cls: " escape&quot;");
+        $expectedHtml = $makeExpectedHtml($b[2], " is-row num-cols-3 align-center escape&quot;");
         $this->renderAndVerify($state, 2, $expectedHtml);
         //
-        $expectedHtml = $makeExpectedHtml($b[3], cls: " some classes");
+        $expectedHtml = $makeExpectedHtml($b[3], " num-cols-6 some classes");
         $this->renderAndVerify($state, 3, $expectedHtml);
     }
     private function setupRenderColumnBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_COLUMNS,
-                renderer: "sivujetti:block-generic-wrapper",
-                propsData: ["numColumns" => 2, "takeFullWidth" => 1],
+                propsData: ["numColumns" => 2, "isRow" => 0, "config" => (object) ["takeFullWidth" => 1]],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_COLUMNS,
-                renderer: "sivujetti:block-generic-wrapper",
-                propsData: ["numColumns" => 1, "takeFullWidth" => 0],
+                propsData: ["numColumns" => 1, "isRow" => 0, "config" => (object) ["takeFullWidth" => 0]],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_COLUMNS,
-                renderer: "sivujetti:block-generic-wrapper",
-                propsData: ["numColumns" => 3, "takeFullWidth" => 1],
+                propsData: ["numColumns" => 3, "isRow" => 1, "config" => (object) [
+                    "takeFullWidth" => 1,
+                    "alignY" => "center",
+                ]],
                 styleClasses: "escape\"",
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_COLUMNS,
-                renderer: "sivujetti:block-generic-wrapper",
-                propsData: ["numColumns" => 12, "takeFullWidth" => 1],
+                propsData: ["numColumns" => 6, "isRow" => 0, "config" => (object) ["takeFullWidth" => 1]],
                 styleClasses: "some classes",
                 id: "@auto"),
         ];

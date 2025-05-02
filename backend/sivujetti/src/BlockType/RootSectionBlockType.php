@@ -14,7 +14,7 @@ class RootSectionBlockType implements BlockTypeInterface, JsxLikeRenderingBlockT
         return $builder
             ->newProperty("config")->dataType(
                 $builder::DATA_TYPE_OBJECT,
-                sanitizeWith: fn(object $obj) => $obj
+                sanitizeWith: fn(object $obj) => $obj // todo
             )
             ->getResult();
     }

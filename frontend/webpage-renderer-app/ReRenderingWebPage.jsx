@@ -1,7 +1,7 @@
 import {urlUtils} from '@sivujetti-commons-for-web-pages';
 import {getMetaKey, getBlockEl, traverseRecursively} from '../shared-inline.js';
 import {stringHtmlPropToVNodeArray} from './ReRenderingWebPageFuncs.js';
-import builtInRenderers from './builtin-renderers-all.jsx';
+import builtInRenderers, {setMessagePort} from './builtin-renderers-all.jsx';
 /** @typedef {import('./in-context-editing.js').InContextEditingApp} InContextEditingApp */
 
 const useCtrlClickBasedFollowLinkLogic = true;
@@ -54,6 +54,7 @@ class RenderAll extends preact.Component {
      */
     hookUpEventHandlersAndEmitters(messagePortToEditApp, prevIframeMouseState) {
         this.messagePortToEditApp = messagePortToEditApp;
+        setMessagePort(this.messagePortToEditApp);
         if (prevIframeMouseState) {
             this.metaKeyIsPressed = prevIframeMouseState.metaKeyIsPressed;
             if (prevIframeMouseState.curHoverBlockBlockId) {

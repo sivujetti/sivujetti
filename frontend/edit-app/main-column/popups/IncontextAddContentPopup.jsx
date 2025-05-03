@@ -4,7 +4,7 @@ import {
 import AddContentPopup from '../../menu-column/block/AddContentPopup.jsx';
 
 /** @extends {preact.Component<{blockId: string; insertPos?: 'after'|'before';}, any>} */
-class IncotextAddContentPopup extends preact.Component {
+class IncontextAddContentPopup extends preact.Component {
     /**
      * @access protected
      */
@@ -25,4 +25,4 @@ class IncotextAddContentPopup extends preact.Component {
     }
 }
 
-export default IncotextAddContentPopup;
+export default IncontextAddContentPopup;

@@ -727,3 +727,8 @@ interface CrudListProps<T> {
     uiDensity?: 'tight'|'default';
     noItemsText?: string;
 }
+
+interface Position {
+    x: number;
+    y: number;
+}

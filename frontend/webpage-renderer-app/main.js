@@ -84,6 +84,12 @@ function createMessageChannelController(reRenderingWebPageRef, messagePortToEdit
             reRenderingWebPageRef.current.handleEditAppMetaKeyPressedOrReleased(isDown);
         } else if (e.data[0] === 'getMouseState') {
             messagePortToEditApp.postMessage(['getMouseState-return', reRenderingWebPageRef.current.getMouseState()]);
+        } else if (e.data[0] === 'triggerAddContentOrPlaceholderButtonClick') {
+            const placeholderBlockId = e.data[1];
+            setTimeout(() => {
+                const btn = document.querySelector(`[data-block="${placeholderBlockId}"]`)?.shadowRoot.querySelector('button');
+                if (btn) btn.click();
+            }, 100);
         }
     };
 }

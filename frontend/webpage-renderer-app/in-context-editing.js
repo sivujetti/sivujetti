@@ -25,7 +25,7 @@ function createInContextEditingApp() {
     const clearRect = (rect, isSoftClear) => {
         if (!isSoftClear) {
             rect.style.cssText = '';
-            rect.classList.add('buttons-side');
+            rect.classList.remove('buttons-side');
         } else
             rect.style.borderColor = '';
     };
@@ -104,7 +104,7 @@ function createInContextEditingApp() {
             const [r1, r2, r3] = [...shadow.querySelectorAll('.rect')];
 
             { // RootSection
-            const [addAboveBtn, editBtn, delBtn, cloneBtn, addBelowBtn] = [...r1.querySelectorAll('button')];
+            const [addAboveBtn, editBtn, delBtn, moreBtn, cloneBtn, addBelowBtn] = [...r1.querySelectorAll('button')];
             addAboveBtn.addEventListener('click', e => {
                 console.log('stru add above cliekd');
                 e.stopPropagation();
@@ -122,12 +122,15 @@ function createInContextEditingApp() {
                 e.stopPropagation();
             });
             addBelowBtn.addEventListener('click', e => {
-                console.log('stru add below cliekd');
                 e.stopPropagation();
+                const isAfter = true;
+                reRenderingWebPage.messagePortToEditApp.postMessage(['onAddRootSectionButtonClicked',
+                    isAfter,
+                    rect1.getAttribute('data-block-id')]);
             });
             }
             { // Columns
-            const [addAboveBtn, editBtn, delBtn, cloneBtn, addBelowBtn] = [...r2.querySelectorAll('button')];
+            const [addAboveBtn, editBtn, delBtn, moreBtn, cloneBtn, addBelowBtn] = [...r2.querySelectorAll('button')];
             addAboveBtn.addEventListener('click', e => {
                 console.log('cols add above cliekd');
                 e.stopPropagation();
@@ -150,7 +153,7 @@ function createInContextEditingApp() {
             });
             }
             { // Content
-            const [addAboveBtn, editBtn, delBtn, cloneBtn, addBelowBtn] = [...r3.querySelectorAll('button')];
+            const [addAboveBtn, editBtn, delBtn, moreBtn, cloneBtn, addBelowBtn] = [...r3.querySelectorAll('button')];
             addAboveBtn.addEventListener('click', e => {
                 console.log('content add above cliekd');
                 e.stopPropagation();
@@ -169,9 +172,10 @@ function createInContextEditingApp() {
             });
             addBelowBtn.addEventListener('click', e => {
                 e.stopPropagation();
-                const isContent = true;
                 reRenderingWebPage.messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked',
-                    {isContent, pos: 'after'}, rect3.getAttribute('data-block-id'), addBelowBtn.getBoundingClientRect()]);
+                    {isContent: true, pos: 'after'},
+                    rect3.getAttribute('data-block-id'),
+                    addBelowBtn.getBoundingClientRect()]);
             });
             }
 
@@ -189,6 +193,7 @@ function getTemplateContent() {
     const editIcon = pathIcon('<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"></path><circle cx="12" cy="12" r="3"></circle>');
     const cloneIcon = pathIcon('<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><rect x="8" y="4" width="12" height="12" rx="2"></rect><path d="M16 16v2a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-8a2 2 0 0 1 2 -2h2"></path>');
     const deleteIcon = pathIcon('<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><line x1="4" y1="7" x2="20" y2="7"></line><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>');
+    const dotsIcon = pathIcon('<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle><circle cx="12" cy="5" r="1"></circle>');
     return (
 `<style>
     .rect {
@@ -254,6 +259,8 @@ function getTemplateContent() {
     .rect > span > button:last-of-type {
         border-top-right-radius: 3px;
         border-bottom-right-radius: 3px;
+        padding-left: 0;
+        padding-right: 0;
     }
     .rect > button:nth-of-type(2) {
         bottom: 0;
@@ -265,6 +272,7 @@ function getTemplateContent() {
         <button>${editIcon}</button>
         <button>${cloneIcon}</button>
         <button>${deleteIcon}</button>
+        <button>${dotsIcon}</button>
     </span>
     <button>${plusIcon}</button>
 </span>
@@ -274,6 +282,7 @@ function getTemplateContent() {
         <button>${editIcon}</button>
         <button>${cloneIcon}</button>
         <button>${deleteIcon}</button>
+        <button>${dotsIcon}</button>
     </span>
     <button>${plusIcon}</button>
 </span>
@@ -283,6 +292,7 @@ function getTemplateContent() {
         <button>${editIcon}</button>
         <button>${cloneIcon}</button>
         <button>${deleteIcon}</button>
+        <button>${dotsIcon}</button>
     </span>
     <button>${plusIcon}</button>
 </span>`

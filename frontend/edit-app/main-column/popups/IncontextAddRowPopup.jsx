@@ -6,7 +6,7 @@ import {
 import {createBlockFromType} from '../../includes/block/utils.js';
 import {pushInserBlockOp} from '../../menu-column/block/AddContentPopup.jsx';
 
-/** @extends {preact.Component<{blockId: string;}, any>} */
+/** @extends {preact.Component<{blockId: string; onAfterInsertedBlock: (newRowBlock: Block) => void;}, any>} */
 class AddRowPopup extends preact.Component {
     /**
      * @access protected
@@ -47,14 +47,13 @@ class AddRowPopup extends preact.Component {
         const emptyCols = [...Array(numCols)];
         return <button
             class="btn btn no-color p-1 d-flex col-12"
-            data-cols={ numCols.toString() }
             onClick={ () => {
                 const targetBlockId = this.props.blockId;
                 const targetTrid = 'main';
                 const insertPos = 'as-child';
                 const isReplace = true;
                 const wasCurrentlySelectedBlock = false;
-                const newRowBlock = {
+                const newBlockDescriptor = {
                     block: {
                         ...createBlockFromType('Columns', undefined, {
                             isRow: 1,
@@ -62,14 +61,15 @@ class AddRowPopup extends preact.Component {
                             takeFullWitdh: 1,
                         }),
                         children: emptyCols.map(_ =>
-                            createBlockFromType('ContentOrRowPlaceholder', undefined, {outerBlockType: 'row'})
+                            createBlockFromType('ContentOrRowPlaceholder', undefined, {outerBlockType: 'Columns'})
                         ),
                     },
                     isReusable: false,
                     styles: null,
                 };
-                pushInserBlockOp(newRowBlock, targetBlockId, targetTrid, insertPos, isReplace, wasCurrentlySelectedBlock);
+                pushInserBlockOp(newBlockDescriptor, targetBlockId, targetTrid, insertPos, isReplace, wasCurrentlySelectedBlock);
                 api.mainPopper.close();
+                this.props.onAfterInsertedBlock(newBlockDescriptor.block);
             } }
             type="button">
             { emptyCols.map(__ =>

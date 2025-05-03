@@ -12,7 +12,7 @@ import globalData from '../includes/globalData.js';
 import {createTrier} from '../includes/utils.js';
 import {registerSyncedItemsUpdater} from '../menu-column/SaveButtonFuncs.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
-import {showAddContentOrRowPopup} from './WebPagePreviewAppFuncs.js';
+import {createPlacementForPopup, insertRootSection, showAddContentOrRowPopup} from './WebPagePreviewAppFuncs.js';
 /** @typedef {import('../../webpage-renderer-app/ReRenderingWebPage.jsx').ReRenderingWebPageMouseState} ReRenderingWebPageMouseState */
 
 const broadcastInitialStateToListeners = true;
@@ -299,11 +299,15 @@ class WebPagePreviewApp extends preact.Component {
                             const [_, blockId, nthOfId] = e.data; // [_, string|null, number|null]
                             if (blockId)
                                 events.emit('web-page-click-received', blockId, nthOfId);
+                        } else if (e.data[0] === 'onAddRootSectionButtonClicked') {
+                            const [_, isAfter, blockId] = e.data; // [_, 'before'|'after', string]
+                            const newRootSectionBlock = insertRootSection(blockId, isAfter);
+                            this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', newRootSectionBlock.children[0].id]);
                         } else if (e.data[0] === 'onAddContentOrRowButtonClicked') {
-                            const [_, instructions, blockId, buttonRect] = e.data; // [_, {isContent: boolean, pos?: 'before'|'after'}, string, DOMRect]
-                            showAddContentOrRowPopup(instructions, blockId, {
-                                x: buttonRect. x + buttonRect.width / 2,
-                                y: buttonRect.y + buttonRect.height
+                            const [_, instructions, blockId, buttonRect] = e.data; // [_, {isContent: boolean; pos?: 'before'|'after';}, string, DOMRect]
+                            showAddContentOrRowPopup(instructions, blockId, buttonRect, newBlock => {
+                                if (!instructions.isContent)
+                                    this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', newBlock.children[0].id]);
                             });
                         }
                     });

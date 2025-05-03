@@ -233,13 +233,13 @@ class RenderAll extends preact.Component {
             const {target} = e;
             if (e.relatedTarget?.className === 'incontext-app-container') {
                 const el = isBlockEl(target) ? target : (target.closest ? target : {closest: () => undefined}).closest('[data-block]');
-                if (el) {
+                if (el && !isPlacholderBlockEl(el)) {
                     beginHover(el);
                     stack.push(target);
                 }
                 return;
             }
-            const isEditableBlock = isBlockEl(target) && target.getAttribute('data-block-type') !== 'ContentOrRowPlaceholder';
+            const isEditableBlock = isBlockEl(target) && !isPlacholderBlockEl(target);
             if (!isEditableBlock && stack.length && isBlockEl(stack.at(-1))) {
                 if (stack.at(-1).contains(e.target)) // Enter .j-Something > child
                     return;
@@ -455,6 +455,14 @@ function isSubHoverable(el, currentlyHoveredBlockEl) {
  */
 function isBlockEl(el) {
     return !!el.getAttribute('data-block-type');
+}
+
+/**
+ * @param {HTMLElement} el
+ * @returns {boolean}
+ */
+function isPlacholderBlockEl(el) {
+    return el.getAttribute('data-block-type') === 'ContentOrRowPlaceholder';
 }
 
 api.export('ReRenderingWebPage', RenderAll);

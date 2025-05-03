@@ -114,7 +114,7 @@ class PlaceholderBlock extends preact.Component {
             }
             const shadow = el.attachShadow({mode: 'open'});
             const sheet = new CSSStyleSheet();
-            const isContentPlacholder = block.outerBlockType === 'row';
+            const isContentPlacholder = block.outerBlockType === 'Columns';
             const color = isContentPlacholder ? contentColor : rowColor;
             sheet.replaceSync([
                 'button { ', buttonCommonCss, addButtonCommonCss, ' height: 16px; padding: 1px 6px; background: ', color, '; ', ' } ',
@@ -136,7 +136,7 @@ class PlaceholderBlock extends preact.Component {
 function createAddButton(block) {
     const button = document.createElement('button');
     button.innerHTML = plusIcon;
-    const isContentPlacholder = block.outerBlockType === 'row';
+    const isContentPlacholder = block.outerBlockType === 'Columns';
     button.title = isContentPlacholder ? 'Add content or row' : 'Add row';
     button.addEventListener('click', e => {
         e.stopPropagation();

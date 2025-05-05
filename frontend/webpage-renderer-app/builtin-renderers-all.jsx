@@ -82,11 +82,16 @@ class ColumnsBlock extends preact.Component {
     render({block, renderChildren, createDefaultProps}) {
         const numCols = block.numColumns || 1;
         const {config} = block;
+        const alignClass = {
+            'start': 'align-top',
+            'center': 'align-center',
+            'end': 'align-bottom',
+        }[config.alignY] || '';
         const extraClasses = [
             ...(block.isRow ? ['is-row'] : []),
             ...(numCols > 1 ? [`num-cols-${numCols}`] : []),
             ...(config.takeFullWidth === 0 ? ['d-inline-grid'] : []),
-            ...(config.alignY === 'center' ? ['align-center'] : []),
+            ...(alignClass ? [alignClass] : []),
         ].join(' ');
         return <div { ...createDefaultProps(extraClasses) }>
             { renderChildren() }

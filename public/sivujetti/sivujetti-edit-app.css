@@ -369,8 +369,38 @@ h2 {
 .jsPanel-headerbar {
     padding: 1rem;
 }
-.jsPanel-titlebar .jsPanel-title {
-    font: 800 1.4rem/1.4rem "Fira Sans"
+.jsPanel:not(.v2) .jsPanel-titlebar .jsPanel-title {
+    font: 800 1.4rem/1.4rem "Fira Sans";
+}
+.jsPanel.v2 {
+    border: 1px solid var(--color-input-border);
+}
+.jsPanel.v2.jsPanel-depth-3 {
+    box-shadow: 1px 4px 9px rgba(0, 0, 0, .07);
+}
+.jsPanel.v2, .jsPanel.v2 .jsPanel-hdr {
+    border-radius: var(--small-rect-radius);
+}
+.jsPanel.v2 .jsPanel-headerbar {
+    padding: .2rem;
+}
+.jsPanel.v2 .jsPanel-titlebar .jsPanel-title {
+    font-weight: 400;
+    color: var(--color-fg-dimmed) !important;
+    padding-left: .4rem;
+    font-size: .73rem;
+}
+.jsPanel.v2 .jsPanel-content {
+    padding: 0 .4rem .4rem;
+}
+.jsPanel.v2 .jsPanel-btn.jsPanel-btn-close {
+    padding: .2rem;
+    color: var(--color-fg-dimmed);
+}
+.jsPanel.v2 .jsPanel-btn.jsPanel-btn-close svg {
+    stroke-width: 3px;
+    width: 19px;
+    height: 19px;
 }
 .table.table-striped .tr:nth-of-type(odd) {
     background: var(--color-table-row-odd);

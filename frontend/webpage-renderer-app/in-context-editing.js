@@ -136,8 +136,11 @@ function createInContextEditingApp() {
                 e.stopPropagation();
             });
             editBtn.addEventListener('click', e => {
-                console.log('cols edit cliekd');
                 e.stopPropagation();
+                reRenderingWebPage.messagePortToEditApp.postMessage(['onClicked',
+                    rect2.getAttribute('data-block-id'),
+                    1,
+                    {x: e.clientX, y: e.clientY}]);
             });
             delBtn.addEventListener('click', e => {
                 console.log('cols del cliekd');

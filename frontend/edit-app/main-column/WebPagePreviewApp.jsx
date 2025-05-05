@@ -296,9 +296,9 @@ class WebPagePreviewApp extends preact.Component {
                             this.unHighlightTextBlockChildEl();
                             events.emit('web-page-text-block-child-el-hover-ended');
                         } else if (e.data[0] === 'onClicked') {
-                            const [_, blockId, nthOfId] = e.data; // [_, string|null, number|null]
+                            const [_, blockId, nthOfId, at] = e.data; // [_, string|null, number|null]|[_, string|null, number|null, Position]
                             if (blockId)
-                                events.emit('web-page-click-received', blockId, nthOfId);
+                                events.emit('web-page-click-received', blockId, nthOfId, at);
                         } else if (e.data[0] === 'onAddRootSectionButtonClicked') {
                             const [_, isAfter, blockId] = e.data; // [_, 'before'|'after', string]
                             const newRootSectionBlock = insertRootSection(blockId, isAfter);

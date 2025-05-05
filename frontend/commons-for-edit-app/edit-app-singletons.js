@@ -75,6 +75,7 @@ const api = {
     // Initialized in ViewAndContextMenuLayer (../edit-app/main.js)
     contextMenu: {},
     mainPopper: {},
+    floatingDialog2: {},
 };
 
 export {

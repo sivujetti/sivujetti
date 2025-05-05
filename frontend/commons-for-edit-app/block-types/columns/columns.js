@@ -1,8 +1,10 @@
+import ColumnsEditForm from './ColumnsEditForm.jsx';
+
 export default {
     name: 'Columns',
     friendlyName: 'Columns',
     icon: 'layout-columns',
-    editForm: null,
+    editForm: window.sivujettiUserFlags?.useInContextEditing ? ColumnsEditForm : null,
     stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {
         return {

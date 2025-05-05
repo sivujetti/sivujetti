@@ -345,7 +345,10 @@ class RenderAll extends preact.Component {
             }
 
             const {blockId, nthOfId} = currentBlock;
-            if (blockId) this.messagePortToEditApp.postMessage(['onClicked', blockId, nthOfId]);
+            if (blockId) {
+                const at = this.props.inContextEditingApp ? {x: e.clientX, y: e.clientY} : null;
+                this.messagePortToEditApp.postMessage(['onClicked', blockId, nthOfId, at]);
+            }
         });
     }
     /**

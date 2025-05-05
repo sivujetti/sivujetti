@@ -10,6 +10,7 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import {openPageDeleteDialog} from '../../main-column/popups/PageDeleteDialog.jsx';
 import {isMainColumnViewUrl} from '../../main-column/MainColumnViews.jsx';
+import BlockEditPopup from '../block/BlockEditPopup.jsx';
 import BlockTree from '../block/BlockTree.jsx';
 
 const globalBlockTreeEventsThatNeedRefresh = [
@@ -61,10 +62,19 @@ class OnThisPageSection extends MenuSectionAbstract {
                     refreshTheBlockTree([...this.state.loadedPageBlocks]);
             }),
             events.on('web-page-click-received',
-                (blockId, nthOfId) => {
+                (blockId, nthOfId, at) => {
                     if (!blockId) return;
                     if (!this.state.loadedPageBlocks?.length) return;
                     const [block] = blockTreeUtils.findBlockMultiTree(blockId, this.state.loadedPageBlocks);
+                    if (at && block.type === 'Columns' && block.isRow) {
+                        api.floatingDialog2.open(
+                            // @ts-ignore
+                            BlockEditPopup,
+                            {title: __(block.title || api.blockTypes.get(block.type).friendlyName), pos: at},
+                            {block, nthOfBlockId: 1}
+                        );
+                        return;
+                    }
                     this.focusToBlockAndEmitBlockTreeClick(block, nthOfId);
                 }
             ),

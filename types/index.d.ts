@@ -16,6 +16,7 @@ interface SivujettiFrontendApi {
     toasters: ToasterMap;
     contextMenu: ContextMenu;
     mainPopper: MainPopper;
+    floatingDialog2: FloatingDialog2;
 }
 
 type mainPanelSectionName = 'onThisPage'|'baseStyles';
@@ -137,6 +138,16 @@ interface MainPopperSettings {
     onClose?: () => void;
     maxWidth?: number;
     offsetY?: number;
+}
+
+interface FloatingDialog2 extends preact.Component {
+    open(Renderer: preact.AnyComponent, settings?: FloatingDialog2SettingsInput, rendererProps?: Object): void;
+    close(): void;
+}
+
+interface FloatingDialog2SettingsInput {
+    title?: string;
+    pos?: Position;
 }
 
 interface BlockData {

@@ -22,12 +22,14 @@ function createInContextEditingApp() {
     let rect3 = null;
     /** @type {'RootSection'|'Columns'|'Content'|''} */
     let curHover = null;
-    const clearRect = (rect, isSoftClear) => {
-        if (!isSoftClear) {
-            rect.style.cssText = '';
-            rect.classList.remove('buttons-side');
-        } else
-            rect.style.borderColor = '';
+    const clearRect = rect => {
+        rect.style.cssText = '';
+    };
+    const hideBorder = rect => {
+        rect.style.borderColor = 'transparent';
+    };
+    const getTargetType = blockType => {
+        return blockType === 'RootSection' || blockType === 'Columns' ? blockType : 'Content';
     };
     return {
         /**
@@ -37,54 +39,74 @@ function createInContextEditingApp() {
          * @access public
          */
         onBlockHoverStarted(blockId, blockType, {posRect}) {
+            let rect = null;
             if (blockType === 'RootSection') {
-                showRect(rect1, posRect);
-                rect1.setAttribute('data-block-id', blockId);
-                rect2.style.cssText = '';
-                rect2.classList.remove('buttons-side');
-                rect3.style.cssText = '';
-                curHover = blockType;
+                rect = rect1;
             } else if (blockType === 'Columns') {
-                rect1.style.borderColor = 'transparent';
-                showRect(rect2, posRect);
-                rect2.setAttribute('data-block-id', blockId);
+                rect = rect2;
+                hideBorder(rect1);
                 if (posRect.height < 40)
-                    rect2.classList.add('buttons-side');
-                rect3.style.cssText = '';
-                curHover = blockType;
+                    rect2.classList.add('buttons2-tweak-up');
             } else {
-                rect2.style.borderColor = 'transparent';
-                showRect(rect3, posRect);
-                rect3.setAttribute('data-block-id', blockId);
-                curHover = 'Content';
+                rect = rect3;
+                hideBorder(rect2);
+                const cr3 = posRect;
+                const cr2 = rect2.getBoundingClientRect();
+                if (cr3.x === cr2.x && cr3.y === cr2.y)
+                    rect3.classList.add('buttons2-tweak-right');
             }
+            showRect(rect, posRect);
+            curHover = getTargetType(blockType);
+            rect.setAttribute('data-block-id', blockId);
         },
         /**
-         * @param {boolean} isSoftClear = false
          * @access public
          */
-        onBlockHoverEnded(isSoftClear = false) {
+        onBlockHoverEnded() {
             if (curHover === 'RootSection') {
-                clearRect(rect1, isSoftClear);
-                curHover = '';
+                clearRect(rect1);
             } else if (curHover === 'Columns') {
-                rect1.style.borderColor = '';
-                clearRect(rect2, isSoftClear);
-                curHover = 'RootSection';
+                clearRect(rect2);
+                rect2.classList.remove('buttons2-tweak-up');
             } else if (curHover === 'Content') {
-                rect2.style.borderColor = '';
-                clearRect(rect3, isSoftClear);
-                curHover = 'Columns';
+                clearRect(rect3);
+                rect3.classList.remove('buttons2-tweak-right');
             }
         },
         /**
          * @access public
          */
         clearAll() {
-            rect1.style.cssText = '';
-            rect2.style.cssText = '';
-            rect3.style.cssText = '';
+            clearRect(rect1);
+            clearRect(rect2);
+            rect2.classList.remove('buttons2-tweak-up');
+            clearRect(rect3);
+            rect3.classList.remove('buttons2-tweak-right');
             curHover = '';
+        },
+        /**
+         * @access public
+         */
+        beginPointerLock() {
+            rect1.classList.add('nopoint');
+            rect2.classList.add('nopoint');
+            rect3.classList.add('nopoint');
+        },
+        /**
+         * @returns {boolean}
+         * @access public
+         */
+        getPointerLockIsOn() {
+            return rect1.classList.contains('nopoint');
+        },
+        /**
+         * @access public
+         */
+        endPointerLock() {
+            rect1.classList.remove('nopoint');
+            rect2.classList.remove('nopoint');
+            rect3.classList.remove('nopoint');
+            this.clearAll();
         },
         /**
          * @param {ReRenderingWebPage} reRenderingWebPage
@@ -100,91 +122,50 @@ function createInContextEditingApp() {
             template.innerHTML = getTemplateContent();
             shadow.appendChild(template.content);
 
-            /** @type {Array<HTMLElement>} */
-            const [r1, r2, r3] = [...shadow.querySelectorAll('.rect')];
+            [rect1, rect2, rect3] = [...shadow.querySelectorAll('.rect')];
 
-            { // RootSection
-            const [addAboveBtn, editBtn, delBtn, moreBtn, cloneBtn, addBelowBtn] = [...r1.querySelectorAll('button')];
-            addAboveBtn.addEventListener('click', e => {
-                console.log('stru add above cliekd');
-                e.stopPropagation();
-            });
-            editBtn.addEventListener('click', e => {
-                console.log('stru edit cliekd');
-                e.stopPropagation();
-            });
-            delBtn.addEventListener('click', e => {
-                console.log('stru del cliekd');
-                e.stopPropagation();
-            });
-            cloneBtn.addEventListener('click', e => {
-                console.log('stru clone cliekd');
-                e.stopPropagation();
-            });
-            addBelowBtn.addEventListener('click', e => {
-                e.stopPropagation();
-                const isAfter = true;
-                reRenderingWebPage.messagePortToEditApp.postMessage(['onAddRootSectionButtonClicked',
-                    isAfter,
-                    rect1.getAttribute('data-block-id')]);
-            });
-            }
-            { // Columns
-            const [addAboveBtn, editBtn, delBtn, moreBtn, cloneBtn, addBelowBtn] = [...r2.querySelectorAll('button')];
-            addAboveBtn.addEventListener('click', e => {
-                console.log('cols add above cliekd');
-                e.stopPropagation();
-            });
-            editBtn.addEventListener('click', e => {
-                e.stopPropagation();
-                reRenderingWebPage.messagePortToEditApp.postMessage(['onClicked',
-                    rect2.getAttribute('data-block-id'),
-                    1,
-                    {x: e.clientX, y: e.clientY}]);
-            });
-            delBtn.addEventListener('click', e => {
-                console.log('cols del cliekd');
-                e.stopPropagation();
-            });
-            cloneBtn.addEventListener('click', e => {
-                console.log('cols clone cliekd');
-                e.stopPropagation();
-            });
-            addBelowBtn.addEventListener('click', e => {
-                console.log('cols add below cliekd');
-                e.stopPropagation();
-            });
-            }
-            { // Content
-            const [addAboveBtn, editBtn, delBtn, moreBtn, cloneBtn, addBelowBtn] = [...r3.querySelectorAll('button')];
-            addAboveBtn.addEventListener('click', e => {
-                console.log('content add above cliekd');
-                e.stopPropagation();
-            });
-            editBtn.addEventListener('click', e => {
-                console.log('content edit cliekd');
-                e.stopPropagation();
-            });
-            delBtn.addEventListener('click', e => {
-                console.log('content del cliekd');
-                e.stopPropagation();
-            });
-            cloneBtn.addEventListener('click', e => {
-                console.log('content clone cliekd');
-                e.stopPropagation();
-            });
-            addBelowBtn.addEventListener('click', e => {
-                e.stopPropagation();
-                reRenderingWebPage.messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked',
-                    {isContent: true, pos: 'after'},
-                    rect3.getAttribute('data-block-id'),
-                    addBelowBtn.getBoundingClientRect()]);
-            });
-            }
+            addButtonsHandlers(rect1);
+            addButtonsHandlers(rect2);
+            addButtonsHandlers(rect3);
 
-            rect1 = r1;
-            rect2 = r2;
-            rect3 = r3;
+            function addButtonsHandlers(rect) {
+                const [addAboveBtn, editBtn, cloneBtn, delBtn, moreBtn, addBelowBtn] = [...rect.querySelectorAll('button')];
+                const type = {rect1: 'RootSection', rect2: 'Row', rect3: 'Content'}[rect.id];
+                addAboveBtn.addEventListener('click', e => {
+                    console.log(`${type}: addAboveBtn clicked`);
+                    e.stopPropagation();
+                });
+                editBtn.addEventListener('click', e => {
+                    console.log(`${type}: editBtn clicked`);
+                    e.stopPropagation();
+                });
+                cloneBtn.addEventListener('click', e => {
+                    console.log(`${type}: cloneBtn clicked`);
+                    e.stopPropagation();
+                });
+                delBtn.addEventListener('click', e => {
+                    console.log(`${type}: delBtn clicked`);
+                    e.stopPropagation();
+                });
+                moreBtn.addEventListener('click', e => {
+                    console.log(`${type}: moreBtn clicked`);
+                    e.stopPropagation();
+                });
+                addBelowBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (type === 'RootSection') {
+                        const isAfter = true;
+                        reRenderingWebPage.messagePortToEditApp.postMessage(['onAddRootSectionButtonClicked',
+                            isAfter,
+                            rect1.getAttribute('data-block-id')]);
+                        return;
+                    }
+                    reRenderingWebPage.messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked',
+                        {isContent: true, addAfter: true, origin: type},
+                        rect.getAttribute('data-block-id'),
+                        addBelowBtn.getBoundingClientRect()]);
+                });
+            }
         }
     };
 }
@@ -224,6 +205,9 @@ function getTemplateContent() {
         align-items: center;
         padding: 2px;
     }
+    .rect.nopoint {
+        pointer-events: none;
+    }
     .rect button:hover {
         ${buttonHoverCss}
     }
@@ -239,17 +223,20 @@ function getTemplateContent() {
         position: absolute;
         left: 50%;
     }
-    .rect.buttons-side > button {
+    .rect.buttons2-tweak-up > button {
         transform: translateX(27px);
     }
     .rect > span > button {
         height: 21px;
         padding: 2px;
     }
+    .rect.buttons2-tweak-right:not(.rect.buttons2-tweak-up + .rect.buttons2-tweak-right) > span {
+        transform: translateX(73px);
+    }
     .rect > span {
         display: flex;
     }
-    .rect.buttons-side > span {
+    .rect.buttons2-tweak-up > span {
         transform: translateY(-20px);
     }
     .rect > button:nth-of-type(1) {
@@ -335,13 +322,17 @@ function showRect(rectSpan, posRect) {
         'width:', posRect.width - 4, 'px;',
         'height:', posRect.height, 'px;',
     ].join('');
+    rectSpan.style.borderColor = '';
 }
 
 /**
  * @typedef {{
  *   onBlockHoverStarted(blockId: string, blockType: string, info: {posRect: DOMRect;}): void;
- *   onBlockHoverEnded(isSoftClear?: boolean): void;
+ *   onBlockHoverEnded(): void;
  *   clearAll(): void;
+ *   beginPointerLock(): void;
+ *   getPointerLockIsOn(): boolean;
+ *   endPointerLock(): void;
  * }} InContextEditingApp
  */
 

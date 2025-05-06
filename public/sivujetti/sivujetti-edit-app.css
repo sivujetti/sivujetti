@@ -398,7 +398,6 @@ h2 {
     color: var(--color-fg-dimmed);
 }
 .jsPanel.v2 .jsPanel-btn.jsPanel-btn-close svg {
-    stroke-width: 3px;
     width: 19px;
     height: 19px;
 }
@@ -1305,7 +1304,7 @@ body:has(> .jsPanel) :is(ul.popup-menu.menu, a.popup-close-area) {
     border-radius: 3px;
 }
 .row-picker > button:hover > span {
-    border-color: hsl(var(--row-color-h) var(--row-color-h) calc(var(--row-color-l) - 6));
+    border-color: hsl(var(--row-color-h) var(--row-color-s) calc(var(--row-color-l) - 6%));
 }
 
 
@@ -1981,6 +1980,9 @@ span.highlight-rect[data-label-position="bottom-inside"]:before {
     width: 1.2rem;
     height: 1.2rem;
     stroke-width: 2;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linecap: round;
 }
 .icon-tabler.size-sm {
     width: 1rem;

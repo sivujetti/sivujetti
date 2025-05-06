@@ -2,6 +2,7 @@ import {__, api, events, FloatingDialog, Popup} from '@sivujetti-commons-for-edi
 import MainColumnViews from './main-column/MainColumnViews.jsx';
 import toasters, {Toaster} from './includes/toasters.jsx';
 import ContextMenu from './includes/ContextMenu.jsx';
+import FloatingDialog2 from './includes/FloatingDialog2.jsx';
 
 /** @extends {preact.Component<{rootEl: HTMLElement;}, any>} */
 class ViewAndContextMenuLayer extends preact.Component {
@@ -33,12 +34,15 @@ class ViewAndContextMenuLayer extends preact.Component {
             if (cmp && !api.contextMenu.setState) api.contextMenu = cmp;
         } }/>,
         <MainPopper ref={ cmp => {
-            if (cmp && !api.mainPopper.render) api.mainPopper = cmp;
+            if (cmp && !api.mainPopper.setState) api.mainPopper = cmp;
         } }/>,
         <div id="view">
             <MainColumnViews rootEl={ rootEl }/>
         </div>,
         <FloatingDialog/>,
+        <FloatingDialog2 ref={ cmp => {
+            if (cmp && !api.floatingDialog2.setState) api.floatingDialog2 = cmp;
+        } }/>,
         <Toaster id="editAppMain"/>
     ]; }
 }

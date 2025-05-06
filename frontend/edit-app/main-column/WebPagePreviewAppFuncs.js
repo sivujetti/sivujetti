@@ -32,7 +32,7 @@ function insertRootSection(targetBlockId, addAfter) {
 }
 
 /**
- * @param {{isContent: DOMRect; pos?: 'before'|'after';}} instructions
+ * @param {{isContent: boolean; addAfter: boolean; origin: 'Content'|'Columns';}} instructions
  * @param {string} blockId
  * @param {DOMRect} buttonRect
  * @param {(newBlock: Block) => void} onAfterInsertedBlock
@@ -47,15 +47,14 @@ function showAddContentOrRowPopup(instructions, blockId, buttonRect, onAfterInse
     ].join('');
     document.body.appendChild(tempArrowRefEl);
     //
-    const {isContent} = instructions;
-    const [Renderer, props] = isContent
-        ? [AddContentPopup, {insertPos: instructions.pos}]
-        : [AddRowPopup, {onAfterInsertedBlock}];
+    const [Renderer, props] = instructions.isContent
+        ? [AddContentPopup, {addAfter: instructions.addAfter}]
+        : [AddRowPopup, {}];
     api.mainPopper.open(
         // @ts-ignore
         Renderer,
         tempArrowRefEl,
-        {blockId, ...props},
+        {blockId, origin: instructions.origin, onAfterInsertedBlock, ...props},
         {onClose: () => tempArrowRefEl.remove()},
     );
 }
@@ -66,7 +65,7 @@ function showAddContentOrRowPopup(instructions, blockId, buttonRect, onAfterInse
  */
 function createPlacementForPopup(buttonRect) {
     return {
-        x: buttonRect. x + buttonRect.width / 2,
+        x: buttonRect.x + buttonRect.width / 2,
         y: buttonRect.y + buttonRect.height
     };
 }

@@ -132,6 +132,14 @@ function createDefProps(type, additions) {
     };
 }
 
+/**
+ * @param {Block} block
+ * @returns {boolean}
+ */
+function isRowBlock(block) {
+    return block.type === 'Columns' && block.isRow;
+}
+
 /** @typedef {{
     type: string;
     renderer: string;
@@ -146,5 +154,6 @@ export {
     getIsStoredToTreeIdFrom,
     isBrokenBlockId,
     isMetaBlock,
+    isRowBlock,
     treeToTransferable,
 };

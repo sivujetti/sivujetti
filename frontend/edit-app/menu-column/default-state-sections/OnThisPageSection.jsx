@@ -8,6 +8,7 @@ import {
     MenuSectionAbstract,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
+import {isRowBlock} from '../../includes/block/utils.js';
 import {openPageDeleteDialog} from '../../main-column/popups/PageDeleteDialog.jsx';
 import {isMainColumnViewUrl} from '../../main-column/MainColumnViews.jsx';
 import BlockEditPopup from '../block/BlockEditPopup.jsx';
@@ -66,12 +67,12 @@ class OnThisPageSection extends MenuSectionAbstract {
                     if (!blockId) return;
                     if (!this.state.loadedPageBlocks?.length) return;
                     const [block] = blockTreeUtils.findBlockMultiTree(blockId, this.state.loadedPageBlocks);
-                    if (at && block.type === 'Columns' && block.isRow) {
+                    if (at && isRowBlock(block)) {
                         api.floatingDialog2.open(
                             // @ts-ignore
                             BlockEditPopup,
                             {title: __(block.title || api.blockTypes.get(block.type).friendlyName), pos: at},
-                            {block, nthOfBlockId: 1}
+                            {block}
                         );
                         return;
                     }

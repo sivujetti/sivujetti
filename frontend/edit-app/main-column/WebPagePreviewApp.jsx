@@ -7,7 +7,7 @@ import {
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {cloneDeep, getMetaKey, getBlockEl, traverseRecursively} from '../../shared-inline.js';
-import {isMetaBlock} from '../includes/block/utils.js';
+import {isMetaBlock, isRowBlock} from '../includes/block/utils.js';
 import globalData from '../includes/globalData.js';
 import {createTrier} from '../includes/utils.js';
 import {registerSyncedItemsUpdater} from '../menu-column/SaveButtonFuncs.js';
@@ -282,7 +282,7 @@ class WebPagePreviewApp extends preact.Component {
                             broadcastCurrentPageData(e);
                         } else if (e.data[0] === 'onBlockHoverStarted') {
                             const [_, blockId, nthOfId, blockRect] = e.data; // [_, string, number, DOMRect]
-                            const block = blockRect ? blockTreeUtils.findBlockMultiTree(blockId, api.saveButton.getInstance().getChannelState('theBlockTree'))[0] : null;
+                            const block = blockRect ? blockTreeUtils.findBlockMultiTree(blockId, blockTreeUtils.getTree('main'))[0] : null;
                             if (block) this.highlightBlock(block, nthOfId, blockRect);
                         } else if (e.data[0] === 'onBlockHoverEnded') {
                             const [_, blockId] = e.data; // [_, string]
@@ -304,9 +304,9 @@ class WebPagePreviewApp extends preact.Component {
                             const newRootSectionBlock = insertRootSection(blockId, isAfter);
                             this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', newRootSectionBlock.children[0].id]);
                         } else if (e.data[0] === 'onAddContentOrRowButtonClicked') {
-                            const [_, instructions, blockId, buttonRect] = e.data; // [_, {isContent: boolean; pos?: 'before'|'after';}, string, DOMRect]
+                            const [_, instructions, blockId, buttonRect] = e.data; // [_, {isContent: boolean; origin: 'Content'|'Row'|'Placholder'; addAfter: boolean;}, string, DOMRect]
                             showAddContentOrRowPopup(instructions, blockId, buttonRect, newBlock => {
-                                if (!instructions.isContent)
+                                if (!instructions.isContent || isRowBlock(newBlock))
                                     this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', newBlock.children[0].id]);
                             });
                         }

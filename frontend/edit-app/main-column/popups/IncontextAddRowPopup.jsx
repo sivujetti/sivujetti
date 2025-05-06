@@ -6,7 +6,7 @@ import {
 import {createBlockFromType} from '../../includes/block/utils.js';
 import {pushInserBlockOp} from '../../menu-column/block/AddContentPopup.jsx';
 
-/** @extends {preact.Component<{blockId: string; onAfterInsertedBlock: (newRowBlock: Block) => void;}, any>} */
+/** @extends {preact.Component<{blockId: string; onAfterInsertedBlock: (newRowBlock: Block) => void;}, {currentTabIdx: number;}>} */
 class AddRowPopup extends preact.Component {
     /**
      * @access protected
@@ -26,16 +26,35 @@ class AddRowPopup extends preact.Component {
                 initialTabIdx={ 0 }
                 className="text-tinyish mt-0"/>
             { currentTabIdx === 0
-                ? <div class="row-picker mt-1">
-                    { this.createAddRowButton(1) }
-                    { this.createAddRowButton(2) }
-                    { this.createAddRowButton(3) }
-                    { this.createAddRowButton(4) }
-                    { this.createAddRowButton(5) }
-                    { this.createAddRowButton(6) }
-                </div>
+                ? <RowPicker
+                    blockId={ this.props.blockId }
+                    insertPos="as-child"
+                    isReplace={ true }
+                    onAfterInsertedBlock={ this.props.onAfterInsertedBlock }/>
                 : <div>todo</div>
             }
+        </div>;
+    }
+    /**
+     * @param {number} toIdx
+     * @access private
+     */
+    handleTabChanged(toIdx) {
+        if (this.state.currentTabIdx !== toIdx)
+            this.setState({currentTabIdx: toIdx});
+    }
+}
+
+/** @extends {preact.Component<RowPickerProps, any>} */
+class RowPicker extends preact.Component {
+    render() {
+        return <div class="row-picker mt-1">
+            { this.createAddRowButton(1) }
+            { this.createAddRowButton(2) }
+            { this.createAddRowButton(3) }
+            { this.createAddRowButton(4) }
+            { this.createAddRowButton(5) }
+            { this.createAddRowButton(6) }
         </div>;
     }
     /**
@@ -48,28 +67,26 @@ class AddRowPopup extends preact.Component {
         return <button
             class="btn btn no-color p-1 d-flex col-12"
             onClick={ () => {
+                const onCreate = this.props.onCreateBlock || (b => b);
+                const newRowBlock = onCreate({
+                    ...createBlockFromType('Columns', undefined, {
+                        isRow: 1,
+                        numColumns: numCols,
+                        takeFullWitdh: 1,
+                    }),
+                    children: emptyCols.map(_ =>
+                        createBlockFromType('ContentOrRowPlaceholder', undefined, {outerBlockType: 'Columns'})
+                    ),
+                });
+                //
+                const newBlockDescriptor = {block: newRowBlock, isReusable: false, styles: null,};
                 const targetBlockId = this.props.blockId;
                 const targetTrid = 'main';
-                const insertPos = 'as-child';
-                const isReplace = true;
+                const {insertPos, isReplace} = this.props;
                 const wasCurrentlySelectedBlock = false;
-                const newBlockDescriptor = {
-                    block: {
-                        ...createBlockFromType('Columns', undefined, {
-                            isRow: 1,
-                            numColumns: numCols,
-                            takeFullWitdh: 1,
-                        }),
-                        children: emptyCols.map(_ =>
-                            createBlockFromType('ContentOrRowPlaceholder', undefined, {outerBlockType: 'Columns'})
-                        ),
-                    },
-                    isReusable: false,
-                    styles: null,
-                };
                 pushInserBlockOp(newBlockDescriptor, targetBlockId, targetTrid, insertPos, isReplace, wasCurrentlySelectedBlock);
                 api.mainPopper.close();
-                this.props.onAfterInsertedBlock(newBlockDescriptor.block);
+                this.props.onAfterInsertedBlock(newRowBlock);
             } }
             type="button">
             { emptyCols.map(__ =>
@@ -77,14 +94,17 @@ class AddRowPopup extends preact.Component {
             }
         </button>;
     }
-    /**
-     * @param {number} toIdx
-     * @access private
-     */
-    handleTabChanged(toIdx) {
-        if (this.state.currentTabIdx !== toIdx)
-            this.setState({currentTabIdx: toIdx});
-    }
 }
 
+/**
+ * @typedef {{
+ *   blockId: string;
+ *   insertPos: dropPosition;
+ *   isReplace: boolean;
+ *   onAfterInsertedBlock: (newRowBlock: Block) => void;
+ *   onCreateBlock?: (newRowBlock: Block) => Block;
+ * }} RowPickerProps
+ */
+
 export default AddRowPopup;
+export {RowPicker};

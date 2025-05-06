@@ -184,7 +184,7 @@ class RenderAll extends preact.Component {
     }
     /**
      * @param {HTMLBodyElement} docBody
-     * @param {Object} inContextEditingApp = null
+     * @param {InContextEditingApp} inContextEditingApp = null
      */
     addHoverHanders(docBody, inContextEditingApp = null) {
         const handleMouseEntered = el => {
@@ -214,6 +214,9 @@ class RenderAll extends preact.Component {
         };
         const stack = [];
         if (inContextEditingApp) {
+        const getBlockElemTarget = target => {
+            return target.getAttribute && isBlockEl(target) ? target : null;
+        };
         const beginHover = (el) => {
             this.curHoveredBlock = {
                 el,
@@ -232,8 +235,8 @@ class RenderAll extends preact.Component {
             /** @type {HTMLElement} */
             const {target} = e;
             if (e.relatedTarget?.className === 'incontext-app-container') {
-                const el = isBlockEl(target) ? target : (target.closest ? target : {closest: () => undefined}).closest('[data-block]');
-                if (el && !isPlacholderBlockEl(el)) {
+                const el = getBlockElemTarget(target);
+                if (el) {
                     beginHover(el);
                     stack.push(target);
                 }
@@ -251,20 +254,25 @@ class RenderAll extends preact.Component {
         }, true);
 
         docBody.addEventListener('mouseleave', e => {
-            if (e.target.className === 'incontext-app-container')
-                return;
             if (e.target === document.body) {
                 inContextEditingApp.clearAll();
                 stack.splice(0, stack.length);
                 return;
             }
             if (e.relatedTarget?.className === 'incontext-app-container') {
-                inContextEditingApp.onBlockHoverEnded(true);
-                stack.pop();
+                inContextEditingApp.beginPointerLock();
                 return;
             }
-            if (stack.at(-1) === e.target && isBlockEl(e.target))
+            if (e.target.className === 'incontext-app-container') {
+                if (inContextEditingApp.getPointerLockIsOn())
+                    inContextEditingApp.endPointerLock();
+                return;
+            }
+            if (stack.at(-1) === e.target && isBlockEl(e.target)) {
                 inContextEditingApp.onBlockHoverEnded();
+                const blockEl = e.relatedTarget ? getBlockElemTarget(e.relatedTarget) : null;
+                if (blockEl) beginHover(blockEl);
+            }
             else if (stack.length > 1 && stack.at(-1).contains(e.target))
                 return;
             stack.pop();

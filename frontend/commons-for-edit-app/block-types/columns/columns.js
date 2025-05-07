@@ -9,7 +9,7 @@ export default {
     createOwnProps(/*defProps*/) {
         return {
             numColumns: null,
-            takeFullWitdh: null,
+            takeFullWidth: null,
             isRow: 0,
             config: {},
         };

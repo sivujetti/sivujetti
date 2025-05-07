@@ -16,7 +16,7 @@ class ColumnsEditForm extends preact.Component {
             {val: 'end', label: __('Bottom')},
         ];
         const {block} = this.props;
-        const alignY = block.config.alignY;
+        const {alignY} = block.config;
         this.setState({alignY});
     }
     /**
@@ -25,10 +25,11 @@ class ColumnsEditForm extends preact.Component {
      */
     componentWillReceiveProps(props) {
         const {block} = props;
-        if (block === this.props.block || !props.lastBlockTreeChangeEventInfo?.isUndoOrRedo)
+        if (block === this.props.block)
             return;
-        if (this.state.alignY !== block.config.alignY)
-            this.setState({alignY: block.config.alignY});
+        const {alignY} = block.config;
+        if (this.state.alignY !== alignY)
+            this.setState({alignY});
     }
     /**
      * @access protected
@@ -36,7 +37,7 @@ class ColumnsEditForm extends preact.Component {
     render(_, {alignY}) {
         return <div class="form-horizontal pt-0">
             <FormGroupInline>
-                <label htmlFor="alignY" class="form-label">{ __('Align ↕') }</label>
+                <label class="form-label">{ __('Align ↕') }</label>
                 <select value={ alignY || '' } onChange={ e => {
                     const {value} = e.target;
                     if (value)
@@ -45,7 +46,7 @@ class ColumnsEditForm extends preact.Component {
                         const {alignY, ...theRest} = this.props.block.config;
                         this.props.emitValueChanged(theRest, 'config');
                     }
-                } } class="form-input form-select" id="alignY">{
+                } } class="form-input form-select" id="columnsAlignY">{
                     this.alignYOptions.map(({val, label}) =>
                         <option value={ val }>{ label }</option>
                     )

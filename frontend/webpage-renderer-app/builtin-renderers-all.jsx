@@ -4,10 +4,11 @@ import {htmlStringToVNodeArray} from './ReRenderingWebPageFuncs.js';
 import {
     addButtonCommonCss,
     buttonCommonCss,
-    buttonHoverCss,
     contentColor,
+    contentColorHover,
     plusIcon,
     rowColor,
+    rowColorHover,
 } from './in-context-editing.js';
 
 /** @type {MessagePort} */
@@ -120,11 +121,11 @@ class PlaceholderBlock extends preact.Component {
             const shadow = el.attachShadow({mode: 'open'});
             const sheet = new CSSStyleSheet();
             const isContentPlacholder = block.outerBlockType === 'Columns';
-            const color = isContentPlacholder ? contentColor : rowColor;
+            const [color, hoverColor] = isContentPlacholder ? [contentColor, contentColorHover] : [rowColor, rowColorHover];
             sheet.replaceSync([
                 'button { ', buttonCommonCss, addButtonCommonCss, ' height: 16px; padding: 1px 6px; background: ', color, '; ', ' } ',
                 'button svg { width: 14px; height: 14px; } ',
-                'button:hover { ', buttonHoverCss, ' }',
+                'button:hover { background: ', hoverColor, '; }',
             ].join(''));
             shadow.adoptedStyleSheets = [sheet];
 

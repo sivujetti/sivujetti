@@ -215,7 +215,7 @@ class RenderAll extends preact.Component {
         const stack = [];
         if (inContextEditingApp) {
         const getBlockElemTarget = target => {
-            return target.getAttribute && isBlockEl(target) ? target : null;
+            return target.getAttribute && isBlockEl(target) && !isPlacholderBlockEl(target) ? target : null;
         };
         const beginHover = (el) => {
             this.curHoveredBlock = {

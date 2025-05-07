@@ -28,11 +28,17 @@ class ColumnsBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array {
         $numCols = $block->numColumns ?? 1;
+        $alignClass = match ($block->config->alignY ?? null) {
+            "start" => "align-top",
+            "center" => "align-center",
+            "end" => "align-bottom",
+            default => "",
+        };
         $extraClasses = implode(" ", [
             ...(($block->isRow ?? null) ? ["is-row"] : []),
             ...($numCols > 1 ? ["num-cols-" . ((int) $numCols)] : []),
             ...(($block->config->takeFullWidth ?? null) === 0 ? ["d-inline-grid"] : []),
-            ...(($block->config->alignY ?? null) === "center" ? ["align-center"] : []),
+            ...($alignClass ? [$alignClass] : []),
         ]);
         return el("div", $createDefaultProps($extraClasses),
             ...$renderChildren()

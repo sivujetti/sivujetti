@@ -27,6 +27,13 @@ class FloatingDialog2 extends preact.Component {
      * @access public
      */
     open(Renderer, settings = {}, rendererProps = {}) {
+        if (this.state.Renderer) {
+            this.close();
+            setTimeout(() => {
+                this.open(Renderer, settings, rendererProps);
+            }, 10);
+            return;
+        }
         this.settings = settings;
         this.rendererProps = rendererProps;
         this.setState({Renderer});

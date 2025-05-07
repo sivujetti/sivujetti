@@ -72,7 +72,7 @@ class RowPicker extends preact.Component {
                     ...createBlockFromType('Columns', undefined, {
                         isRow: 1,
                         numColumns: numCols,
-                        takeFullWitdh: 1,
+                        takeFullWidh: 1,
                     }),
                     children: emptyCols.map(_ =>
                         createBlockFromType('ContentOrRowPlaceholder', undefined, {outerBlockType: 'Columns'})

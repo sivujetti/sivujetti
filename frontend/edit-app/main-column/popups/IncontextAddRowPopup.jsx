@@ -17,7 +17,7 @@ class AddRowPopup extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {currentTabIdx}) {
+    render({insertPos, isReplace}, {currentTabIdx}) {
         return <div>
             <h6>{ __('Insert row') }</h6>
             <Tabs
@@ -28,8 +28,8 @@ class AddRowPopup extends preact.Component {
             { currentTabIdx === 0
                 ? <RowPicker
                     blockId={ this.props.blockId }
-                    insertPos="as-child"
-                    isReplace={ true }
+                    insertPos={ insertPos }
+                    isReplace={ isReplace }
                     onAfterInsertedBlock={ this.props.onAfterInsertedBlock }/>
                 : <div>todo</div>
             }

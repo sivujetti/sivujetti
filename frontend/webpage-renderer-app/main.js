@@ -4,7 +4,7 @@ Included by backend/sivujetti/src/Page/WebPageAwareTemplate.php jsFiles().
 */
 import {cloneDeep} from '../shared-inline.js';
 import createInContextEditingApp from './in-context-editing.js';
-import {api} from './ReRenderingWebPage.jsx';
+import {api, createMessageChannelController} from './ReRenderingWebPage.jsx';
 /** @typedef {import('./ReRenderingWebPage.jsx').ReRenderingWebPage} ReRenderingWebPage */
 
 /**
@@ -51,56 +51,6 @@ function mountWebPageRendererApp(dataBundle) {
         messagePortToEditApp.postMessage(['hereIsPageDataBundle', dataBundle]);
         window.removeEventListener('message', receiveInitialDataFromPreviewApp);
     }
-}
-
-/**
- * @param {preact.RefObject<ReRenderingWebPage>} reRenderingWebPageRef
- * @param {MessagePort} messagePortToEditApp
- * @returns {(e: MessageEvent) => void}
- */
-function createMessageChannelController(reRenderingWebPageRef, messagePortToEditApp) {
-    return e => {
-        if (e.data[0] === 'updateBlocksStyles') {
-            const cssCompiled = e.data[1];
-            // Clear any styles set during 'updateBlockStyleFast'
-            const fastCssEl = getCssEl('fast-');
-            fastCssEl.innerHTML = '';
-            // Set the committed styles
-            const el = getCssEl();
-            el.innerHTML = cssCompiled;
-        } else if (e.data[0] === 'updateBlockStyleFast') {
-            const [_, css, _blockId] = e.data;
-            const el = getCssEl('fast-');
-            el.innerHTML = css;
-        } else if (e.data[0] === 'reRenderAllBlocks') {
-            const newBlocks = e.data[1];
-            reRenderingWebPageRef.current.exchangeBlocks(newBlocks);
-        } else if (e.data[0] === 'reRenderBlock') {
-            const newBlocks = e.data[2];
-            const updatedBlock = e.data[1];
-            reRenderingWebPageRef.current.exchangeSingleBlock(updatedBlock, newBlocks);
-        } else if (e.data[0] === 'handleMetaKeyPressedOrReleased') {
-            const isDown = e.data[1];
-            reRenderingWebPageRef.current.handleEditAppMetaKeyPressedOrReleased(isDown);
-        } else if (e.data[0] === 'getMouseState') {
-            messagePortToEditApp.postMessage(['getMouseState-return', reRenderingWebPageRef.current.getMouseState()]);
-        } else if (e.data[0] === 'triggerAddContentOrPlaceholderButtonClick') {
-            const placeholderBlockId = e.data[1];
-            setTimeout(() => {
-                const btn = document.querySelector(`[data-block="${placeholderBlockId}"]`)?.shadowRoot.querySelector('button');
-                if (btn) btn.click();
-            }, 100);
-        }
-    };
-}
-
-/**
- * @param {string} attrPrefix = ''
- * @returns {HTMLStyleElement|null}
- */
-function getCssEl(attrPrefix = '') {
-    const iframeDocument = document;
-    return iframeDocument.head.querySelector(`style[data-scope="${attrPrefix}all"]`);
 }
 
 /**

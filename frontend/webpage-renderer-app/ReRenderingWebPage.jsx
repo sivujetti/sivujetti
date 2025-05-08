@@ -215,7 +215,7 @@ class RenderAll extends preact.Component {
         const stack = [];
         if (inContextEditingApp) {
         const getBlockElemTarget = target => {
-            return target.getAttribute && isBlockEl(target) && !isPlacholderBlockEl(target) ? target : null;
+            return target.getAttribute && isBlockEl(target) && !isPlaceholderBlockEl(target) ? target : null;
         };
         const beginHover = (el) => {
             this.curHoveredBlock = {
@@ -242,7 +242,7 @@ class RenderAll extends preact.Component {
                 }
                 return;
             }
-            const isEditableBlock = isBlockEl(target) && !isPlacholderBlockEl(target);
+            const isEditableBlock = isBlockEl(target) && !isPlaceholderBlockEl(target);
             if (!isEditableBlock && stack.length && isBlockEl(stack.at(-1))) {
                 if (stack.at(-1).contains(e.target)) // Enter .j-Something > child
                     return;
@@ -426,6 +426,65 @@ class RenderAll extends preact.Component {
 }
 
 /**
+ * @param {preact.RefObject<ReRenderingWebPage>} reRenderingWebPageRef
+ * @param {MessagePort} messagePortToEditApp
+ * @returns {(e: MessageEvent) => void}
+ */
+function createMessageChannelController(reRenderingWebPageRef, messagePortToEditApp) {
+    return e => {
+        if (e.data[0] === 'updateBlocksStyles') {
+            const cssCompiled = e.data[1];
+            // Clear any styles set during 'updateBlockStyleFast'
+            const fastCssEl = getCssEl('fast-');
+            fastCssEl.innerHTML = '';
+            // Set the committed styles
+            const el = getCssEl();
+            el.innerHTML = cssCompiled;
+        } else if (e.data[0] === 'updateBlockStyleFast') {
+            const [_, css, _blockId] = e.data;
+            const el = getCssEl('fast-');
+            el.innerHTML = css;
+        } else if (e.data[0] === 'reRenderAllBlocks') {
+            const newBlocks = e.data[1];
+            reRenderingWebPageRef.current.exchangeBlocks(newBlocks);
+        } else if (e.data[0] === 'reRenderBlock') {
+            const newBlocks = e.data[2];
+            const updatedBlock = e.data[1];
+            reRenderingWebPageRef.current.exchangeSingleBlock(updatedBlock, newBlocks);
+        } else if (e.data[0] === 'handleMetaKeyPressedOrReleased') {
+            const isDown = e.data[1];
+            reRenderingWebPageRef.current.handleEditAppMetaKeyPressedOrReleased(isDown);
+        } else if (e.data[0] === 'getMouseState') {
+            messagePortToEditApp.postMessage(['getMouseState-return', reRenderingWebPageRef.current.getMouseState()]);
+        } else if (e.data[0] === 'triggerAddContentOrPlaceholderButtonClick') {
+            const placeholderBlockId = e.data[1];
+            triggerClick(() => getBlockEl(placeholderBlockId)?.shadowRoot.querySelector('button'));
+        } else if (e.data[0] === 'triggerEditBlockButtonClick') {
+            const contentBlockId = e.data[1];
+            triggerClick(() => getBlockEl(contentBlockId));
+        }
+    };
+}
+
+/**
+ * @param {() => HTMLElement|undefined} getEl
+ */
+function triggerClick(getEl) {
+    setTimeout(() => {
+        getEl()?.click();
+    }, 100);
+}
+
+/**
+ * @param {string} attrPrefix = ''
+ * @returns {HTMLStyleElement|null}
+ */
+function getCssEl(attrPrefix = '') {
+    const iframeDocument = document;
+    return iframeDocument.head.querySelector(`style[data-scope="${attrPrefix}all"]`);
+}
+
+/**
  * @param {HTMLElement} el
  * @returns {string|null}
  */
@@ -472,7 +531,7 @@ function isBlockEl(el) {
  * @param {HTMLElement} el
  * @returns {boolean}
  */
-function isPlacholderBlockEl(el) {
+function isPlaceholderBlockEl(el) {
     return el.getAttribute('data-block-type') === 'ContentOrRowPlaceholder';
 }
 
@@ -502,4 +561,4 @@ api.export('ReRenderingWebPage', RenderAll);
  */
 
 export default RenderAll;
-export {api};
+export {api, createMessageChannelController};

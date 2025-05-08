@@ -120,8 +120,8 @@ class PlaceholderBlock extends preact.Component {
             }
             const shadow = el.attachShadow({mode: 'open'});
             const sheet = new CSSStyleSheet();
-            const isContentPlacholder = block.outerBlockType === 'Columns';
-            const [color, hoverColor] = isContentPlacholder ? [contentColor, contentColorHover] : [rowColor, rowColorHover];
+            const isContentPlaceholder = block.outerBlockType === 'Columns';
+            const [color, hoverColor] = isContentPlaceholder ? [contentColor, contentColorHover] : [rowColor, rowColorHover];
             sheet.replaceSync([
                 'button { ', buttonCommonCss, addButtonCommonCss, ' height: 16px; padding: 1px 6px; background: ', color, '; ', ' } ',
                 'button svg { width: 14px; height: 14px; } ',
@@ -142,12 +142,12 @@ class PlaceholderBlock extends preact.Component {
 function createAddButton(block) {
     const button = document.createElement('button');
     button.innerHTML = plusIcon;
-    const isContentPlacholder = block.outerBlockType === 'Columns';
-    button.title = isContentPlacholder ? 'Add content or row' : 'Add row';
+    const isContentPlaceholder = block.outerBlockType === 'Columns';
+    button.title = isContentPlaceholder ? 'Add content or row' : 'Add row';
     button.addEventListener('click', e => {
         e.stopPropagation();
         messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked',
-            {isContent: isContentPlacholder, origin: 'Placeholder'},
+            {insertType: isContentPlaceholder ? 'content' : 'row'},
             block.id,
             button.getBoundingClientRect()]);
     });

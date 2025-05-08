@@ -6,7 +6,7 @@ export default {
     stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {
         return {
-            dummy: '',
+            isCell: 0,
         };
     }
 };

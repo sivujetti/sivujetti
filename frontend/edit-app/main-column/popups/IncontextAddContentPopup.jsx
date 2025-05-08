@@ -1,6 +1,5 @@
 import {
     __,
-    blockTreeUtils,
     Tabs,
 } from '@sivujetti-commons-for-edit-app';
 import AddContentPopup from '../../menu-column/block/AddContentPopup.jsx';
@@ -17,25 +16,28 @@ class IncontextAddContentPopup extends preact.Component {
     /**
      * @access protected
      */
-    render({blockId, addAfter}, {currentTabIdx}) {
+    render({blockId, insertPos, isReplace}, {currentTabIdx}) {
+        const commonProps = {
+            insertPos: insertPos,
+            isReplace: isReplace,
+            onCreateBlock: this.props.onCreateBlock,
+            onAfterInsertedBlock: this.props.onAfterInsertedBlock,
+        };
         return <div>
             <h6>{ __('Insert content') }</h6>
             <Tabs
                 links={ [__('New Content'), __('New row')] }
                 onTabChanged={ this.handleTabChanged.bind(this) }
                 initialTabIdx={ 0 }
-                className="text-tinyish mt-0"/>
+                className={ `text-tinyish mt-0${!this.props.onlyContent ? '' : ' d-none'}` }/>
             { currentTabIdx === 0
                 ? <AddContentPopup
                         targetInfo={ {blockId, isStoredToTreeId: 'main', isGbtRefRoot: false, data: null} }
-                        insertPos={ this.props.origin === 'Placeholder' ? 'as-child' : addAfter ? 'after' : 'before' }
-                        isReplace={ this.props.origin === 'Placeholder' }
-                        wasCurrentlySelectedBlock={ false }/>
+                        wasCurrentlySelectedBlock={ false }
+                        { ...commonProps }/>
                 : <RowPicker
                         blockId={ blockId }
-                        insertPos={ addAfter ? 'after' : 'before' }
-                        isReplace={ false }
-                        onAfterInsertedBlock={ this.props.onAfterInsertedBlock }/>
+                        { ...commonProps }/>
             }
         </div>;
     }
@@ -48,5 +50,16 @@ class IncontextAddContentPopup extends preact.Component {
             this.setState({currentTabIdx: toIdx});
     }
 }
+
+/**
+ * @typedef {{
+ *   blockId: string;
+ *   insertPos: dropPosition;
+ *   isReplace: boolean;
+ *   onAfterInsertedBlock: (newBlock: Block) => void;
+ *   onCreateBlock?: (newBlock: Block) => Block;
+ *   onlyContent?: boolean;
+ * }} IncontextAddContentPopupProps
+ */
 
 export default IncontextAddContentPopup;

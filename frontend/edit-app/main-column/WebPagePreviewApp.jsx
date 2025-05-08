@@ -304,10 +304,12 @@ class WebPagePreviewApp extends preact.Component {
                             const newRootSectionBlock = insertRootSection(blockId, isAfter);
                             this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', newRootSectionBlock.children[0].id]);
                         } else if (e.data[0] === 'onAddContentOrRowButtonClicked') {
-                            const [_, instructions, blockId, buttonRect] = e.data; // [_, {isContent: boolean; origin: 'Content'|'Row'|'Placholder'; addAfter: boolean;}, string, DOMRect]
-                            showAddContentOrRowPopup(instructions, blockId, buttonRect, newBlock => {
-                                if (!instructions.isContent || isRowBlock(newBlock))
-                                    this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', newBlock.children[0].id]);
+                            const [_, instructions, blockId, buttonRect] = e.data; // [_, {insertType: insertType; addAfter: boolean;}, string, DOMRect]
+                            showAddContentOrRowPopup(instructions, blockId, buttonRect, (newBlock) => {
+                                if (instructions.insertType === 'Content')
+                                    this.sendMessageToReRenderer(['triggerEditBlockButtonClick', newBlock.id]);
+                                else
+                                    this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', (!(newBlock.type === 'Wrapper') ? newBlock.children[0] : newBlock.children[0].children[0]).id]);
                             });
                         }
                     });

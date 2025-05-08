@@ -115,15 +115,17 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
             BlockTree::traverse($maybePatched, function ($itm) use (&$numChanges) {
                 // #1: Columns
                 if ($itm->type === "Columns" && ArrayUtils::findIndexByKey($itm->propsData, "isRow", "key") < 0) {
-                    $numColsProp = ArrayUtils::findByKey($itm->propsData, "numColumns", "key");
-                    $takeFullWidthProp = ArrayUtils::findByKey($itm->propsData, "takeFullWidth", "key");
-                    $itm->propsData = [
-                        (object) ["key" => "isRow", "value" => 0],
-                        (object) ["key" => "numColumns", "value" => $numColsProp?->value ?? null],
-                        (object) ["key" => "config", "value" => (object) [
-                            ...($takeFullWidthProp ? ["takeFullWidth" => $takeFullWidthProp->value] : []),
-                        ]],
-                    ];
+                    $props = self::migrateBlockProps("Columns", (object) [
+                        "numColumns" => ArrayUtils::findByKey($itm->propsData, "numColumns", "key")?->value ?? null,
+                        "takeFullWidth" => ArrayUtils::findByKey($itm->propsData, "takeFullWidth", "key")?->value ?? null,
+                    ]);
+                    $itm->propsData = self::propsMapToPropsData($props);
+                    $numChanges += 1;
+                }
+                // #1: Wrapper
+                if ($itm->type === "Wrapper" && ArrayUtils::findIndexByKey($itm->propsData, "isCell", "key") < 0) {
+                    $props = self::migrateBlockProps("Wrapper", new \stdClass);
+                    $itm->propsData = self::propsMapToPropsData($props);
                     $numChanges += 1;
                 }
             });
@@ -147,14 +149,12 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
             self::traverseBlockBlueprintLike($maybePatched, function ($itm) use (&$numChanges) {
                 // #1: Columns
                 if ($itm->blockType === "Columns" && !property_exists($itm->initialOwnData, "isRow")) {
-                    $takeFullWidth = $itm->initialOwnData->takeFullWidth ?? null;
-                    $itm->initialOwnData = (object) [
-                        "isRow" => 0,
-                        "numColumns" => $itm->initialOwnData->numColumns ?? null,
-                        "config" => (object) [
-                            ...(is_int($takeFullWidth) ? ["takeFullWidth" => $takeFullWidth] : []),
-                        ],
-                    ];
+                    $itm->initialOwnData = self::migrateBlockProps("Columns", $itm->initialOwnData);
+                    $numChanges += 1;
+                }
+                // #1: Wrapper
+                if ($itm->blockType === "Wrapper" && !property_exists($itm->initialOwnData, "isCell")) {
+                    $itm->initialOwnData = self::migrateBlockProps("Wrapper", $itm->initialOwnData);
                     $numChanges += 1;
                 }
             });
@@ -178,14 +178,12 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
             self::traverseBlockBlueprintLike($maybePatched->blockBlueprintFields, function ($itm) use (&$numChanges) {
                 // #1: Columns
                 if ($itm->blockType === "Columns" && !property_exists($itm->initialData, "isRow")) {
-                    $takeFullWidth = $itm->initialData->takeFullWidth ?? null;
-                    $itm->initialData = (object) [ // Mutates $obj->blockBlueprintFields[*]
-                        "isRow" => 0,
-                        "numColumns" => $itm->initialData->numColumns ?? null,
-                        "config" => (object) [
-                            ...(is_int($takeFullWidth) ? ["takeFullWidth" => $takeFullWidth] : []),
-                        ],
-                    ];
+                    $itm->initialData = self::migrateBlockProps("Columns", $itm->initialData); // Mutates $obj->blockBlueprintFields[*]
+                    $numChanges += 1;
+                }
+                // #1: Wrapper
+                if ($itm->blockType === "Wrapper" && !property_exists($itm->initialData, "isCell")) {
+                    $itm->initialData = self::migrateBlockProps("Wrapper", $itm->initialData); // Mutates $obj->blockBlueprintFields[*]
                     $numChanges += 1;
                 }
             });
@@ -197,6 +195,28 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
                 $this->logFn->__invoke("Updated pageTypes `{$pageType->id}`: {$numRows} rows changed");
             }
         }
+    }
+    /**
+     * @param "Columns"|"Wrapper" $blockType
+     * @param object $props Current version's props
+     * @return object Migrated props
+     */
+    private static function migrateBlockProps(string $blockType, object $props): object {
+        if ($blockType === "Columns") {
+            $takeFullWidth = $props->takeFullWidth ?? null;
+            return (object) [
+                "isRow" => 0,
+                "numColumns" => $props->numColumns ?? null,
+                "config" => (object) [
+                    ...(is_int($takeFullWidth) ? ["takeFullWidth" => $takeFullWidth] : []),
+                ],
+            ];
+        }
+        if ($blockType === "Wrapper")
+            return (object) [
+                "isCell" => 0,
+            ];
+        return $props;
     }
     /**
      * @param \Pike\Db $db
@@ -251,5 +271,14 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
             $fn($reusable);
             if ($reusable->initialChildren) self::traverseBlockBlueprintLike($reusable->initialChildren, $fn);
         }
+    }
+    /**
+     * @param object $propsMap
+     * @return list<object{key: string, value: mixed}>
+     */
+    private static function propsMapToPropsData(object $propsMap): array {
+        return array_map(fn($key) =>
+            (object) ["key" => $key, "value" => $propsMap->{$key}]
+        , array_keys((array) $propsMap));
     }
 }

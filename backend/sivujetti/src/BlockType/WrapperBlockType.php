@@ -12,7 +12,7 @@ class WrapperBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
      */
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
-            ->newProperty("dummy", $builder::DATA_TYPE_TEXT)
+            ->newProperty("isCell", $builder::DATA_TYPE_UINT)
             ->getResult();
     }
     /**
@@ -22,7 +22,7 @@ class WrapperBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
                            \Closure $createDefaultProps,
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array {
-        return el("div", $createDefaultProps(),
+        return el("div", $createDefaultProps($block->isCell ? "is-cell" : ""),
             // Nothing
             ...$renderChildren()
         );

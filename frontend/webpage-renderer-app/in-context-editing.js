@@ -116,6 +116,18 @@ function createInContextEditingApp() {
          * @param {HTMLElement} toEl
          */
         _init(reRenderingWebPage, toEl) {
+            const el = document.createElement('style');
+            el.setAttribute('data-injected-by', 'sivujetti-in-context-editing-app');
+            el.innerHTML = [
+                '.j-Wrapper.is-cell {',
+                '  pointer-events: none;',
+                '}',
+                '.j-Wrapper.is-cell > * {',
+                '  pointer-events: all;',
+                '}',
+            ].join('\n');
+            document.head.appendChild(el);
+
             const host = document.createElement('div');
             host.className = 'incontext-app-container';
             toEl.appendChild(host);
@@ -159,17 +171,17 @@ function createInContextEditingApp() {
                 });
                 addBelowBtn.addEventListener('click', e => {
                     e.stopPropagation();
+                    const addAfter = true;
                     if (type === 'RootSection') {
-                        const isAfter = true;
                         reRenderingWebPage.messagePortToEditApp.postMessage(['onAddRootSectionButtonClicked',
-                            isAfter,
+                            addAfter,
                             rect1.getAttribute('data-block-id')]);
-                        return;
+                    } else {
+                        reRenderingWebPage.messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked',
+                            {addAfter, insertType: type === 'Content' ? 'contentOrRow' : 'row'},
+                            rect.getAttribute('data-block-id'),
+                            addBelowBtn.getBoundingClientRect()]);
                     }
-                    reRenderingWebPage.messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked',
-                        {isContent: true, addAfter: true, origin: type},
-                        rect.getAttribute('data-block-id'),
-                        addBelowBtn.getBoundingClientRect()]);
                 });
             }
         }

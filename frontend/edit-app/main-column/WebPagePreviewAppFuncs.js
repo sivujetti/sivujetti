@@ -1,6 +1,7 @@
 import {
     __,
     api,
+    blockTreeUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {createBlockFromType} from '../includes/block/utils.js';
 import {pushInserBlockOp} from '../menu-column/block/AddContentPopup.jsx';
@@ -32,7 +33,7 @@ function insertRootSection(targetBlockId, addAfter) {
 }
 
 /**
- * @param {{isContent: boolean; addAfter: boolean; origin: 'Content'|'Columns';}} instructions
+ * @param {{insertType: insertType; addAfter: boolean;}} instructions
  * @param {string} blockId
  * @param {DOMRect} buttonRect
  * @param {(newBlock: Block) => void} onAfterInsertedBlock
@@ -47,14 +48,34 @@ function showAddContentOrRowPopup(instructions, blockId, buttonRect, onAfterInse
     ].join('');
     document.body.appendChild(tempArrowRefEl);
     //
-    const [Renderer, props] = instructions.isContent
-        ? [AddContentPopup, {addAfter: instructions.addAfter}]
-        : [AddRowPopup, {}];
+    const isPlaceholderReplace = instructions.insertType === 'row' || instructions.insertType === 'content';
+    let props = {
+        blockId,
+        insertPos: isPlaceholderReplace ? 'as-child' : instructions.addAfter ? 'after' : 'before',
+        isReplace: isPlaceholderReplace,
+        onAfterInsertedBlock
+    };
+    if (!isPlaceholderReplace) {
+        // @ts-ignore
+        const [refBlock, _branch, parentBlock] = blockTreeUtils.findBlock(blockId, blockTreeUtils.getTree('main'));
+        if (parentBlock.type === 'Columns' && parentBlock.numColumns > 1 &&
+            !(refBlock.type === 'Wrapper' && refBlock.isCell)) {
+            props.insertPos = 'as-child';
+            props.isReplace = true;
+            props.onCreateBlock = block => ({
+                ...createBlockFromType('Wrapper', undefined, {isCell: 1}),
+                children: props.insertPos === 'after' ? [block, refBlock] : [refBlock, block]
+            });
+        }
+    }
+    if (instructions.insertType === 'content') {
+        props.onlyContent = true;
+    }
     api.mainPopper.open(
         // @ts-ignore
-        Renderer,
+        instructions.insertType !== 'row' ? AddContentPopup : AddRowPopup,
         tempArrowRefEl,
-        {blockId, origin: instructions.origin, onAfterInsertedBlock, ...props},
+        props,
         {onClose: () => tempArrowRefEl.remove()},
     );
 }

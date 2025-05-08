@@ -62,8 +62,10 @@ class AddContentPopup extends preact.Component {
         const [targetTrid, targetBlockId] = isReplace && targetInfo.isGbtRefRoot
             ? [targetInfo.data.refBlockIsStoredToTreeId, targetInfo.data.refBlockId] // replace ref block, not findTree(<ref block>).blocks[0]
             : getRealTarget(targetInfo, insertPos);
-        pushInserBlockOp(descr, targetBlockId, targetTrid, insertPos, isReplace, wasCurrentlySelectedBlock);
+        const descr2 = !this.props.onCreateBlock ? descr : {...descr, block: this.props.onCreateBlock(descr.block)};
+        pushInserBlockOp(descr2, targetBlockId, targetTrid, insertPos, isReplace, wasCurrentlySelectedBlock);
         api.mainPopper.close();
+        if (this.props.onAfterInsertedBlock) this.props.onAfterInsertedBlock(descr.block);
     }
     /**
      * @param {number} toIdx
@@ -103,6 +105,8 @@ function pushInserBlockOp(descr, targetBlockId, targetTrid, insertPos, isReplace
  *   insertPos: dropPosition;
  *   isReplace: boolean;
  *   wasCurrentlySelectedBlock: boolean;
+ *   onAfterInsertedBlock?: (newBlock: Block) => void;
+ *   onCreateBlock?: (newBlock: Block) => Block;
  * }} AddContentPopupProps
  *
  * @typedef {string} blockTypeName

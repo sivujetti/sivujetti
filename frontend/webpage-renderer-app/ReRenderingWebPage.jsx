@@ -458,21 +458,21 @@ function createMessageChannelController(reRenderingWebPageRef, messagePortToEdit
             messagePortToEditApp.postMessage(['getMouseState-return', reRenderingWebPageRef.current.getMouseState()]);
         } else if (e.data[0] === 'triggerAddContentOrPlaceholderButtonClick') {
             const placeholderBlockId = e.data[1];
-            triggerClick(() => getBlockEl(placeholderBlockId)?.shadowRoot.querySelector('button'));
+            setTimeout(() => {
+                getBlockEl(placeholderBlockId)?.shadowRoot.querySelector('button').click();
+            }, 100);
         } else if (e.data[0] === 'triggerEditBlockButtonClick') {
             const contentBlockId = e.data[1];
-            triggerClick(() => getBlockEl(contentBlockId));
+            setTimeout(() => {
+                const rect = getBlockEl(contentBlockId)?.getBoundingClientRect();
+                if (!rect) return;
+                messagePortToEditApp.postMessage(['onClicked',
+                    contentBlockId,
+                    1,
+                    {x: rect.x, y: rect.y}]);
+            }, 100);
         }
     };
-}
-
-/**
- * @param {() => HTMLElement|undefined} getEl
- */
-function triggerClick(getEl) {
-    setTimeout(() => {
-        getEl()?.click();
-    }, 100);
 }
 
 /**

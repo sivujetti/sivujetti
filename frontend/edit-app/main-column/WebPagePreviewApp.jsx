@@ -296,17 +296,21 @@ class WebPagePreviewApp extends preact.Component {
                             this.unHighlightTextBlockChildEl();
                             events.emit('web-page-text-block-child-el-hover-ended');
                         } else if (e.data[0] === 'onClicked') {
-                            const [_, blockId, nthOfId, at] = e.data; // [_, string|null, number|null]|[_, string|null, number|null, Position]
+                            /** @type {[any, string|null, number|null]|[_, string|null, number|null, Position]} */
+                            const [_, blockId, nthOfId, at] = e.data;
                             if (blockId)
                                 events.emit('web-page-click-received', blockId, nthOfId, at);
                         } else if (e.data[0] === 'onAddRootSectionButtonClicked') {
-                            const [_, isAfter, blockId] = e.data; // [_, 'before'|'after', string]
-                            const newRootSectionBlock = insertRootSection(blockId, isAfter);
-                            this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', newRootSectionBlock.children[0].id]);
+                            /** @type {[any, boolean, string, DOMRect]} */
+                            const [_, isAfter, blockId, buttonRect] = e.data; // [_, boolean, string, DOMRect]
+                            showAddRootSectionPopup(blockId, isAfter, buttonRect, newRootSectionBlock => {
+                                this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', newRootSectionBlock.children[0].id]);
+                            });
                         } else if (e.data[0] === 'onAddContentOrRowButtonClicked') {
-                            const [_, instructions, blockId, buttonRect] = e.data; // [_, {insertType: insertType; addAfter: boolean;}, string, DOMRect]
+                            /** @type {[any, {insertType: insertType; addAfter: boolean;}, string, DOMRect]} */
+                            const [_, instructions, blockId, buttonRect] = e.data;
                             showAddContentOrRowPopup(instructions, blockId, buttonRect, (newBlock) => {
-                                if (instructions.insertType === 'Content')
+                                if (instructions.insertType === 'content')
                                     this.sendMessageToReRenderer(['triggerEditBlockButtonClick', newBlock.id]);
                                 else
                                     this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', (!(newBlock.type === 'Wrapper') ? newBlock.children[0] : newBlock.children[0].children[0]).id]);

@@ -51,6 +51,7 @@ function createInContextEditingApp() {
                 if (posRect.height < 40)
                     rect2.classList.add('buttons2-tweak-up');
             } else {
+                if (blockType === 'Wrapper') return;
                 rect = rect3;
                 hideBorder(rect2);
                 const cr3 = posRect;
@@ -172,15 +173,15 @@ function createInContextEditingApp() {
                 addBelowBtn.addEventListener('click', e => {
                     e.stopPropagation();
                     const addAfter = true;
+                    const commonArgs = [rect.getAttribute('data-block-id'), addBelowBtn.getBoundingClientRect()];
                     if (type === 'RootSection') {
                         reRenderingWebPage.messagePortToEditApp.postMessage(['onAddRootSectionButtonClicked',
                             addAfter,
-                            rect1.getAttribute('data-block-id')]);
+                            ...commonArgs]);
                     } else {
                         reRenderingWebPage.messagePortToEditApp.postMessage(['onAddContentOrRowButtonClicked',
                             {addAfter, insertType: type === 'Content' ? 'contentOrRow' : 'row'},
-                            rect.getAttribute('data-block-id'),
-                            addBelowBtn.getBoundingClientRect()]);
+                            ...commonArgs]);
                     }
                 });
             }

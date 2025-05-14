@@ -48,7 +48,8 @@ function showAddContentOrRowPopup(instructions, blockId, buttonRect, onAfterInse
     ].join('');
     document.body.appendChild(tempArrowRefEl);
     //
-    const isPlaceholderReplace = instructions.insertType === 'row' || instructions.insertType === 'content';
+    const isPlaceholderReplace = (instructions.insertType === 'row' && !instructions.addAfter) ||
+                                  instructions.insertType === 'content';
     let props = {
         blockId,
         insertPos: isPlaceholderReplace ? 'as-child' : instructions.addAfter ? 'after' : 'before',
@@ -56,7 +57,6 @@ function showAddContentOrRowPopup(instructions, blockId, buttonRect, onAfterInse
         onAfterInsertedBlock
     };
     if (!isPlaceholderReplace) {
-        // @ts-ignore
         const [refBlock, _branch, parentBlock] = blockTreeUtils.findBlock(blockId, blockTreeUtils.getTree('main'));
         if (parentBlock.type === 'Columns' && parentBlock.numColumns > 1 &&
             !(refBlock.type === 'Wrapper' && refBlock.isCell)) {

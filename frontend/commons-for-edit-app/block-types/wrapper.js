@@ -1,7 +1,7 @@
 export default {
     name: 'Wrapper',
     friendlyName: 'Wrapper',
-    icon: 'rectangle',
+    icon: 'box-model-2',
     editForm: 'default',
     stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {

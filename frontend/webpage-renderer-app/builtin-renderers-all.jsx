@@ -343,8 +343,8 @@ class WrapperBlock extends preact.Component {
      * @param {BlockRendererProps} props
      * @access protected
      */
-    render({renderChildren, createDefaultProps}) {
-        return <div { ...createDefaultProps() }>
+    render({block, renderChildren, createDefaultProps}) {
+        return <div { ...createDefaultProps(block.isCell ? 'is-cell' : '') }>
             { /* Nothing */ }
             { renderChildren() }
         </div>;

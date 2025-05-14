@@ -4,9 +4,10 @@ import {
     Tabs,
 } from '@sivujetti-commons-for-edit-app';
 import {createBlockFromType} from '../../includes/block/utils.js';
+import ContentTemplatePicker from '../../includes/ContentTemplatePicker.jsx';
 import {pushInserBlockOp} from '../../menu-column/block/AddContentPopup.jsx';
 
-/** @extends {preact.Component<{blockId: string; onAfterInsertedBlock: (newRowBlock: Block) => void;}, {currentTabIdx: number;}>} */
+/** @extends {preact.Component<IncontextAddRowPopupProps, {currentTabIdx: number;}>} */
 class AddRowPopup extends preact.Component {
     /**
      * @access protected
@@ -17,7 +18,7 @@ class AddRowPopup extends preact.Component {
     /**
      * @access protected
      */
-    render({insertPos, isReplace}, {currentTabIdx}) {
+    render({blockId, insertPos, isReplace}, {currentTabIdx}) {
         return <div>
             <h6>{ __('Insert row') }</h6>
             <Tabs
@@ -31,7 +32,11 @@ class AddRowPopup extends preact.Component {
                     insertPos={ insertPos }
                     isReplace={ isReplace }
                     onAfterInsertedBlock={ this.props.onAfterInsertedBlock }/>
-                : <div>todo</div>
+                : <ContentTemplatePicker
+                    listOnly="rows"
+                    blockId={ blockId }
+                    insertPos={ insertPos }
+                    isReplace={ isReplace }/>
             }
         </div>;
     }
@@ -95,6 +100,16 @@ class RowPicker extends preact.Component {
         </button>;
     }
 }
+
+/**
+ * @typedef {{
+ *   blockId: string;
+ *   insertPos: dropPosition;
+ *   isReplace: boolean;
+ *   onAfterInsertedBlock: (newBlock: Block) => void;
+ *   onCreateBlock?: (newBlock: Block) => Block;
+ * }} IncontextAddRowPopupProps
+ */
 
 /**
  * @typedef {{

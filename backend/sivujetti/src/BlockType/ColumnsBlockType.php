@@ -34,13 +34,14 @@ class ColumnsBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
             "end" => "align-bottom",
             default => "",
         };
+        $cf = $block->config->dataCreatedFrom ?? null;
         $extraClasses = implode(" ", [
             ...(($block->isRow ?? null) ? ["is-row"] : []),
             ...($numCols > 1 ? ["num-cols-" . ((int) $numCols)] : []),
             ...(($block->config->takeFullWidth ?? null) === 0 ? ["d-inline-grid"] : []),
             ...($alignClass ? [$alignClass] : []),
         ]);
-        return el("div", $createDefaultProps($extraClasses),
+        return el("div", [$createDefaultProps($extraClasses), ...($cf ? ["data-created-from" => $cf] : [])],
             ...$renderChildren()
         );
     }

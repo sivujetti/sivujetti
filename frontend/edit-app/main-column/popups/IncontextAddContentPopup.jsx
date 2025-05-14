@@ -4,6 +4,7 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import AddContentPopup from '../../menu-column/block/AddContentPopup.jsx';
 import {RowPicker} from './IncontextAddRowPopup.jsx';
+/** @typedef {import('./IncontextAddRowPopup.jsx').IncontextAddRowPopupProps} IncontextAddRowPopupProps */
 
 /** @extends {preact.Component<IncontextAddContentPopupProps, {currentTabIdx: number;}>} */
 class IncontextAddContentPopup extends preact.Component {
@@ -32,12 +33,12 @@ class IncontextAddContentPopup extends preact.Component {
                 className={ `text-tinyish mt-0${!this.props.onlyContent ? '' : ' d-none'}` }/>
             { currentTabIdx === 0
                 ? <AddContentPopup
-                        targetInfo={ {blockId, isStoredToTreeId: 'main', isGbtRefRoot: false, data: null} }
-                        wasCurrentlySelectedBlock={ false }
-                        { ...commonProps }/>
+                    targetInfo={ {blockId, isStoredToTreeId: 'main', isGbtRefRoot: false, data: null} }
+                    wasCurrentlySelectedBlock={ false }
+                    { ...commonProps }/>
                 : <RowPicker
-                        blockId={ blockId }
-                        { ...commonProps }/>
+                    blockId={ blockId }
+                    { ...commonProps }/>
             }
         </div>;
     }
@@ -53,13 +54,8 @@ class IncontextAddContentPopup extends preact.Component {
 
 /**
  * @typedef {{
- *   blockId: string;
- *   insertPos: dropPosition;
- *   isReplace: boolean;
- *   onAfterInsertedBlock: (newBlock: Block) => void;
- *   onCreateBlock?: (newBlock: Block) => Block;
  *   onlyContent?: boolean;
- * }} IncontextAddContentPopupProps
+ * } & IncontextAddRowPopupProps} IncontextAddContentPopupProps
  */
 
 export default IncontextAddContentPopup;

@@ -4,49 +4,41 @@ import {
     blockTreeUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {createBlockFromType} from '../includes/block/utils.js';
-import {pushInserBlockOp} from '../menu-column/block/AddContentPopup.jsx';
 import AddContentPopup from './popups/IncontextAddContentPopup.jsx';
 import AddRowPopup from './popups/IncontextAddRowPopup.jsx';
+import AddRootSectionPopup from './popups/IncontextAddRootSectionPopup.jsx';
 
 /**
- * @param {string} targetBlockId
+ * @param {string} blockId
  * @param {boolean} addAfter
- * @returns {Block}
+ * @param {DOMRect} buttonRect
+ * @param {(newRootSectionBlock: Block) => void} onAfterInsertedBlock
  */
-function insertRootSection(targetBlockId, addAfter) {
-    const targetTrid = 'main';
-    const insertPos = addAfter ? 'after' : 'before';
-    const isReplace = false;
-    const wasCurrentlySelectedBlock = false;
-    const newBlockDescriptor = {
-        block: {
-            ...createBlockFromType('RootSection'),
-            children: [
-                createBlockFromType('ContentOrRowPlaceholder', undefined, {outerBlockType: 'RootSection'})
-            ],
+function showAddRootSectionPopup(blockId, addAfter, buttonRect, onAfterInsertedBlock) {
+    const {tempArrowRefEl, removeEl} = createPopupRefEl(buttonRect);
+    //
+    api.mainPopper.open(
+        // @ts-ignore
+        AddRootSectionPopup,
+        tempArrowRefEl,
+        {
+            blockId,
+            insertPos: addAfter ? 'after' : 'before',
+            isReplace: false,
+            onAfterInsertedBlock
         },
-        isReusable: false,
-        styles: null,
-    };
-    pushInserBlockOp(newBlockDescriptor, targetBlockId, targetTrid, insertPos, isReplace, wasCurrentlySelectedBlock);
-    return newBlockDescriptor.block;
+        {onClose: removeEl},
+    );
 }
 
 /**
- * @param {{insertType: insertType; addAfter: boolean;}} instructions
+ * @param {{insertType: insertType; addAfter?: boolean;}} instructions
  * @param {string} blockId
  * @param {DOMRect} buttonRect
  * @param {(newBlock: Block) => void} onAfterInsertedBlock
  */
 function showAddContentOrRowPopup(instructions, blockId, buttonRect, onAfterInsertedBlock) {
-    const tempArrowRefEl = document.createElement('div');
-    const {x, y} = createPlacementForPopup(buttonRect);
-    tempArrowRefEl.style.cssText = [
-        'position: absolute;',
-        'left: calc(var(--menu-column-width-computed) + ', x, 'px);',
-        'top:', y, 'px;',
-    ].join('');
-    document.body.appendChild(tempArrowRefEl);
+    const {tempArrowRefEl, removeEl} = createPopupRefEl(buttonRect);
     //
     const isPlaceholderReplace = (instructions.insertType === 'row' && !instructions.addAfter) ||
                                   instructions.insertType === 'content';
@@ -76,8 +68,28 @@ function showAddContentOrRowPopup(instructions, blockId, buttonRect, onAfterInse
         instructions.insertType !== 'row' ? AddContentPopup : AddRowPopup,
         tempArrowRefEl,
         props,
-        {onClose: () => tempArrowRefEl.remove()},
+        {onClose: removeEl},
     );
+}
+
+/**
+ * @param {DOMRect} buttonRect
+ * @returns {{tempArrowRefEl: HTMLElement; removeEl: () => void;}} Cleanup
+ */
+function createPopupRefEl(buttonRect) {
+    const tempArrowRefEl = document.createElement('div');
+    const {x, y} = createPlacementForPopup(buttonRect);
+    tempArrowRefEl.style.cssText = [
+        'position: absolute;',
+        'left: calc(var(--menu-column-width-computed) + ', x, 'px);',
+        'top:', y, 'px;',
+    ].join('');
+    document.body.appendChild(tempArrowRefEl);
+
+    return {
+        tempArrowRefEl,
+        removeEl: () => tempArrowRefEl.remove(),
+    };
 }
 
 /**
@@ -94,5 +106,5 @@ function createPlacementForPopup(buttonRect) {
 export {
     createPlacementForPopup,
     showAddContentOrRowPopup,
-    insertRootSection,
+    showAddRootSectionPopup,
 };

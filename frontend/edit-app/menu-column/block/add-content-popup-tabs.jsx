@@ -333,4 +333,6 @@ export {
     AddReusableContentTab,
     AddSimpleContentBlocksTab,
     AddTemplateContentTab,
+    createContentTemplateSpawnDescriptor,
+    fetchContentTemplates,
 };

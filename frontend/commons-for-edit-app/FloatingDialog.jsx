@@ -204,14 +204,14 @@ function createNormalizedSettings(settings) {
  * } & HTMLDivElement} JsPanel */
 
 /** @typedef {{
- *  Renderer: preact.ComponentType|string;
- *  rendererProps: Object;
- *  className?: string;
+ *   Renderer: preact.ComponentType|string;
+ *   rendererProps: Object;
+ *   className?: string;
  * }} FloatingDialogState */
 
 /** @typedef {FloatingDialogSettingsInput & {
- *  width: number;
- *  height: number|'auto';
+ *   width: number;
+ *   height: number|'auto';
  * }} NormalizedSettings */
 
 export {FloatingDialogImpl as FloatingDialog, currentInstance};

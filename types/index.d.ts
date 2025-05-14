@@ -383,6 +383,7 @@ type blockPropValueChangeFlags = 'is-throttled'|'is-group'|'is-initial'|null;
 
 interface BlockEditFormProps<T=Object> {
     block: Block & T;
+    nthOfBlockId: number;
     lastBlockTreeChangeEventInfo: {
         ctx: stateChangeContext;
         flags: blockPropValueChangeFlags;
@@ -671,10 +672,10 @@ interface WebPagePreviewRendererAppApi {
 }
 
 interface VisualStylesFormVarDefinition {
-    varName: string;             // Example 'textAlign'
-    cssProp: string;             // Example 'text-align'
-    cssTemplate: string|null;    // Example 'border: 1px solid %s'
-    cssSubSelector: string|null; // Example '>img'
+    varName: string;              // Example 'textAlign'
+    cssProp: string;              // Example 'text-align'
+    cssTemplate?: string|null;    // Example 'border: 1px solid %s'
+    cssSubSelector?: string|null; // Example '>img'
     widgetSettings: VisualStylesFormVarDefinitionWidgetSettings & {[possibleExtras: string]: any;};
 }
 

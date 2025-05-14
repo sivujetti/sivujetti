@@ -180,7 +180,6 @@ class BlockEditForm extends preact.Component {
                         : this.stylesEditForm;
                     content = <Renderer
                         blockId={ blockId }
-                        blockType={ this.blockType }
                         blockIsStoredToTreeId={ this.blockIsStoredToTreeId }
                         checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
                         stylesStateId={ this.state.stylesStateId }
@@ -264,7 +263,7 @@ class BlockEditForm extends preact.Component {
      */
     closeInspectorPanelIfBlockIsDeletedOrReplaced(event, userCtx) {
         if ((event === 'delete' || event === 'replace-block') && userCtx.wasCurrentlySelectedBlock)
-            this.props.inspectorPanel.close();
+            api.inspectorPanel.close();
     }
 }
 
@@ -334,11 +333,5 @@ function getUserStyleTabHasContent({styleClasses}, tabsInfo) {
     }
     return false;
 }
-
-/** @typedef {{
- *  block: Block;
- *  nthOfBlockId: number;
- *  inspectorPanel: InspectorPanel;
- * }} BlockEditFormProps */
 
 export default BlockEditForm;

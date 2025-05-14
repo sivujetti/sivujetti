@@ -292,6 +292,9 @@ h2 {
     border-top: .4rem solid var(--color-bg-default);
     margin-top: -.4rem;
 }
+.incontexted .ql-toolbar.ql-snow {
+    margin-top: -.1rem;
+}
 .ql-container.ql-snow {
     border: 1px solid var(--color-input-border);
     border-radius: var(--small-rect-radius);
@@ -387,7 +390,10 @@ h2 {
     border-radius: var(--small-rect-radius);
 }
 .jsPanel.v2 .jsPanel-headerbar {
-    padding: .2rem;
+    padding: 0 .2rem 0 0;
+}
+.jsPanel.v2 .jsPanel-headerbar .jsPanel-titlebar {
+    padding: .53rem .2rem;
 }
 .jsPanel.v2 .jsPanel-titlebar .jsPanel-title {
     font-weight: 400;
@@ -396,7 +402,7 @@ h2 {
     font-size: .73rem;
 }
 .jsPanel.v2 .jsPanel-content {
-    padding: 0 .4rem .4rem;
+    padding: 2px .4rem 0 .4rem;
 }
 .jsPanel.v2 .jsPanel-btn.jsPanel-btn-close {
     padding: .2rem;
@@ -607,7 +613,7 @@ a.popup-close-area {
     left: 0;
     z-index: 3;
 }
-body:has(> .jsPanel) :is(ul.popup-menu.menu, a.popup-close-area) {
+body:has(> .jsPanel) :is(ul.popup-menu.menu, a.popup-close-area, .my-tooltip) {
     z-index: 101;
 }
 @keyframes reveal-anim {

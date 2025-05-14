@@ -162,7 +162,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noindex, nofollow, nosnippet, noarchive">
     </head>
-    <body>
+    <body<?= defined("USE_INCONTEXT_EDITING") ? ' class="incontexted"' : "" ?>>
         <div id="root" class="one-column-layout">
             <div id="edit-app"></div>
             <div id="inspector-panel"></div>

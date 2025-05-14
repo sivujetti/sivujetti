@@ -141,11 +141,11 @@ function isRowBlock(block) {
 }
 
 /** @typedef {{
-    type: string;
-    renderer: string;
-    id?: string;
-    title?: string;
-}} DefProps */
+ *   type: string;
+ *   renderer: string;
+ *   id?: string;
+ *   title?: string;
+ * }} DefProps */
 
 export {
     createBlock,

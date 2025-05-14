@@ -3,49 +3,44 @@ import {
     api,
     blockTreeUtils,
     env,
-    getAndPutAndGetToLocalStorage,
     isUndoOrRedo,
     objectUtils,
-    putToLocalStorage,
     Tabs,
     timingUtils,
 } from '@sivujetti-commons-for-edit-app';
-import {getIsStoredToTreeIdFrom, isBrokenBlockId} from '../../includes/block/utils.js';
-import {createInitialTabKind} from '../block-styles/style-tabs-commons.js';
+import {isBrokenBlockId} from '../../includes/block/utils.js';
+import AutoBlockEditForm, {isRootSectionOrRow} from '../../includes/AutoBlockEditForm.jsx';
 import {pushBlockChanges} from './block-edit-funcs.js';
-/** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
 
-/** @extends {preact.Component<BlockEditPopupProps, any>} */
+/** @extends {preact.Component<BlockEditPopupProps, BlockEditPopupState>} */
 class BlockEditPopup extends preact.Component {
     /**
      * @access protected
      */
     componentWillMount() {
-        const saveButton = api.saveButton.getInstance();
-        this.blockType = api.blockTypes.get(this.props.block.type);
-        this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(this.props.block.id, 'mainTree');
-        if (!isBrokenBlockId(this.props.block.id)) {
-            const editFormRenderer = this.blockType.editForm;
-            this.editFormImpls = [
-                ...(editFormRenderer ? [editFormRenderer] : []),
-                ...(!this.blockType.extends ? [] : [api.blockTypes.get(this.blockType.extends).editForm])
-            ];
-
-            this.tabsInfo = [{kind: 'content', title: __('Content')}, {kind: 'styles', title: __('Styles')}];
-            const tabKind = createInitialTabKind(
-                getAndPutAndGetToLocalStorage('content', 'sivujettiLastBlockEditPopupTabKind'),
-                this.tabsInfo
-            );
-            this.setState(createState(tabKind, objectUtils.cloneDeep(this.props.block)));
-        } else {
-            this.editFormImpls = [createMessageEditForm(__('This unique reusable content no longer appears to be available. You can delete it from the context menu.'))];
-            this.tabsInfo = [{kind: 'content', title: __('Content')}, {kind: 'styles', title: __('Styles')}];
+        const {block} = this.props;
+        const blockType = api.blockTypes.get(block.type);
+        this.isRootSectionOrRow = isRootSectionOrRow(block);
+        /** @type {Array<{kind: tabKind2; title: string;}>} */
+        this.tabsInfo = [
+            {kind: 'content', title: __('Content')},
+            // @ts-ignore
+            ...(this.isRootSectionOrRow ? [{kind: 'visual-styles', title: __('Styles')}] : []),
+            // @ts-ignore
+            ...(api.user.can('editBlockCss') ? [{kind: 'css-styles', title: __('Css')}] : []),
+        ];
+        if (!isBrokenBlockId(block.id)) {
+            this.editFormImpl = !this.isRootSectionOrRow ? blockType.editForm : AutoBlockEditForm;
             this.setState({
-                ...createState('content', objectUtils.cloneDeep(this.props.block)),
+                blockCopyForEditForm: objectUtils.cloneDeep(block),
+                currentTabKind: this.tabsInfo[0].kind,
+                stylesStateId: 0 // ??
             });
+        } else {
+            // todo
         }
-
-        const refreshBlockCopyForEditFormIfNeeded = (userCtx, ctx, flags, event, theTreeIn = null) => {
+        const saveButton = api.saveButton.getInstance();
+        const refreshBlockCopyForEditFormIfNeeded = (userCtx, ctx, flags, theTreeIn = null) => {
             const isIt = isUndoOrRedo(ctx);
             const doCheckDiffForEditForm = (
                 (userCtx?.blockId === this.state.blockCopyForEditForm?.id) ||
@@ -53,14 +48,13 @@ class BlockEditPopup extends preact.Component {
             );
             if (doCheckDiffForEditForm) {
                 const theTree = theTreeIn || saveButton.getChannelState('theBlockTree');
-                const [block, _branch, _parent, root] = doCheckDiffForEditForm && this.state.blockCopyForEditForm
-                    ? blockTreeUtils.findBlockMultiTree(this.state.blockCopyForEditForm.id, theTree)
-                    : [null, null, null, null];
+                const block = doCheckDiffForEditForm && this.state.blockCopyForEditForm
+                    ? blockTreeUtils.findBlockMultiTree(this.state.blockCopyForEditForm.id, theTree)[0]
+                    : null;
                 if (!block || this.state.blockCopyForEditForm.id !== block.id) return;
                 if (JSON.stringify(this.state.blockCopyForEditForm.propsData) !== JSON.stringify(block.propsData) ||
                     this.state.blockCopyForEditForm.styleClasses !== block.styleClasses ||
                     this.state.blockCopyForEditForm.renderer !== block.renderer) {
-                    this.blockIsStoredToTreeId = blockTreeUtils.getIdFor(root);
                     this.setState({
                         blockCopyForEditForm: objectUtils.cloneDeep(block),
                         lastBlockTreeChangeEventInfo: {ctx, flags, isUndoOrRedo: isIt},
@@ -75,15 +69,9 @@ class BlockEditPopup extends preact.Component {
                 return;
             }
             //
-            refreshBlockCopyForEditFormIfNeeded(userCtx, ctx, flags, event, theTree);
+            refreshBlockCopyForEditFormIfNeeded(userCtx, ctx, flags, theTree);
             //
-            this.closeInspectorPanelIfBlockIsDeletedOrReplaced(event, userCtx);
-        }),
-
-        saveButton.subscribeToChannel('globalBlockTrees', (_gbts, userCtx, ctx, flags) => {
-            const event = userCtx?.event || '';
-            refreshBlockCopyForEditFormIfNeeded(userCtx, ctx, flags, event, null);
-            this.closeInspectorPanelIfBlockIsDeletedOrReplaced(event, userCtx);
+            closeFloatingDialogIfBlockIsDeletedOrReplaced(event, userCtx);
         }),
 
         saveButton.subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
@@ -99,134 +87,101 @@ class BlockEditPopup extends preact.Component {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {BlockEditPopupProps} props
+     * @param {BlockEditPopupProps} _
      * @access protected
      */
-    render(_, {currentTabKind, blockCopyForEditForm, lastBlockTreeChangeEventInfo}) {
-        const blockId = blockCopyForEditForm.id;
-        const {tabsInfo} = this;
-        const hasMoreThat1Tab = tabsInfo.length > 1;
-        return <div data-main>
-            { hasMoreThat1Tab ? <Tabs
-                links={ this.tabsInfo.map(({title}) => title) }
-                getTabName={ (_, i) => tabsInfo[i].kind }
-                onTabChanged={ (toIdx) => this.changeTab(this.tabsInfo[toIdx].kind) }
-                className={ `text-tinyish mt-0${currentTabKind !== 'content' ? '' : ' mb-2'}` }
-                initialTabIdx={ tabsInfo.findIndex(({kind}) => kind === currentTabKind) }/> : null }
-            { tabsInfo.map(itm => {
-                let content;
-                if (itm.kind !== currentTabKind)
-                    content = null;
-                else if (itm.kind === 'content') {
-                    content = this.editFormImpls.map(Renderer =>
-                        <Renderer
-                            block={ blockCopyForEditForm }
-                            nthOfBlockId={ 1 }
-                            lastBlockTreeChangeEventInfo={ lastBlockTreeChangeEventInfo }
-                            emitValueChanged={ (val, key, ...varargs) => { this.handleValuesChanged({[key]: val}, ...varargs); } }
-                            emitValueChangedThrottled={ (val, key, hasErrors = false, source = null) => {
-                                if (!this.emitValuesChangeThrottled)
-                                    this.emitValuesChangeThrottled = timingUtils.debounce(changes => {
-                                        this.handleValuesChanged(changes, false, null);
-                                    }, env.normalTypingDebounceMillis);
+    render(_, {blockCopyForEditForm, currentTabKind, stylesStateId, lastBlockTreeChangeEventInfo}) {
+        const EditForm = this.editFormImpl;
+        let content = null;
+        if (currentTabKind === 'content' || currentTabKind === 'visual-styles')
+            // @ts-ignore
+            content = <EditForm
+                block={ blockCopyForEditForm }
+                nthOfBlockId={ 1 }
+                lastBlockTreeChangeEventInfo={ lastBlockTreeChangeEventInfo }
+                emitValueChanged={ (val, key, ...varargs) => { this.handleValuesChanged({[key]: val}, ...varargs); } }
+                emitValueChangedThrottled={ (val, key, hasErrors = false, source = null) => {
+                    if (!this.emitValuesChangeThrottled)
+                        this.emitValuesChangeThrottled = timingUtils.debounce(changes => {
+                            this.handleValuesChanged(changes, false, null);
+                        }, env.normalTypingDebounceMillis);
 
-                                if (!isUndoOrRedo(source)) {
-                                    if (hasErrors) { env.window.console.error('Had error, skipping'); return; }
-                                    const changes = {[key]: val};
-                                    // Emit "fast"/mergeable op
-                                    this.handleValuesChanged(changes, false, 'is-throttled');
-                                    // Call throttled func, which emits the "slow"/commit op
-                                    this.emitValuesChangeThrottled(changes);
-                                }
-                            } }
-                            emitManyValuesChanged={ this.handleValuesChanged.bind(this) }
-                            key={ blockId }/>
-                    );
-                } else if (itm.kind === 'styles') {
-                    content = <div>todo</div>;
-                }
-                return <div class={ itm.kind === currentTabKind ? '' : 'd-none' } key={ itm.kind }>
-                    { content }
-                </div>;
-            }) }
+                    if (!isUndoOrRedo(source)) {
+                        if (hasErrors) { env.window.console.error('Had error, skipping'); return; }
+                        const changes = {[key]: val};
+                        // Emit "fast"/mergeable op
+                        this.handleValuesChanged(changes, false, 'is-throttled');
+                        // Call throttled func, which emits the "slow"/commit op
+                        this.emitValuesChangeThrottled(changes);
+                    }
+                } }
+                emitManyValuesChanged={ this.handleValuesChanged.bind(this) }
+                key={ blockCopyForEditForm.id }
+                { ...(this.isRootSectionOrRow
+                    ? {
+                        propGroup: currentTabKind === 'content' ? 'contentTab' : 'visualStylesTab',
+                        stylesStateId,
+                    }
+                    : {}) }/>;
+        else if (currentTabKind === 'css-styles')
+            content = 'todo';
+        //
+        return <div>
+            { this.tabsInfo.length > 1 ?
+                <Tabs
+                    links={ this.tabsInfo.map(({title}) => title) }
+                    getTabName={ (_, i) => this.tabsInfo[i].kind }
+                    onTabChanged={ (toIdx) => this.setState({currentTabKind: this.tabsInfo[toIdx].kind}) }
+                    className="text-tinyish mt-0"/>
+                : null
+            }
+            { content }
         </div>;
     }
     /**
-     * @param {tabKind} toKind
-     * @access private
-     */
-    changeTab(toKind) {
-        putToLocalStorage(toKind, 'sivujettiLastBlockEditPopupTabKind');
-        const block = this.state.blockCopyForEditForm || objectUtils.cloneDeep(this.props.block);
-        this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, 'mainTree');
-        this.setState(createState(toKind, block));
-    }
-    /**
      * @param {{[key: string]: any;}} changes
-     * @param {boolean} hasErrors = false
+     * @param {boolean} _hasErrors = false
      * @param {blockPropValueChangeFlags} flags = null
      * @access private
      */
-    handleValuesChanged(changes, hasErrors = false, flags = null) {
+    handleValuesChanged(changes, _hasErrors = false, flags = null) {
         if (this.state.currentTabKind.indexOf('content') < 0) return;
 
         pushBlockChanges(this.props.block.id, changes, flags);
     }
-    /**
-     * @param {string} event
-     * @param {StateChangeUserContext} userCtx
-     * @access private
-     */
-    closeInspectorPanelIfBlockIsDeletedOrReplaced(event, userCtx) {
-        if ((event === 'delete' || event === 'replace-block') && userCtx.wasCurrentlySelectedBlock)
-            this.props.inspectorPanel.close();
-    }
 }
 
 /**
- * @param {preact.ComponentChildren} messageToShow
- * @returns {preact.ComponentClass}
- */
-function createMessageEditForm(messageToShow) {
-    return class extends preact.Component {
-        /**
-         * @access protected
-         */
-        render() {
-            return <div class="pt-1">
-                { messageToShow }
-            </div>;
-        }
-    };
-}
-
-/**
- * @param {tabKind} newTabKind
- * @param {Object} block
- * @returns {Object}
- */
-function createState(newTabKind, block) {
-    return {
-        currentTabKind: newTabKind,
-        blockCopyForEditForm: block,
-        ...(doesTabContainStylesStuff(newTabKind)
-            ? {stylesStateId: api.saveButton.getInstance().getChannelState('stylesBundle')?.id}
-            : {}
-        )
-    };
-}
-
-/**
- * @param {tabKind} tabKind
+ * @param {tabKind2} tabKind
  * @returns {boolean}
  * @access private
  */
 function doesTabContainStylesStuff(tabKind) {
-    return tabKind.indexOf('styles') > -1;
+    return tabKind !== 'css-styles';
+}
+
+/**
+ * @param {string} event
+ * @param {StateChangeUserContext} userCtx
+ */
+function closeFloatingDialogIfBlockIsDeletedOrReplaced(event, userCtx) {
+    if ((event === 'delete' || event === 'replace-block') && userCtx.wasCurrentlySelectedBlock)
+        api.floatingDialog2.close();
 }
 
 /** @typedef {{
- *  block: Block;
+ *   block: Block;
  * }} BlockEditPopupProps */
+
+/** @typedef {{
+ *   blockCopyForEditForm: {[key: string]: any;};
+ *   currentTabKind: tabKind2;
+ *   lastBlockTreeChangeEventInfo?: {ctx: stateChangeContext; flags: blockPropValueChangeFlags; isUndoOrRedo: boolean;};
+ *   stylesStateId: number;
+ * }} BlockEditPopupState */
+
+/**
+ * @typedef {'content'|'visual-styles'|'css-styles'} tabKind2
+ */
 
 export default BlockEditPopup;

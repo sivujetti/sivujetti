@@ -88,13 +88,14 @@ class ColumnsBlock extends preact.Component {
             'center': 'align-center',
             'end': 'align-bottom',
         }[config.alignY] || '';
+        const cf = config.dataCreatedFrom;
         const extraClasses = [
             ...(block.isRow ? ['is-row'] : []),
             ...(numCols > 1 ? [`num-cols-${numCols}`] : []),
             ...(config.takeFullWidth === 0 ? ['d-inline-grid'] : []),
             ...(alignClass ? [alignClass] : []),
         ].join(' ');
-        return <div { ...createDefaultProps(extraClasses) }>
+        return <div { ...createDefaultProps(extraClasses) } { ...(cf ? {'data-created-from': cf} : {}) }>
             { renderChildren() }
         </div>;
     }
@@ -301,8 +302,9 @@ class RootSectionBlock extends preact.Component {
      * @param {BlockRendererProps} props
      * @access protected
      */
-    render({renderChildren, createDefaultProps}) {
-        return <div { ...createDefaultProps() }>
+    render({block, renderChildren, createDefaultProps}) {
+        const cf = block.config.dataCreatedFrom;
+        return <div { ...createDefaultProps() } { ...(cf ? {'data-created-from': cf} : {}) }>
             { renderChildren() }
         </div> ;
     }

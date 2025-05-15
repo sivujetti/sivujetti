@@ -7,7 +7,7 @@ class RootSectionEditForm extends preact.Component {
 
 export default {
     name: 'RootSection',
-    friendlyName: 'Root section',
+    friendlyName: 'Section',
     icon: 'rectangle',
     editForm: RootSectionEditForm,
     stylesEditForm: 'default',

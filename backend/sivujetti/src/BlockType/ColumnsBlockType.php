@@ -41,7 +41,7 @@ class ColumnsBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
             ...(($block->config->takeFullWidth ?? null) === 0 ? ["d-inline-grid"] : []),
             ...($alignClass ? [$alignClass] : []),
         ]);
-        return el("div", [$createDefaultProps($extraClasses), ...($cf ? ["data-created-from" => $cf] : [])],
+        return el("div", [...$createDefaultProps($extraClasses), ...($cf ? ["data-created-from" => $cf] : [])],
             ...$renderChildren()
         );
     }

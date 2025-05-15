@@ -1,6 +1,7 @@
 import {
     __,
     arrayUtils,
+    DefaultStyleCustomizatorForm,
     env,
     FormGroupInline,
     LoadingSpinner,
@@ -36,8 +37,8 @@ class AutoBlockEditForm extends preact.Component {
      * @param {AutoBlockEditFormState} state
      * @access protected
      */
-    render(_, {autoItems, classifierVals}) {
-        return <div class="form-horizontal pt-0">
+    render({stylesStateId, block}, {autoItems, classifierVals}) {
+        return <div class="form-horizontal has-visual-style-widgets tight pt-0">
             { autoItems ? autoItems.length ? autoItems.map(itm => {
                 const {cfgEntity} = itm;
                 if (cfgEntity.typeName === 'classifier')
@@ -47,9 +48,9 @@ class AutoBlockEditForm extends preact.Component {
                             // @ts-ignore
                             const {value} = e.target;
                             if (value)
-                                this.props.emitValueChanged({...this.props.block.config, [itm.id]: value}, 'config');
+                                this.props.emitValueChanged({...block.config, [itm.id]: value}, 'config');
                             else {
-                                const copy = objectUtils.cloneDeep(this.props.block.config);
+                                const copy = objectUtils.cloneDeep(block.config);
                                 delete copy[itm.id];
                                 this.props.emitValueChanged(copy, 'config');
                             }
@@ -60,7 +61,11 @@ class AutoBlockEditForm extends preact.Component {
                         }</select>
                     </FormGroupInline>;
                 if (cfgEntity.typeName === 'dynamic-css')
-                    return 'todo';
+                    return <DefaultStyleCustomizatorForm.SingleInput
+                        varDef={ cfgEntity }
+                        stylesStateId={ stylesStateId }
+                        blockId={ block.id }
+                        blockIsStoredToTreeId={ 'main' }/>;
             }) : <p>{ __('Täällä ei näytä olevan mitään') }</p> : <LoadingSpinner/> }
         </div>;
     }
@@ -100,9 +105,7 @@ class AutoBlockEditForm extends preact.Component {
                 varName: 'backgroundColor',
                 cssSubSelector: null,
                 widgetSettings: {'label': 'Background', 'valueType': 'color', 'defaultThemeValue': '#000000'}
-            }].map(vd => ({
-                id: vd.varName, cfgEntity: {typeName: 'dynamic-css', ...vd},
-            })), visualStylesTab: []};
+            }].map(toTabConfigItem), visualStylesTab: []};
         if (block.type === 'Columns')
             return {
                 contentTab: [
@@ -137,6 +140,17 @@ async function fetchRootSectionOrRowContentTemplates() {
     } catch (err) {
         env.window.console.error(err);
     }
+}
+
+/**
+ * @param {VisualStylesFormVarDefinition} vd
+ * @returns {ConfigTabItem}
+ */
+function toTabConfigItem(vd) {
+    return {
+        id: vd.varName,
+        cfgEntity: {typeName: 'dynamic-css', ...vd},
+    };
 }
 
 /**

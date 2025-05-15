@@ -29,17 +29,17 @@ class BlockEditPopup extends preact.Component {
             // @ts-ignore
             ...(api.user.can('editBlockCss') ? [{kind: 'css-styles', title: __('Css')}] : []),
         ];
+        const saveButton = api.saveButton.getInstance();
         if (!isBrokenBlockId(block.id)) {
             this.editFormImpl = !this.isRootSectionOrRow ? blockType.editForm : AutoBlockEditForm;
             this.setState({
                 blockCopyForEditForm: objectUtils.cloneDeep(block),
                 currentTabKind: this.tabsInfo[0].kind,
-                stylesStateId: 0 // ??
+                stylesStateId: saveButton.getChannelState('stylesBundle').id,
             });
         } else {
             // todo
         }
-        const saveButton = api.saveButton.getInstance();
         const refreshBlockCopyForEditFormIfNeeded = (userCtx, ctx, flags, theTreeIn = null) => {
             const isIt = isUndoOrRedo(ctx);
             const doCheckDiffForEditForm = (
@@ -94,7 +94,6 @@ class BlockEditPopup extends preact.Component {
         const EditForm = this.editFormImpl;
         let content = null;
         if (currentTabKind === 'content' || currentTabKind === 'visual-styles')
-            // @ts-ignore
             content = <EditForm
                 block={ blockCopyForEditForm }
                 nthOfBlockId={ 1 }

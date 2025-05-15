@@ -25,7 +25,8 @@ class RootSectionBlockType implements BlockTypeInterface, JsxLikeRenderingBlockT
                            \Closure $createDefaultProps, 
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array {
-        return el("div", $createDefaultProps(),
+        $cf = $block->config->dataCreatedFrom ?? null;
+        return el("div", [...$createDefaultProps(), ...($cf ? ["data-created-from" => $cf] : [])],
             ...$renderChildren()
         );
     }

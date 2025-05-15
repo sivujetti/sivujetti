@@ -7,12 +7,12 @@ import {
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {cloneDeep, getMetaKey, getBlockEl, traverseRecursively} from '../../shared-inline.js';
-import {isMetaBlock, isRowBlock} from '../includes/block/utils.js';
+import {isMetaBlock} from '../includes/block/utils.js';
 import globalData from '../includes/globalData.js';
 import {createTrier} from '../includes/utils.js';
 import {registerSyncedItemsUpdater} from '../menu-column/SaveButtonFuncs.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
-import {createPlacementForPopup, insertRootSection, showAddContentOrRowPopup} from './WebPagePreviewAppFuncs.js';
+import {showAddContentOrRowPopup, showAddRootSectionPopup} from './WebPagePreviewAppFuncs.js';
 /** @typedef {import('../../webpage-renderer-app/ReRenderingWebPage.jsx').ReRenderingWebPageMouseState} ReRenderingWebPageMouseState */
 
 const broadcastInitialStateToListeners = true;

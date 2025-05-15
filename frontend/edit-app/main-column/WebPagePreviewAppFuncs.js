@@ -104,7 +104,6 @@ function createPlacementForPopup(buttonRect) {
 }
 
 export {
-    createPlacementForPopup,
     showAddContentOrRowPopup,
     showAddRootSectionPopup,
 };

@@ -10,7 +10,9 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import {isBrokenBlockId} from '../../includes/block/utils.js';
 import AutoBlockEditForm, {isRootSectionOrRow} from '../../includes/AutoBlockEditForm.jsx';
-import {pushBlockChanges} from './block-edit-funcs.js';
+import {pushBlockChanges} from '../../menu-column/block/block-edit-funcs.js';
+import {createIsChunkStyleEnabledChecker} from '../../menu-column/block/BlockEditForm.jsx'; // siirrä block-edit-fundiin?
+import CustomClassStylesList from '../../menu-column/block-styles/CustomClassStylesList.jsx';
 
 /** @extends {preact.Component<BlockEditPopupProps, BlockEditPopupState>} */
 class BlockEditPopup extends preact.Component {
@@ -21,11 +23,12 @@ class BlockEditPopup extends preact.Component {
         const {block} = this.props;
         const blockType = api.blockTypes.get(block.type);
         this.isRootSectionOrRow = isRootSectionOrRow(block);
+        this.includeVisualStylesTab = this.isRootSectionOrRow || blockType.editForm.prototype instanceof AutoBlockEditForm;
         /** @type {Array<{kind: tabKind2; title: string;}>} */
         this.tabsInfo = [
             {kind: 'content', title: __('Content')},
-            // @ts-ignore
-            ...(this.isRootSectionOrRow ? [{kind: 'visual-styles', title: __('Styles')}] : []),
+            // @ts-ignore Type 'string' is not assignable to type 'tabKind2'
+            ...(this.includeVisualStylesTab ? [{kind: 'visual-styles', title: __('Styles')}] : []),
             // @ts-ignore
             ...(api.user.can('editBlockCss') ? [{kind: 'css-styles', title: __('Css')}] : []),
         ];
@@ -88,12 +91,14 @@ class BlockEditPopup extends preact.Component {
     }
     /**
      * @param {BlockEditPopupProps} _
+     * @param {BlockEditPopupState} state
      * @access protected
      */
     render(_, {blockCopyForEditForm, currentTabKind, stylesStateId, lastBlockTreeChangeEventInfo}) {
         const EditForm = this.editFormImpl;
         let content = null;
         if (currentTabKind === 'content' || currentTabKind === 'visual-styles')
+            // @ts-ignore Property 'propGroup' is optional ...
             content = <EditForm
                 block={ blockCopyForEditForm }
                 nthOfBlockId={ 1 }
@@ -116,14 +121,19 @@ class BlockEditPopup extends preact.Component {
                 } }
                 emitManyValuesChanged={ this.handleValuesChanged.bind(this) }
                 key={ blockCopyForEditForm.id }
-                { ...(this.isRootSectionOrRow
+                { ...(this.includeVisualStylesTab
                     ? {
                         propGroup: currentTabKind === 'content' ? 'contentTab' : 'visualStylesTab',
                         stylesStateId,
                     }
                     : {}) }/>;
         else if (currentTabKind === 'css-styles')
-            content = 'todo';
+            content = <CustomClassStylesList
+                blockId={ blockCopyForEditForm.id }
+                blockTypeName={ blockCopyForEditForm.type }
+                checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
+                stylesStateId={ stylesStateId }
+                styleClasses={ blockCopyForEditForm.styleClasses }/>;
         //
         return <div>
             { this.tabsInfo.length > 1 ?
@@ -173,7 +183,7 @@ function closeFloatingDialogIfBlockIsDeletedOrReplaced(event, userCtx) {
  * }} BlockEditPopupProps */
 
 /** @typedef {{
- *   blockCopyForEditForm: {[key: string]: any;};
+ *   blockCopyForEditForm: BlockProto;
  *   currentTabKind: tabKind2;
  *   lastBlockTreeChangeEventInfo?: {ctx: stateChangeContext; flags: blockPropValueChangeFlags; isUndoOrRedo: boolean;};
  *   stylesStateId: number;

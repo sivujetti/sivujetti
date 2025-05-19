@@ -8,9 +8,9 @@ import {
     MenuSectionAbstract,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
+import BlockEditPopup from '../../main-column/popups/BlockEditPopup.jsx';
 import {openPageDeleteDialog} from '../../main-column/popups/PageDeleteDialog.jsx';
 import {isMainColumnViewUrl} from '../../main-column/MainColumnViews.jsx';
-import BlockEditPopup from '../block/BlockEditPopup.jsx';
 import BlockTree from '../block/BlockTree.jsx';
 
 const globalBlockTreeEventsThatNeedRefresh = [

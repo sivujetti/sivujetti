@@ -16,8 +16,6 @@ class AutoBlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        if (!isRootSectionOrRow(this.props.block)) // sanity
-            throw new Error('');
         this.updateState(this.props);
     }
     /**
@@ -177,7 +175,8 @@ function isRootSectionOrRow(block) {
  * }} TabConfigMap */
 
 /** @typedef {{
- *   id: string;cfgEntity: ClassifierCfgEntity|DynamicCssCfgEntity;
+ *   id: string;
+ *   cfgEntity: ClassifierCfgEntity|DynamicCssCfgEntity;
  * }} ConfigTabItem */
 
 /** @typedef {{

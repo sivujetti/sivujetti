@@ -196,9 +196,14 @@ interface BlockStub {
     styleClasses: string; // Example 'j-Type-unit-3 j-Type-unit-12'
 }
 
-interface Block extends BlockStub {
+interface BlockProto extends BlockStub {
     title: string;
     renderer: string; // Example 'sivujetti:block-auto'
+    children: Array<BlockProto>;
+    propsData: Array<{key: string; value: string|number|Array|{[key: string]: any;};}>;
+}
+
+interface Block extends BlockProto {
     children: Array<Block>;
     [typeSpecificProps: string]: any;
 }
@@ -366,7 +371,7 @@ interface Env {
 
 interface ContextMenuController {
     getLinks(): Array<ContextMenuLink>;
-    onItemClicked(item: ContextMenuLink, e: Event): undefined|false;
+    onItemClicked(item: ContextMenuLink, e: Event): false|void;
     onMenuClosed(): void;
     placement?: 'right';
     zIndex?: number;

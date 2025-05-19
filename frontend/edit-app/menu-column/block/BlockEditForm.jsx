@@ -335,3 +335,4 @@ function getUserStyleTabHasContent({styleClasses}, tabsInfo) {
 }
 
 export default BlockEditForm;
+export {createIsChunkStyleEnabledChecker};

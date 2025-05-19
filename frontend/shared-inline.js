@@ -8,13 +8,14 @@ by the bundler.
  * @returns {string} 'Meta' if macOS, 'Control' if Windows or anything else todo share 
  */
 function getMetaKey() {
+    // @ts-ignore Property 'userAgentData' does not exist on type 'Navigator'
     return ((navigator.userAgentData && navigator.userAgentData.platform === 'macOS') ||
             (navigator.platform === 'MacIntel')) ? 'Meta' : 'Control';
 }
 
 /**
  * @param {HTMLElement} node
- * @param {HTMLElement} root
+ * @param {HTMLElement & {children: NodeListOf<HTMLElement>;}} root
  * @returns {HTMLElement}
  */
 function getNormalizedInitialHoverCandidate(node, root) {
@@ -33,7 +34,7 @@ const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAA
 
 /**
  * @param {string} src
- * @param {urlUtils} urlUtils
+ * @param {any} urlUtils
  * @param {string} fallback = placeholderImageSrc
  * @returns {string}
  */
@@ -81,16 +82,29 @@ function cloneDeep(obj) {
  */
 function getBlockEl(blockId, nthOfId = 1, from = document.body) {
     if (nthOfId === 1) return from.querySelector(`[data-block="${blockId}"]`);
+    /** @type {NodeListOf<HTMLElement>} */
     const all = from.querySelectorAll(`[data-block="${blockId}"]`);
     return all[nthOfId - 1] || null;
 }
 
+/**
+ * @param {BlockProto} proto
+ * @returns {Block}
+ */
+function toBlock(proto) {
+    const out = {...proto};
+    for (const {key, value} of proto.propsData)
+        out[key] = value;
+    return out;
+}
+
 export {
-    traverseRecursively,
-    placeholderImageSrc,
-    getBlockEl,
-    getNormalizedInitialHoverCandidate,
-    getMetaKey,
-    completeImageSrc,
     cloneDeep,
+    completeImageSrc,
+    getBlockEl,
+    getMetaKey,
+    getNormalizedInitialHoverCandidate,
+    placeholderImageSrc,
+    toBlock,
+    traverseRecursively,
 };

@@ -3,6 +3,7 @@ import {
     env,
     urlUtils,
     api,
+    LoadingSpinner,
 } from '@sivujetti-commons-for-edit-app';
 import {createContentTemplateSpawnDescriptor, fetchContentTemplates} from '../menu-column/block/add-content-popup-tabs.jsx';
 import {pushInserBlockOp} from '../menu-column/block/AddContentPopup.jsx';
@@ -26,7 +27,7 @@ class ContentTemplatePicker extends preact.Component {
                     { __(itm.title || itm.blockBlueprints[0].initialDefaultsData.title) }
                 </div>
             </button>
-        ) : <span class="text-tinyish ml-1 mt-1">{ `__('No templates in category "%s".', tab.text)` }</span> : '' }</div>;
+        ) : <span class="text-tinyish ml-1 mt-1">{ `__('No templates in category "%s".', tab.text)` }</span> : <LoadingSpinner/> }</div>;
     }
     /**
      * @access private

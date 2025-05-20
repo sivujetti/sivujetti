@@ -394,6 +394,17 @@ function createIsDuplicateCustomClassChunkChecker(curCustomClassChunks = null) {
 }
 
 /**
+ * @returns {(chunk: StyleChunk, additional: Array<StyleChunk> = null) => boolean}
+ */
+function createIsExistingCustomClassChunkChecker() {
+    const existingClses = getAllCustomClassChunks().map(s => extractClassName(s));
+    return (chunk, additional = null) => {
+        const lookFor = extractClassName(chunk);
+        return [...(additional ? additional.map(s => extractClassName(s)) : []), existingClses].indexOf(lookFor) > -1;
+    };
+}
+
+/**
  * @param {string} blockId
  * @param {'add'|'remove'} type
  * @param {string} clsOrClses 'foo' or 'foo bar'
@@ -452,5 +463,6 @@ export {
     ccPlaceholder,
     createCustomClassChunkClassNameCreator,
     createIsDuplicateCustomClassChunkChecker,
+    createIsExistingCustomClassChunkChecker,
     extractClassName,
 };

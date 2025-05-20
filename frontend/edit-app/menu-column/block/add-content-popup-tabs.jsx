@@ -15,6 +15,7 @@ import {
     ccPlaceholder,
     createCustomClassChunkClassNameCreator,
     createIsDuplicateCustomClassChunkChecker,
+    createIsExistingCustomClassChunkChecker,
 } from '../block-styles/CustomClassStylesList.jsx';
 import {mergeItems} from '../SaveButtonFuncs.js';
 import {createStyleShunkcScssIdReplacer} from './BlockTreeFuncs.js';
@@ -277,6 +278,9 @@ function fetchContentTemplates() {
  * @returns {SpawnDescriptor}
  */
 function createContentTemplateSpawnDescriptor(template) {
+    if (isV2ContentTemplate(template))
+        return createV2ContentTemplateSpawnDescriptor(template);
+
     if (template.blockBlueprints.length > 1)
         throw new Error('template.blockBlueprints.length > 1 not implemented yet');
 
@@ -284,7 +288,7 @@ function createContentTemplateSpawnDescriptor(template) {
     const styles = [];
     let spawnClassName = null;
     let checkIsDuplicateChunk = null;
-    let newBlock = createBlockFromBlueprint(root, ({initialStyles}, block) => {
+    const newBlock = createBlockFromBlueprint(root, ({initialStyles}, block) => {
         if (block.styleClasses.indexOf(ccPlaceholder) < 0) return;
 
         if (initialStyles.length !== 1)
@@ -320,6 +324,42 @@ function createContentTemplateSpawnDescriptor(template) {
     });
 
     return {block: newBlock, isReusable: false, styles};
+}
+
+/**
+ * @param {ContentTemplate} template
+ * @returns {SpawnDescriptor}
+ */
+function createV2ContentTemplateSpawnDescriptor(template) {
+    if (template.blockBlueprints.length > 1)
+        throw new Error('template.blockBlueprints.length > 1 not implemented yet');
+
+    const root = template.blockBlueprints[0];
+    const styles = [];
+    let checkChunkExist = null;
+    const newBlock = createBlockFromBlueprint(root, ({initialStyles}, _block) => {
+        if (!initialStyles.length) return;
+
+        if (initialStyles.some(s => s.scope.kind !== 'custom-class'))
+            throw new Error('template.blockBlueprints[*].initialStyles[*].kind !== "custom-class" not implemented yet');
+
+        if (!checkChunkExist) checkChunkExist = createIsExistingCustomClassChunkChecker();
+
+        for (const chunk of initialStyles) {
+            if (!checkChunkExist(chunk, styles))
+                styles.push({...chunk});
+        }
+    });
+
+    return {block: newBlock, isReusable: false, styles};
+}
+
+/**
+ * @param {ContentTemplate} template
+ * @returns {boolean}
+ */
+function isV2ContentTemplate(template) {
+    return template.category.split(':').length > 1;
 }
 
 /**

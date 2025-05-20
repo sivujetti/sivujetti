@@ -515,8 +515,7 @@ class BlockTree extends preact.Component {
                 behaviourDef,
                 onDataPropChanged: (val, prop) => {
                     const cls = behaviourDef.serializeData({[prop]: true});
-                    const [block] = blockTreeUtils.findBlockMultiTree(blockId,
-                        api.saveButton.getInstance().getChannelState('theBlockTree'));
+                    const [block] = blockTreeUtils.findBlockMultiTree(blockId, blockTreeUtils.getMainTree());
                     this.addOrClearBehaviourOrBehaviourData(val ? 'add' : 'remove', cls, undefined, block);
                 },
             },

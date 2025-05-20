@@ -13,12 +13,12 @@ import {
  * @returns {['theBlockTree', Array<Block>, StateChangeUserContext, blockPropValueChangeFlags]|['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext, blockPropValueChangeFlags]}
  */
 function createUpdateBlockPropOp(blockId, getChanges, flags = null, saveButton = api.saveButton.getInstance()) {
-    const root1 = blockTreeUtils.findBlockMultiTree(blockId, saveButton.getChannelState('theBlockTree'))[3];
+    const root1 = blockTreeUtils.findBlockMultiTree(blockId, blockTreeUtils.getMainTree(saveButton))[3];
     const treeId = blockTreeUtils.getIdFor(root1);
     if (treeId === 'main')
         return [
             'theBlockTree',
-            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+            blockTreeUtils.createMutation(blockTreeUtils.getMainTree(saveButton), newTreeCopy => {
                 const [blockRefMut] = blockTreeUtils.findBlock(blockId, newTreeCopy);
                 writeBlockProps(blockRefMut, getChanges(blockRefMut));
                 return newTreeCopy;

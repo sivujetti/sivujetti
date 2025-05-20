@@ -21,7 +21,7 @@ function createBlockTreeInsertOrReplaceAtOp(blockOrBranch, targetTrid, targetBlo
     if (targetTrid === 'main')
         return [
             'theBlockTree',
-            blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
+            blockTreeUtils.createMutation(blockTreeUtils.getMainTree(), newTreeCopy => {
                 if (!isReplace) insertAfterBeforeOrAsChild(blockOrBranch, newTreeCopy, targetBlockId, insertPos);
                 else replaceAt(blockOrBranch, newTreeCopy, targetBlockId);
                 return newTreeCopy;
@@ -86,7 +86,7 @@ function createBlockTreeMoveToOps(dragInf, dropInf, dropPos) {
 function createMoveWithinMainTreeOp(dragBlockId, dropBlockId, dropPos) {
     return [
         'theBlockTree',
-        blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
+        blockTreeUtils.createMutation(blockTreeUtils.getMainTree(), newTreeCopy => {
             const [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragBlockId, newTreeCopy);
             const [dropBlock, dropBranch] = blockTreeUtils.findBlock(dropBlockId, newTreeCopy);
             swapBlocksSameTree(dragBlock, dragBranch, dropBlock, dropBranch, dropPos);
@@ -128,7 +128,7 @@ function createMoveFromGbtToMainTreeOps(dragBlockId, dragTreeId, dropBlockId, dr
     return [
         [
             'theBlockTree',
-            blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
+            blockTreeUtils.createMutation(blockTreeUtils.getMainTree(), newTreeCopy => {
                 const block = blockTreeUtils.findBlock(dragBlockId, blockTreeUtils.getTree(dragTreeId).blocks)[0];
                 insertAfterBeforeOrAsChild(block, newTreeCopy, dropBlockId, dropPos);
                 return newTreeCopy;
@@ -179,7 +179,7 @@ function createMoveBetweenTwoGbtsOp(dragBlockId, dragTreeId, dropBlockId, dropTr
  * @returns {[['theBlockTree', Array<Block>, StateChangeUserContext], ['globalBlockTrees', Array<GlobalBlockTree>, StateChangeUserContext]]}
  */
 function createMoveFromMainToGbtTreeOps(dragBlockId, dropTreeId, dropBlockId, dropPos) {
-    const mainTree = api.saveButton.getInstance().getChannelState('theBlockTree');
+    const mainTree = blockTreeUtils.getMainTree();
     return [
         [
             'theBlockTree',

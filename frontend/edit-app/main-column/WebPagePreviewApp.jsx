@@ -10,6 +10,7 @@ import {cloneDeep, getMetaKey, getBlockEl, traverseRecursively} from '../../shar
 import {isMetaBlock} from '../includes/block/utils.js';
 import globalData from '../includes/globalData.js';
 import {createTrier} from '../includes/utils.js';
+import {cloneBlock} from '../menu-column/block/BlockTreeFuncs.js';
 import {registerSyncedItemsUpdater} from '../menu-column/SaveButtonFuncs.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 import {showAddContentOrRowPopup, showAddRootSectionPopup} from './WebPagePreviewAppFuncs.js';
@@ -282,7 +283,7 @@ class WebPagePreviewApp extends preact.Component {
                             broadcastCurrentPageData(e);
                         } else if (e.data[0] === 'onBlockHoverStarted') {
                             const [_, blockId, nthOfId, blockRect] = e.data; // [_, string, number, DOMRect]
-                            const block = blockRect ? blockTreeUtils.findBlockMultiTree(blockId, blockTreeUtils.getTree('main'))[0] : null;
+                            const block = blockRect ? blockTreeUtils.findBlockMultiTree(blockId, blockTreeUtils.getMainTree())[0] : null;
                             if (block) this.highlightBlock(block, nthOfId, blockRect);
                         } else if (e.data[0] === 'onBlockHoverEnded') {
                             const [_, blockId] = e.data; // [_, string]
@@ -315,6 +316,10 @@ class WebPagePreviewApp extends preact.Component {
                                 else
                                     this.sendMessageToReRenderer(['triggerAddContentOrPlaceholderButtonClick', (!(newBlock.type === 'Wrapper') ? newBlock.children[0] : newBlock.children[0].children[0]).id]);
                             });
+                        } else if (e.data[0] === 'onCloneButtonClicked') {
+                            /** @type {[any, string]} */
+                            const [_, blockId] = e.data;
+                            cloneBlock(blockId, 'main', false);
                         }
                     });
                     this.messageChannel.port1.start();

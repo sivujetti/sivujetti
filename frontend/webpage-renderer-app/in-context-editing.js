@@ -116,6 +116,7 @@ function createInContextEditingApp() {
          * @param {ReRenderingWebPage} reRenderingWebPage
          * @param {HTMLElement} toEl
          */
+        // @ts-ignore
         _init(reRenderingWebPage, toEl) {
             const el = document.createElement('style');
             el.setAttribute('data-injected-by', 'sivujetti-in-context-editing-app');
@@ -138,6 +139,7 @@ function createInContextEditingApp() {
             template.innerHTML = createTemplateHtml();
             shadow.appendChild(template.content);
 
+            // @ts-ignore Type 'Element' is missing the following properties from type 'HTMLElement'
             [rect1, rect2, rect3] = [...shadow.querySelectorAll('.rect')];
 
             addButtonsHandlers(rect1);
@@ -159,8 +161,9 @@ function createInContextEditingApp() {
                         {x: e.clientX, y: e.clientY}]);
                 });
                 cloneBtn.addEventListener('click', e => {
-                    console.log(`${type}: cloneBtn clicked`);
                     e.stopPropagation();
+                    reRenderingWebPage.messagePortToEditApp.postMessage(['onCloneButtonClicked',
+                        rect.getAttribute('data-block-id')]);
                 });
                 delBtn.addEventListener('click', e => {
                     console.log(`${type}: delBtn clicked`);

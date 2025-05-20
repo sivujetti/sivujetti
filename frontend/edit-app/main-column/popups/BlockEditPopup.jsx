@@ -50,7 +50,7 @@ class BlockEditPopup extends preact.Component {
                 isIt
             );
             if (doCheckDiffForEditForm) {
-                const theTree = theTreeIn || saveButton.getChannelState('theBlockTree');
+                const theTree = theTreeIn || blockTreeUtils.getMainTree(saveButton);
                 const block = doCheckDiffForEditForm && this.state.blockCopyForEditForm
                     ? blockTreeUtils.findBlockMultiTree(this.state.blockCopyForEditForm.id, theTree)[0]
                     : null;
@@ -78,7 +78,7 @@ class BlockEditPopup extends preact.Component {
         }),
 
         saveButton.subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
-            if (!doesTabContainStylesStuff(this.state.currentTabKind)) return;
+            if (!this.includeVisualStylesTab) return;
             if (ctx === 'initial') return;
             this.setState({stylesStateId: bundle.id});
         })];
@@ -158,15 +158,6 @@ class BlockEditPopup extends preact.Component {
 
         pushBlockChanges(this.props.block.id, changes, flags);
     }
-}
-
-/**
- * @param {tabKind2} tabKind
- * @returns {boolean}
- * @access private
- */
-function doesTabContainStylesStuff(tabKind) {
-    return tabKind !== 'css-styles';
 }
 
 /**

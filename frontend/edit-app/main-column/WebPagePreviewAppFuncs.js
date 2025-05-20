@@ -49,7 +49,7 @@ function showAddContentOrRowPopup(instructions, blockId, buttonRect, onAfterInse
         onAfterInsertedBlock
     };
     if (!isPlaceholderReplace) {
-        const [refBlock, _branch, parentBlock] = blockTreeUtils.findBlock(blockId, blockTreeUtils.getTree('main'));
+        const [refBlock, _branch, parentBlock] = blockTreeUtils.findBlock(blockId, blockTreeUtils.getMainTree());
         if (parentBlock.type === 'Columns' && parentBlock.numColumns > 1 &&
             !(refBlock.type === 'Wrapper' && refBlock.isCell)) {
             props.insertPos = 'as-child';

@@ -109,18 +109,8 @@ function createBlockDescriptorFromLi(li) {
     } else
         return {blockId, isStoredToTreeId, isGbtRefRoot: true, data: {
             refBlockId: maybeRefBlockId,
-            refBlockIsStoredToTreeId: blockTreeUtils.getIsStoredToTreeId(maybeRefBlockId, api.saveButton.getInstance().getChannelState('theBlockTree')),
+            refBlockIsStoredToTreeId: blockTreeUtils.getIsStoredToTreeId(maybeRefBlockId, blockTreeUtils.getMainTree()),
         }};
-}
-
-/**
- * @param {Block} block
- * @param {SaveButton} saveButton
- * @returns {BlockDescriptor}
- */
-function createBlockDescriptor(block, saveButton) {
-    const isStoredToTreeId = blockTreeUtils.getIsStoredToTreeId(block.id, saveButton.getChannelState('theBlockTree'));
-    return {blockId: block.id, isStoredToTreeId, isGbtRefRoot: false, data: null};
 }
 
 /**
@@ -142,4 +132,4 @@ function callGetBlockPropChangesEvent(blockTypeName, event, args) {
 }
 
 export default createDndController;
-export {createBlockDescriptor, createBlockDescriptorFromLi, callGetBlockPropChangesEvent};
+export {createBlockDescriptorFromLi, callGetBlockPropChangesEvent};

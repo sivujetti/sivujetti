@@ -315,7 +315,7 @@ function createDeleteBlockOp(blockToDeleteId, blockToDeleteTrid, wasCurrentlySel
     if (blockToDeleteTrid === 'main')
         return [
             'theBlockTree',
-            blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
+            blockTreeUtils.createMutation(blockTreeUtils.getMainTree(), newTreeCopy => {
                 const [ref, refBranch] = blockTreeUtils.findBlock(blockToDeleteId, newTreeCopy);
                 removeFrom(ref, refBranch); // mutates newTreeCopy
                 return newTreeCopy;
@@ -351,7 +351,7 @@ function createConvertBlockToGlobalOps(newGbRefBlock, newGbt, originalBlockId, o
         // Swap original block/branch with the new 'GlobalBlockReference' block
         const updateBlockTreeOp = [
             'theBlockTree',
-            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+            blockTreeUtils.createMutation(blockTreeUtils.getMainTree(saveButton), newTreeCopy => {
                 replaceAt(newGbRefBlock, newTreeCopy, originalBlockId);
                 return newTreeCopy;
             }),
@@ -389,7 +389,7 @@ function createDuplicateBlockOp(blockId, blockIsStoredTo, saveButton) {
     let cloned, channel, newState;
     if (blockIsStoredTo === 'main') {
         channel = 'theBlockTree';
-        newState = blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+        newState = blockTreeUtils.createMutation(blockTreeUtils.getMainTree(saveButton), newTreeCopy => {
             cloned = duplicateBlockWithin(blockId, newTreeCopy);
             return newTreeCopy;
         });
@@ -440,7 +440,7 @@ function getVisibleLisCount(uiStateEntry) {
  * @returns {(gbtRefBlock: Block) => Array<Block>}
  */
 function createGetTreeBlocksFn() {
-    if (api.saveButton.getInstance().getChannelState('theBlockTree'))
+    if (blockTreeUtils.getMainTree())
         return ({globalBlockTreeId}) => blockTreeUtils.getTree(globalBlockTreeId).blocks;
     return _ => [];
 }
@@ -516,11 +516,12 @@ function hasBehaviour({styleClasses}, behaviourName) {
  * @param {string} blockIsStoredTo
  * @access private
  */
-function cloneBlock(blockId, blockIsStoredTo) {
+function cloneBlock(blockId, blockIsStoredTo, scrollToBlock = true) {
     const saveButton = api.saveButton.getInstance();
     const [op, cloned] = createDuplicateBlockOp(blockId, blockIsStoredTo, saveButton);
     saveButton.pushOp(...op);
-    api.webPagePreview.scrollToBlockAsync(cloned, 1);
+    if (scrollToBlock)
+        api.webPagePreview.scrollToBlockAsync(cloned, 1);
 }
 
 /**
@@ -562,7 +563,7 @@ function convertBlockToGlobal(data, originalBlock, originalBlockIsStoredTo) {
  */
 function saveBlockAsReusable(data, block) {
     const saveButton = api.saveButton.getInstance();
-    const newTree = objectUtils.cloneDeep(saveButton.getChannelState('theBlockTree'));
+    const newTree = objectUtils.cloneDeep(blockTreeUtils.getMainTree(saveButton));
     const [newReusableRootRef] = blockTreeUtils.findBlockMultiTree(block.id, newTree);
     // 1. Mutate new block tree (update `newReusable.blockBlueprints[0].title`)
     newReusableRootRef.title = data.name;

@@ -142,8 +142,15 @@ const blockTreeUtils = {
      */
     getTree(trid, gbtStoreState = null) {
         if (trid === 'main')
-            return api.saveButton.getInstance().getChannelState('theBlockTree');
+            return this.getMainTree();
         return arrayUtils.findById(gbtStoreState || api.saveButton.getInstance().getChannelState('globalBlockTrees'), trid);
+    },
+    /**
+     * @param {SaveButton} saveButton = api.saveButton.getInstance()
+     * @returns {Array<Block>}
+     */
+    getMainTree(saveButton = api.saveButton.getInstance()) {
+        return saveButton.getChannelState('theBlockTree');
     },
     /**
      * @param {string} trid 'main' or 'id-of-some-global-block-tree'

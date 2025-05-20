@@ -102,7 +102,7 @@ function createNewCurrentPageData(isDuplicated) {
     const placeholderPage = saveButton.getChannelState('currentPageData');
     const title = __(placeholderPage.title) + (!isDuplicated ? '' : ` (${__('Copy')})`);
     const slug = makeSlug(title);
-    const blocks = saveButton.getChannelState('theBlockTree');
+    const blocks = blockTreeUtils.getMainTree(saveButton);
     const patchedBlocks = !isDuplicated ? null : blockTreeUtils.createMutation(blocks, newTreeCopy => {
         traverseRecursively(newTreeCopy, bRef => {
             bRef.id = generatePushID(true);

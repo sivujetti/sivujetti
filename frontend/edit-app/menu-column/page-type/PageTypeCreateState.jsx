@@ -1,6 +1,7 @@
 import {
     __,
     api,
+    blockTreeUtils,
     MenuSection,
     objectUtils,
     urlUtils,
@@ -155,7 +156,7 @@ function createAddPageTypeSaveOpFilter(data, layout) {
         if (!pageTypesHistory) return null;
 
         const blockTreeHistory = out.find(({channelName}) => channelName === 'theBlockTree');
-        const latestBlockTree = blockTreeHistory ? blockTreeHistory.latest : api.saveButton.getInstance().getChannelState('theBlockTree');
+        const latestBlockTree = blockTreeHistory ? blockTreeHistory.latest : blockTreeUtils.getMainTree();
         // #1
         const l = pageTypesHistory.latest.length - 1;
         const belongsToLayout = createBelongsToLayoutFn(layout);

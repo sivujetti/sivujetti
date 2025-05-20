@@ -68,7 +68,7 @@ class BlockEditForm extends preact.Component {
                 isIt
             );
             if (doCheckDiffForEditForm) {
-                const theTree = theTreeIn || saveButton.getChannelState('theBlockTree');
+                const theTree = theTreeIn || blockTreeUtils.getMainTree(saveButton);
                 const [block, _branch, _parent, root] = doCheckDiffForEditForm && this.state.blockCopyForEditForm
                     ? blockTreeUtils.findBlockMultiTree(this.state.blockCopyForEditForm.id, theTree)
                     : [null, null, null, null];

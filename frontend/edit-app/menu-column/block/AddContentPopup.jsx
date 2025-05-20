@@ -1,6 +1,8 @@
 import {
     __,
     api,
+    arrayUtils,
+    blockTreeUtils,
     scssWizard,
     Tabs,
 } from '@sivujetti-commons-for-edit-app';
@@ -46,7 +48,7 @@ class AddContentPopup extends preact.Component {
                     const [trid, blockId] = getRealTarget(this.props.targetInfo, null);
                     if (trid !== 'main') // Inner gbt block, can't be a root level block
                         return false;
-                    const block = api.saveButton.getInstance().getChannelState('theBlockTree').find(({id}) => id === blockId);
+                    const block = arrayUtils.findById(blockTreeUtils.getMainTree(), blockId);
                     const isRootLevel = !!block;
                     return isRootLevel;
                 },

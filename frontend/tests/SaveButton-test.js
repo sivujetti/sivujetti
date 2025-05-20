@@ -37,7 +37,7 @@ QUnit.module('SaveButton.jsx', hooks => {
             const info = debug(saveButton);
             assert.equal(info.states['theBlockTree'].length, 1, 'Should clear throttled items');
             assert.deepEqual(info.states['theBlockTree'].at(-1), finalNonThrottled, 'Should only pick latest item');
-            assert.deepEqual(saveButton.getChannelState('theBlockTree'), finalNonThrottled, 'Should return latest item');
+            assert.deepEqual(blockTreeUtils.getMainTree(saveButton), finalNonThrottled, 'Should return latest item');
             assert.equal(info.opHistoryCursor, 1);
             assert.equal(info.opHistory.length, 1);
             assert.equal(info.opHistory.at(-1).flags, null);
@@ -135,7 +135,7 @@ QUnit.module('SaveButton.jsx', hooks => {
 
         assert.deepEqual(saveButton.getChannelState('globalBlockTrees', false), null,
             'Should clear "globalBlockTrees" channel\'s state');
-        assert.deepEqual(saveButton.getChannelState('theBlockTree'), [...state.blockTreeStates.at(-1)],
+        assert.deepEqual(blockTreeUtils.getMainTree(saveButton), [...state.blockTreeStates.at(-1)],
             'Should keep "theBlockTree" channel\'s state');
         assert.deepEqual(info.states['globalBlockTrees'], []);
         assert.equal(info.stateCursors['globalBlockTrees'], 0);
@@ -168,7 +168,7 @@ QUnit.module('SaveButton.jsx', hooks => {
 
         assert.deepEqual(saveButton.getChannelState('globalBlockTrees', false), null,
             'Should clear "globalBlockTrees" channel\'s state');
-        assert.deepEqual(saveButton.getChannelState('theBlockTree'), [...state.blockTreeStates.at(-1)],
+        assert.deepEqual(blockTreeUtils.getMainTree(saveButton), [...state.blockTreeStates.at(-1)],
             'Should keep "theBlockTree" channel\'s state');
         assert.deepEqual(info.states['globalBlockTrees'], []);
         assert.equal(info.stateCursors['globalBlockTrees'], 0);

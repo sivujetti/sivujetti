@@ -89,10 +89,14 @@ class CrudList extends preact.Component {
                     this.setState({item: updatedItems, editItem: updatedItems[this.state.editItemIdx]});
                     this.emitListMutated(updatedItems, key, subKey);
                 } }
-                done={ () => this.setState({tab: 'default', editItem: null, editItemIdx: null}) }
+                done={ () => {
+                    this.setState({tab: 'default', editItem: null, editItemIdx: null});
+                    if (this.props.onTabChanged) this.props.onTabChanged('default');
+                } }
                 ref={ this.editFormRef }/>;
         }
     }
+    osds() {}
     /**
      * @param {T} item
      * @param {number} i
@@ -123,6 +127,7 @@ class CrudList extends preact.Component {
     handleContextMenuLinkClicked(link) {
         if (link.id === 'edit-option') {
             this.setState({tab: 'edit', editItem: this.itemWithNavOpened, editItemIdx: this.itemWithNavOpenedIdx});
+            if (this.props.onTabChanged) this.props.onTabChanged('edit');
         } else if (link.id === 'delete-option') {
             const items = this.state.items.filter((_, i) => i !== this.itemWithNavOpenedIdx);
             if (!this.state.editItem)
@@ -166,7 +171,7 @@ class CrudList extends preact.Component {
         for (const item of items) {
             if (item.key)
                 throw new Error('Expected item.key not to exist');
-            if (!Object.hasOwn(item, this.props.itemTitleKey))
+            if (!this.props.getTitle && !Object.hasOwn(item, this.props.itemTitleKey))
                 env.window.console.warn('item', item, ' has no property ', this.props.itemTitleKey, ' (props.titleKey)');
         }
         return items.map(item => ({...item, ...{

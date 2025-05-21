@@ -34,16 +34,8 @@ const toolbarBundles = {
     ]
 };
 
+/** @extends {preact.Component<{name: string; value: string; onChange: (html: string, source: 'default'|'undo'|null|undefined) => any; onBlur?: () => any; toolbarBundle?: 'simplest'|'simplestWithLink'|'full'; onInit?: (editor: QuillEditor) => any; enableHistory?: boolean;}, any>} */
 class QuillEditor extends preact.Component {
-    /**
-     * @param {{name: string; value: string; onChange: (html: string, source: 'default'|'undo'|null|undefined) => any; onBlur?: () => any; toolbarBundle?: 'simplest'|'simplestWithLink'|'full'; onInit?: (editor: QuillEditor) => any;}} props
-     */
-    constructor(props) {
-        super(props);
-        this.quill = null;
-        this.myChangeSource = 'default';
-        this.contentMaybeHasLinks = false;
-    }
     /**
      * @param {string} newContents @allow raw html
      * @param {'default'|'undo'|'my-undo'} source = 'default'
@@ -58,50 +50,35 @@ class QuillEditor extends preact.Component {
     /**
      * @access protected
      */
+    componentWillMount() {
+        this.quill = null;
+        this.myChangeSource = 'default';
+        this.contentMaybeHasLinks = false;
+    }
+    /**
+     * @access protected
+     */
     componentDidMount() {
         const type = this.props.toolbarBundle || 'simplest';
         let toolbar = api.applyFilters('quillCreateToolbarConfig', toolbarBundles[type], type);
         if (!toolbar) toolbar = api.applyFilters('quillCreateToolbarConfig', toolbarBundles['simplest'], 'simplest');
         this.contentMaybeHasLinks = toolbar.flat().indexOf('link') > -1;
         //
-        const self = this;
-        const modulesBase = {toolbar, clipboard: {matchVisual: false}};
         this.quill = new window.Quill(`#editor-${this.props.name}`, {
-            modules: Object.assign(modulesBase, this.props.enableHistory === true
-                ? null
-                : {history: {maxStack: 0, userOnly: true,},}),
+            modules: {
+                toolbar,
+                clipboard: {matchVisual: false},
+                ...(this.props.enableHistory === true
+                    ? {}
+                    : {history: {maxStack: 0, userOnly: true}})
+            },
             theme: 'snow',
-            sivujettiApi: {openUrlPicker(_linkText, url) {
-               const mode = determineModeFrom(url)[0];
-               const norm = url.split('_edit')[1] || url; // '/sivujetti/index.php?q=/_edit#foo' -> '#foo'
-                                                          // '/sivujetti/index.php?q=/_edit' -> ''
-               floatingDialog.open(PickUrlDialog, {
-                   title: __('Choose a link'),
-                   width: 480,
-                   height: getHeight('default')[0],
-               }, {
-                   mode,
-                   url: norm,
-                   dialog: floatingDialog,
-                   onConfirm: url2 => {
-                       const {quill} = self;
-                       const {scrollTop} = quill.root;
-                       const url3 = url2 || '-';
-                       if (quill.theme.tooltip.linkRange) {
-                           quill.formatText(quill.theme.tooltip.linkRange, 'link', url3, window.Quill.sources.USER);
-                           delete quill.theme.tooltip.linkRange;
-                       } else {
-                           quill.theme.tooltip.restoreFocus();
-                           quill.format('link', url3, window.Quill.sources.USER);
-                       }
-                       quill.root.scrollTop = scrollTop;
-                   },
-               });
-            }},
+            sivujettiApi: createApi(this),
         });
         if (this.props.onInit) this.props.onInit(this);
         this.quill.on('text-change', (_delta, _oldDelta, _source) => {
             const normalized = this.getEditorHtml();
+            // @ts-ignore Argument of type 'string' is not assignable to parameter of type '"default" | "undo"'
             this.props.onChange(normalized, this.myChangeSource);
         });
         if (this.props.onBlur)
@@ -154,6 +131,50 @@ class QuillEditor extends preact.Component {
         });
         return out;
     }
+}
+
+/**
+ * @param {QuillEditor} self
+ * @returns {{openUrlPicker(linkText: string, url: string): void; rebuild(): void;}}
+ */
+function createApi(self) {
+    return {
+        openUrlPicker(_linkText, url) {
+            const mode = determineModeFrom(url)[0];
+            const norm = url.split('_edit')[1] || url; // '/sivujetti/index.php?q=/_edit#foo' -> '#foo'
+                                                        // '/sivujetti/index.php?q=/_edit' -> ''
+            floatingDialog.open(PickUrlDialog, {
+                title: __('Choose a link'),
+                width: 480,
+                // @ts-ignore Argument of type '"default"' is not assignable to parameter of type 'urlMode'
+                height: getHeight('default')[0],
+            }, {
+                mode,
+                url: norm,
+                dialog: floatingDialog,
+                onConfirm: url2 => {
+                    const {quill} = self;
+                    const {scrollTop} = quill.root;
+                    const url3 = url2 || '-';
+                    if (quill.theme.tooltip.linkRange) {
+                        quill.formatText(quill.theme.tooltip.linkRange, 'link', url3, window.Quill.sources.USER);
+                        delete quill.theme.tooltip.linkRange;
+                    } else {
+                        quill.theme.tooltip.restoreFocus();
+                        quill.format('link', url3, window.Quill.sources.USER);
+                    }
+                    quill.root.scrollTop = scrollTop;
+                },
+            });
+        },
+        rebuild() {
+            self.quill.theme.modules.toolbar.container.remove();
+            self.quill.theme.tooltip.root.remove();
+            setTimeout(() => {
+                self.componentDidMount();
+            }, 400);
+        },
+    };
 }
 
 /**

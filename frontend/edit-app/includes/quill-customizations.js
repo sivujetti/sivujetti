@@ -3,6 +3,7 @@ import {
     api,
     determineModeFromPreview,
     doubleNormalizeUrl,
+    events,
     getVisibleSlug,
     iconAsString,
     stringUtils,
@@ -13,8 +14,6 @@ import {getRegisteredQuillMiscStyleOptions} from './quill-funcs.js';
 const Quill = window.Quill;
 
 class MySnowTheme extends Quill.import('themes/snow') {
-    // sivujettiApi;
-    // handleMouseUpOutsideWindow;
     /**
      * @inheritdoc
      */
@@ -32,6 +31,8 @@ class MySnowTheme extends Quill.import('themes/snow') {
      */
     destroy() {
         window.removeEventListener('mouseup', this.handleMouseUpOutsideWindow);
+        if (this.unregisterRebuildListener)
+            this.unregisterRebuildListener();
     }
     /**
      * @inheritdoc
@@ -185,6 +186,11 @@ class MySnowTheme extends Quill.import('themes/snow') {
                 doOpenManageMiscStylesDialog(e);
         });
         picker.options.appendChild(configBtn);
+
+        this.unregisterRebuildListener = events.on('misc-wysiwyg-styles-updated', _newOptions => {
+            this.destroy();
+            this.sivujettiApi.rebuild();
+        });
     }
     /**
      * @access private
@@ -449,10 +455,20 @@ function getOrCreateHeadStyleEl() {
 }
 
 const defClors = [
-    '#d0efff78',
-    '#d0ffd078',
-    '#ffd3d078',
-    '#e1d0ff78',
+    '#e8f7fe', // hsl(199.09deg 91.67% 95.29%);
+    '#e9ffe9', // hsl(120deg 100% 95.69%);
+    '#feeae8', // hsl(5.45deg 91.67% 95.29%);
+    '#f2e9ff', // hsl(264.55deg 100% 95.69%);
+    '#ffffea', // hsl(60deg 100% 95.88%);
+    '#f7ebe2', // hsl(25.71deg 56.76% 92.75%);
+
+    // --hue: 0.9, --sat: 0.8, --light: 0.8
+    '#96efee', // hsl(calc(199.09deg * var(--hue)) calc(91.67% * var(--sat)) calc(95.29% * var(--light)));
+    '#a7f394', // hsl(calc(120deg * var(--hue)) calc(100% * var(--sat)) calc(95.69% * var(--light)));
+    '#ef9d96', // hsl(calc(5.45deg * var(--hue)) calc(91.67% * var(--sat)) calc(95.29% * var(--light)));
+    '#9397f3', // hsl(calc(264.55deg * var(--hue)) calc(100% * var(--sat)) calc(95.69% * var(--light)));
+    '#f2e993', // hsl(calc(60deg * var(--hue)) calc(100% * var(--sat)) calc(95.88% * var(--light)));
+    '#dbb69f', // hsl(calc(25.71deg * var(--hue)) calc(56.76% * var(--sat)) calc(92.75% * var(--light)));
 ];
 
 /**
@@ -462,7 +478,7 @@ const defClors = [
 function createMiscClassQuillCss(options) {
     return (
 `:root {
-    ${options.map((v, i) => `--col${i + 1}: ${v.color || defClors[i]}`).join('\n  ')}
+    ${options.map((v, i) => `--col${i + 1}: ${v.color || defClors[i]};`).join('\n  ')}
 }
 .ql-snow .ql-picker.ql-misc-style .ql-picker-label:before,
 .ql-snow .ql-picker.ql-misc-style .ql-picker-item:before {
@@ -479,7 +495,7 @@ ${options.map((v, i) =>
 .ql-editor .ql-misc-style-${v.cssClass} {
     background: var(--col${i + 1});
 }`
-)}`
+).join('\n')}`
     );
 }
 

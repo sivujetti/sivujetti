@@ -13,7 +13,7 @@ import {createTrier} from '../includes/utils.js';
 import {cloneBlock} from '../menu-column/block/BlockTreeFuncs.js';
 import {registerSyncedItemsUpdater} from '../menu-column/SaveButtonFuncs.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
-import {showAddContentOrRowPopup, showAddRootSectionPopup} from './WebPagePreviewAppFuncs.js';
+import {showAddContentOrRowPopup, showAddRootSectionPopup, showMoreMenu} from './WebPagePreviewAppFuncs.js';
 /** @typedef {import('../../webpage-renderer-app/ReRenderingWebPage.jsx').ReRenderingWebPageMouseState} ReRenderingWebPageMouseState */
 
 const broadcastInitialStateToListeners = true;
@@ -320,6 +320,12 @@ class WebPagePreviewApp extends preact.Component {
                             /** @type {[any, string]} */
                             const [_, blockId] = e.data;
                             cloneBlock(blockId, 'main', false);
+                        } else if (e.data[0] === 'onMoreButtonClicked') {
+                            /** @type {[any, string, DOMRect]} */
+                            const [_, blockId, buttonRect] = e.data;
+                            showMoreMenu(blockId, buttonRect, linkId => {
+                                this.sendMessageToReRenderer(['onMoreMenuClosed', linkId]);
+                            });
                         }
                     });
                     this.messageChannel.port1.start();

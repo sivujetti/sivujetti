@@ -25,6 +25,7 @@ function createInContextEditingApp() {
     let rect3 = null;
     /** @type {'RootSection'|'Columns'|'Content'|''} */
     let curHover = null;
+    let hoverLockIsOn = false;
     const clearRect = rect => {
         rect.style.cssText = '';
     };
@@ -42,6 +43,8 @@ function createInContextEditingApp() {
          * @access public
          */
         onBlockHoverStarted(blockId, blockType, {posRect}) {
+            if (hoverLockIsOn)
+                return;
             let rect = null;
             if (blockType === 'RootSection') {
                 rect = rect1;
@@ -67,6 +70,8 @@ function createInContextEditingApp() {
          * @access public
          */
         onBlockHoverEnded() {
+            if (hoverLockIsOn)
+                return;
             if (curHover === 'RootSection') {
                 clearRect(rect1);
             } else if (curHover === 'Columns') {
@@ -81,6 +86,8 @@ function createInContextEditingApp() {
          * @access public
          */
         clearAll() {
+            if (hoverLockIsOn)
+                return;
             clearRect(rect1);
             clearRect(rect2);
             rect2.classList.remove('buttons2-tweak-up');
@@ -142,11 +149,11 @@ function createInContextEditingApp() {
             // @ts-ignore Type 'Element' is missing the following properties from type 'HTMLElement'
             [rect1, rect2, rect3] = [...shadow.querySelectorAll('.rect')];
 
-            addButtonsHandlers(rect1);
-            addButtonsHandlers(rect2);
-            addButtonsHandlers(rect3);
+            addButtonsHandlers(rect1, this);
+            addButtonsHandlers(rect2, this);
+            addButtonsHandlers(rect3, this);
 
-            function addButtonsHandlers(rect) {
+            function addButtonsHandlers(rect, self) {
                 const [addAboveBtn, editBtn, cloneBtn, delBtn, moreBtn, addBelowBtn] = [...rect.querySelectorAll('button')];
                 const type = {rect1: 'RootSection', rect2: 'Row', rect3: 'Content'}[rect.id];
                 addAboveBtn.addEventListener('click', e => {
@@ -170,8 +177,22 @@ function createInContextEditingApp() {
                     e.stopPropagation();
                 });
                 moreBtn.addEventListener('click', e => {
-                    console.log(`${type}: moreBtn clicked`);
                     e.stopPropagation();
+                    hoverLockIsOn = true;
+                    const {messagePortToEditApp} = reRenderingWebPage;
+                    const clearHoverLock = e => {
+                        if (e.data[0] === 'onMoreMenuClosed') {
+                            /** @type {[any, string]} */
+                            const [_, clickedLinkId] = e.data;
+                            messagePortToEditApp.removeEventListener('message', clearHoverLock);
+                            hoverLockIsOn = false;
+                            if (clickedLinkId === 'save-to-library') self.clearAll();
+                        }
+                    };
+                    messagePortToEditApp.addEventListener('message', clearHoverLock);
+                    messagePortToEditApp.postMessage(['onMoreButtonClicked',
+                        rect.getAttribute('data-block-id'),
+                        moreBtn.getBoundingClientRect()]);
                 });
                 addBelowBtn.addEventListener('click', e => {
                     e.stopPropagation();

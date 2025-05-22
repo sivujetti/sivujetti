@@ -123,7 +123,8 @@ type toastMessageLevel = 'error'|'notice'|'info'|'success'|string;
 type ToastMessageSettings = [toastMessageLevel|null, string|string[]];
 
 interface ContextMenu extends preact.Component {
-    open(e: Event, controller: ContextMenuController): void;
+    marginDefault: number;
+    open(e: (Event & {target: HTMLElement;})|HTMLElement, controller: ContextMenuController): void;
     close(e?: Event): void;
 }
 

@@ -7,6 +7,7 @@ import {createBlockFromType} from '../includes/block/utils.js';
 import AddContentPopup from './popups/IncontextAddContentPopup.jsx';
 import AddRowPopup from './popups/IncontextAddRowPopup.jsx';
 import AddRootSectionPopup from './popups/IncontextAddRootSectionPopup.jsx';
+import {openAsDialog} from './popups/IncontextSaveBlockToLibraryPopup.jsx';
 
 /**
  * @param {string} blockId
@@ -73,12 +74,47 @@ function showAddContentOrRowPopup(instructions, blockId, buttonRect, onAfterInse
 }
 
 /**
+ * @param {string} blockId
  * @param {DOMRect} buttonRect
+ * @param {(linkId: string|null) => void} onMenuClosed
+ */
+function showMoreMenu(blockId, buttonRect, onMenuClosed) {
+    const {tempArrowRefEl, removeEl} = createPopupRefEl(() => ({
+        x: buttonRect.x - api.contextMenu.marginDefault,
+        y: buttonRect.y + buttonRect.height - api.contextMenu.marginDefault,
+    }));
+    let clickedLinkId = null;
+    api.contextMenu.open(tempArrowRefEl, {
+        getLinks: () => [
+            {text: __('Move up ↑'), title: __('Move up ↑'), id: 'move-up'},
+            {text: __('Move down ↓'), title: __('Move down ↓'), id: 'move-down'},
+            {text: __('Save to library'), title: __('Save to library'), id: 'save-to-library'},
+        ],
+        onItemClicked: (link, _e) => {
+            clickedLinkId = link.id;
+            if (link.id === 'move-up') {
+                alert('Move ' + blockId + ' up todo');
+            } else if (link.id === 'move-down') {
+                alert('Move ' + blockId + ' down todo');
+            } else if (link.id === 'save-to-library') {
+                openAsDialog(blockId);
+            }
+        },
+        onMenuClosed: () => {
+            removeEl();
+            onMenuClosed(clickedLinkId);
+            clickedLinkId = null;
+        },
+    });
+}
+
+/**
+ * @param {DOMRect|(() => Position)} rectOrCreatePos
  * @returns {{tempArrowRefEl: HTMLElement; removeEl: () => void;}} Cleanup
  */
-function createPopupRefEl(buttonRect) {
+function createPopupRefEl(rectOrCreatePos) {
     const tempArrowRefEl = document.createElement('div');
-    const {x, y} = createPlacementForPopup(buttonRect);
+    const {x, y} = rectOrCreatePos instanceof DOMRect ? createPlacementForPopup(rectOrCreatePos) : rectOrCreatePos();
     tempArrowRefEl.style.cssText = [
         'position: absolute;',
         'left: calc(var(--menu-column-width-computed) + ', x, 'px);',
@@ -106,4 +142,5 @@ function createPlacementForPopup(buttonRect) {
 export {
     showAddContentOrRowPopup,
     showAddRootSectionPopup,
+    showMoreMenu,
 };

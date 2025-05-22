@@ -10,6 +10,7 @@ class ContextMenu extends preact.Component {
      */
     constructor(props) {
         super(props);
+        this.marginDefault = 10;
         this.state = {isOpen: false};
         this.pos = {left: 0, top: 0};
         /** @type ContextMenuController */
@@ -25,13 +26,13 @@ class ContextMenu extends preact.Component {
     /**
      * Opens a context menu next to the top left corner of e.target.
      *
-     * @param {Event} e
+     * @param {(Event & {target: HTMLElement;})|HTMLElement} e
      * @param {ContextMenuController} controller
      * @access public
      */
     open(e, controller) {
         if (this.state.isOpen) return;
-        const rect = e.target.getBoundingClientRect();
+        const rect = (e instanceof HTMLElement ? e : e.target).getBoundingClientRect();
         this.pos = {top: rect.top, left: rect.left};
         this.controller = controller;
         this.setState({isOpen: true});
@@ -54,7 +55,7 @@ class ContextMenu extends preact.Component {
         if (!isOpen) return;
         return [
             <a href="#close" class="popup-close-area" onClick={ this.close.bind(this) }></a>,
-            <ul class="popup-menu menu" style={ `left:${this.pos.left+10}px;top:${this.pos.top+10}px` } ref={ el => {
+            <ul class="popup-menu menu" style={ `left:${this.pos.left+this.marginDefault}px;top:${this.pos.top+this.marginDefault}px` } ref={ el => {
                 if (!el) return;
                 const margin = 12;
                 if (this.controller.placement === 'right') {

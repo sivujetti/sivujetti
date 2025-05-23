@@ -1,5 +1,14 @@
-import {events, iconAsString} from '@sivujetti-commons-for-edit-app';
+import {
+    events,
+    getFromLocalStorage,
+    iconAsString,
+    putToLocalStorage,
+} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from './utils.js';
+/** @typedef {import('../../commons-for-edit-app/FloatingDialog.jsx').JsPanel} JsPanel */
+
+/** @type {Position} */
+let lastPos = null;
 
 /** @extends {preact.Component<any, {Renderer: preact.AnyComponent;}>} */
 class FloatingDialog2 extends preact.Component {
@@ -7,18 +16,22 @@ class FloatingDialog2 extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        /** @type {Object} */
+        /** @type {FloatingDialog2SettingsInput} */
         this.settings = null;
         /** @type {{[key: string]: any;}} */
         this.rendererProps = null;
         /** @type {boolean} */
         this.closing = false;
-        /** @type {Object|'loading'} */
+        /** @type {JsPanel|'loading'} */
         this.jsPanel = null;
         events.on('webpage-preview-iframe-before-loaded', () => {
             if (currentRendererIsBlockEditForm())
                 this.close();
         });
+        if (!lastPos) {
+            const saved = getFromLocalStorage('sivujettiLastDialogPos');
+            if (saved) lastPos = JSON.parse(saved);
+        }
     }
     /**
      * @param {preact.AnyComponent} Renderer
@@ -46,6 +59,7 @@ class FloatingDialog2 extends preact.Component {
             return;
         if (!this.closing) {
             // Call jsPanel.close(), which then calls this method again (see onbeforeclose)
+            // @ts-ignore
             this.jsPanel.close();
         } else {
             this.setState({Renderer: null});
@@ -69,13 +83,20 @@ class FloatingDialog2 extends preact.Component {
     onRootDivRefd(el) {
         if (!el || this.jsPanel) return;
         this.jsPanel = 'loading';
-        const {pos} = this.settings;
+        const posIn = this.settings.pos;
         createTrier(() => {
             if (!el.firstElementChild) return false;
+            if (posIn && !lastPos) {
+                lastPos = posIn;
+            }
+            // @ts-ignore Property 'jsPanel' does not exist on type 'Window & typeof globalThis'
             this.jsPanel = window.jsPanel.create({
                 content: el.firstElementChild,
                 headerTitle: this.settings.title || '&nbsp;',
                 headerControls: 'closeonly xs',
+                /**
+                 * @param {JsPanel} panel
+                 */
                 callback: panel => {
                     panel.classList.add('v2');
                     const closeBtn = panel.querySelector('.jsPanel-btn-close');
@@ -86,8 +107,20 @@ class FloatingDialog2 extends preact.Component {
                     this.close();
                     return true;
                 },
+                dragit: {
+                    opacity: 0.95,
+                    /**
+                     * @param {JsPanel} _panel
+                     * @param {{left: number; top: number; width: number; height: number;}} paneldata
+                     * @param {MouseEvent} _e
+                     */
+                    stop: (_panel, paneldata, _e) => {
+                        lastPos = {x: paneldata.left, y: paneldata.top};
+                        putToLocalStorage(JSON.stringify(lastPos), 'sivujettiLastDialogPos');
+                    },
+                },
                 theme: 'none',
-                ...(this.settings.pos ? {position: `left-top ${pos.x} ${pos.y}`} : {})
+                ...(lastPos ? {position: `left-top ${lastPos.x} ${lastPos.y}`} : {})
             });
             return true;
         }, 10, 10, '')();

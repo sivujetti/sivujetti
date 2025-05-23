@@ -27,7 +27,7 @@ class AddRootSectionPopup extends preact.Component {
                 initialTabIdx={ 0 }
                 className="text-tinyish mt-0"/>
             { currentTabIdx === 0
-                ? <div class="root-section-picker mt-1">
+                ? <div class="root-section-picker mt-2">
                     <button
                         class="btn btn no-color p-1 d-flex col-12"
                         onClick={ () => {

@@ -53,30 +53,66 @@ class AddRowPopup extends preact.Component {
 /** @extends {preact.Component<RowPickerProps, any>} */
 class RowPicker extends preact.Component {
     render() {
-        return <div class="row-picker mt-1">
-            { this.createAddRowButton(1) }
-            { this.createAddRowButton(2) }
-            { this.createAddRowButton(3) }
-            { this.createAddRowButton(4) }
-            { this.createAddRowButton(5) }
-            { this.createAddRowButton(6) }
+        return <div class="mt1" style="min-width: 360px">
+            <div class="row-picker d-grid mt-2" style="grid-template-columns: 1fr 1fr 1fr; gap: .2rem">
+                { this.createAddRowButton2(1) }
+                { this.createAddRowButton2(2) }
+                { this.createAddRowButton2(3) }
+
+                { this.createAddRowButton2(4) }
+                { this.createAddRowButton2(5) }
+                { this.createAddRowButton2(6) }
+
+                { this.createAddRowButton2('2-3/5') }
+                { this.createAddRowButton2('3-2/5') }
+                { this.createAddRowButton2('2-4/6') }
+
+                { this.createAddRowButton2('4-2/6') }
+                { this.createAddRowButton2('1-3/4') }
+                { this.createAddRowButton2('3-1/4') }
+
+                { this.createAddRowButton2('1-2-1/4') }
+                { this.createAddRowButton2('1-3-1/5') }
+                { this.createAddRowButton2('1-1-2/4') }
+
+                { this.createAddRowButton2('2-1-1/4') }
+                { this.createAddRowButton2('1-1-3/5') }
+                { this.createAddRowButton2('3-1-1/5') }
+
+                { this.createAddRowButton2('1-1-1-3/6') }
+                { this.createAddRowButton2('3-1-1-1/6') }
+            </div>
         </div>;
     }
     /**
-     * @param {number} numCols
+     * @param {string|number} colsTot
      * @returns {preact.VNode}
      * @access private
      */
-    createAddRowButton(numCols) {
-        const emptyCols = [...Array(numCols)];
+    createAddRowButton2(colsTot) {
+        let colsCls;
+        let emptyCols;
+        let numColumns;
+        let attrs;
+        if (typeof colsTot === 'number') {
+            numColumns = colsTot;
+            emptyCols = [...Array(numColumns)];
+            colsCls = ` cols-${numColumns}`;
+        } else {
+            const cols = colsTot.split('/')[0];
+            numColumns = parseInt(cols.replaceAll('-', ''), 10);
+            emptyCols = [...Array(cols.split('-').length)];
+            colsCls = ` cols-${cols}`;
+            attrs = {title: colsTot};
+        }
         return <button
-            class="btn btn no-color p-1 d-flex col-12"
+            class={ `btn btn no-color d-grid p-1 ${colsCls}` }
             onClick={ () => {
                 const onCreate = this.props.onCreateBlock || (b => b);
                 const newRowBlock = onCreate({
                     ...createBlockFromType('Columns', undefined, {
                         isRow: 1,
-                        numColumns: numCols,
+                        numColumns,
                         takeFullWidh: 1,
                     }),
                     children: emptyCols.map(_ =>
@@ -93,7 +129,8 @@ class RowPicker extends preact.Component {
                 api.mainPopper.close();
                 this.props.onAfterInsertedBlock(newRowBlock);
             } }
-            type="button">
+            type="button"
+            { ...attrs }>
             { emptyCols.map(__ =>
                 <span class="col-12"></span>)
             }

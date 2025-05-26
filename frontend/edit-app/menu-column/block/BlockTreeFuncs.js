@@ -525,6 +525,18 @@ function cloneBlock(blockId, blockIsStoredTo, scrollToBlock = true) {
 }
 
 /**
+ * @param {string} blockId
+ * @param {string} blockIsStoredTo
+ * @param {boolean} wasCurrentlySelectedBlock = false
+ * @access private
+ */
+function deleteBlock(blockId, blockIsStoredTo, wasCurrentlySelectedBlock = false) { 
+    const saveButton = api.saveButton.getInstance();
+    const op = createDeleteBlockOp(blockId, blockIsStoredTo, wasCurrentlySelectedBlock);
+    saveButton.pushOp(...op);
+}
+
+/**
  * @param {{name: string;}} data
  * @param {Block} originalBlock The block/branch we're just turning global
  * @param {string} originalBlockIsStoredTo
@@ -602,6 +614,17 @@ function showBlockTreeHelpPopup() {
 }
 
 /**
+ * @param {Block} block
+ * @param {string} blockIdOpenInDialog
+ * @returns {boolean}
+ */
+function isBlockOrItsChildOpenInDialog(block, blockIdOpenInDialog) {
+    return block.id === blockIdOpenInDialog ||
+        (block.children.length && blockTreeUtils.findRecursively(block.children,
+            b => b.id === blockIdOpenInDialog));
+}
+
+/**
  * @typedef {{item: LiUiState; children: Array<UiStateEntry>;}} UiStateEntry
  *
  * @typedef {{isSelected: boolean; isCollapsed: boolean; isHidden: boolean; blockId: string; isPartOf: globalBlockReferenceBlockId|null;}} LiUiState
@@ -613,10 +636,10 @@ export {
     cloneBlock,
     convertBlockToGlobal,
     createAddContentPlacementCfg,
-    createDeleteBlockOp,
     createGetTreeBlocksFn,
     createPartialState,
     createStyleShunkcScssIdReplacer,
+    deleteBlock,
     findUiStateEntry,
     findVisibleLi,
     getActiveBehaviours,
@@ -625,6 +648,7 @@ export {
     getVisibleLisCount,
     hasBehaviour,
     hideOrShowChildren,
+    isBlockOrItsChildOpenInDialog,
     saveBlockAsReusable,
     setAsCollapsed,
     showBlockTreeHelpPopup,

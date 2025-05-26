@@ -2,8 +2,11 @@ import {
     __,
     api,
     blockTreeUtils,
+    objectUtils,
 } from '@sivujetti-commons-for-edit-app';
-import {createBlockFromType} from '../includes/block/utils.js';
+import {createBlockFromType, isRowBlock} from '../includes/block/utils.js';
+import {deleteBlock, isBlockOrItsChildOpenInDialog} from '../menu-column/block/BlockTreeFuncs.js';
+import BlockEditPopup from './popups/BlockEditPopup.jsx';
 import AddContentPopup from './popups/IncontextAddContentPopup.jsx';
 import AddRowPopup from './popups/IncontextAddRowPopup.jsx';
 import AddRootSectionPopup from './popups/IncontextAddRootSectionPopup.jsx';
@@ -139,7 +142,53 @@ function createPlacementForPopup(buttonRect) {
     };
 }
 
+/**
+ * @param {string} blockId
+ * @param {'RootSection'|'Row'|'Content'} type
+ * @param {boolean} wasOpenInDialog = null
+ */
+function handleDeleteBlock(blockId, type, wasOpenInDialog = null) {
+    const mainTree = blockTreeUtils.getMainTree();
+    const [block, _, parentBlock] = blockTreeUtils.findBlock(blockId, mainTree);
+
+    let replaceWith = null;
+    if (type === 'Content' && isRowBlock(parentBlock)) {
+        replaceWith = 'Columns';
+    } else if (type === 'Row' && parentBlock.type === 'RootSection' && parentBlock.children.length === 1) {
+        replaceWith = 'RootSection';
+    } else if (type === 'Content' && parentBlock.type === 'RootSection') {
+        handleDeleteBlock(parentBlock.id, 'RootSection', isBlockOrItsChildOpenInDialog2(block));
+        return;
+    }
+
+    wasOpenInDialog ??= isBlockOrItsChildOpenInDialog2(block);
+
+    if (!replaceWith) {
+        deleteBlock(blockId, 'main', wasOpenInDialog);
+    } else {
+        const newTree = objectUtils.cloneDeep(mainTree);
+        const [b2, br2] = blockTreeUtils.findBlock(blockId, newTree);
+        // mutates $newTree
+        br2[br2.indexOf(b2)] = createBlockFromType('ContentOrRowPlaceholder', undefined, {outerBlockType: replaceWith});
+        api.saveButton.getInstance().pushOp(
+            'theBlockTree',
+            newTree,
+            {event: 'replace-block', wasCurrentlySelectedBlock: wasOpenInDialog}
+        );
+    }
+}
+
+/**
+ * @param {Block} block
+ * @returns {boolean}
+ */
+function isBlockOrItsChildOpenInDialog2(block) {
+    const {Renderer, rendererProps} = api.floatingDialog2.getCurrentDialogInfo();
+    return Renderer === BlockEditPopup && isBlockOrItsChildOpenInDialog(block, rendererProps.block.id);
+}
+
 export {
+    handleDeleteBlock,
     showAddContentOrRowPopup,
     showAddRootSectionPopup,
     showMoreMenu,

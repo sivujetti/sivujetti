@@ -173,24 +173,24 @@ function createInContextEditingApp() {
                         rect.getAttribute('data-block-id')]);
                 });
                 delBtn.addEventListener('click', e => {
-                    console.log(`${type}: delBtn clicked`);
                     e.stopPropagation();
+                    waitForEditAppEvent('onDeleteButtonClickHandled', () => {
+                        self.clearAll();
+                    });
+                    reRenderingWebPage.messagePortToEditApp.postMessage(['onDeleteButtonClicked',
+                        rect.getAttribute('data-block-id'),
+                        type]);
                 });
                 moreBtn.addEventListener('click', e => {
                     e.stopPropagation();
                     hoverLockIsOn = true;
-                    const {messagePortToEditApp} = reRenderingWebPage;
-                    const clearHoverLock = e => {
-                        if (e.data[0] === 'onMoreMenuClosed') {
-                            /** @type {[any, string]} */
-                            const [_, clickedLinkId] = e.data;
-                            messagePortToEditApp.removeEventListener('message', clearHoverLock);
-                            hoverLockIsOn = false;
-                            if (clickedLinkId === 'save-to-library') self.clearAll();
-                        }
-                    };
-                    messagePortToEditApp.addEventListener('message', clearHoverLock);
-                    messagePortToEditApp.postMessage(['onMoreButtonClicked',
+                    waitForEditAppEvent('onMoreMenuClosed', e => {
+                        /** @type {[any, string]} */
+                        const [_, clickedLinkId] = e.data;
+                        hoverLockIsOn = false;
+                        if (clickedLinkId === 'save-to-library') self.clearAll();
+                    });
+                    reRenderingWebPage.messagePortToEditApp.postMessage(['onMoreButtonClicked',
                         rect.getAttribute('data-block-id'),
                         moreBtn.getBoundingClientRect()]);
                 });
@@ -208,6 +208,16 @@ function createInContextEditingApp() {
                             ...commonArgs]);
                     }
                 });
+            }
+            function waitForEditAppEvent(eventName, withFn) {
+                const {messagePortToEditApp} = reRenderingWebPage;
+                const listener = e => {
+                    if (e.data[0] === eventName) {
+                        withFn(e);
+                        messagePortToEditApp.removeEventListener('message', listener);
+                    }
+                };
+                messagePortToEditApp.addEventListener('message', listener);
             }
         }
     };

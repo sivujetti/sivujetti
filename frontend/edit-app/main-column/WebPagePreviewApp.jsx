@@ -13,7 +13,7 @@ import {createTrier} from '../includes/utils.js';
 import {cloneBlock} from '../menu-column/block/BlockTreeFuncs.js';
 import {registerSyncedItemsUpdater} from '../menu-column/SaveButtonFuncs.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
-import {showAddContentOrRowPopup, showAddRootSectionPopup, showMoreMenu} from './WebPagePreviewAppFuncs.js';
+import {handleDeleteBlock, showAddContentOrRowPopup, showAddRootSectionPopup, showMoreMenu} from './WebPagePreviewAppFuncs.js';
 /** @typedef {import('../../webpage-renderer-app/ReRenderingWebPage.jsx').ReRenderingWebPageMouseState} ReRenderingWebPageMouseState */
 
 const broadcastInitialStateToListeners = true;
@@ -326,6 +326,11 @@ class WebPagePreviewApp extends preact.Component {
                             showMoreMenu(blockId, buttonRect, linkId => {
                                 this.sendMessageToReRenderer(['onMoreMenuClosed', linkId]);
                             });
+                        } else if (e.data[0] === 'onDeleteButtonClicked') {
+                            /** @type {[any, string, 'RootSection'|'Row'|'Content']} */
+                            const [_, blockId, type] = e.data;
+                            handleDeleteBlock(blockId, type);
+                            this.sendMessageToReRenderer(['onDeleteButtonClickHandled']);
                         }
                     });
                     this.messageChannel.port1.start();

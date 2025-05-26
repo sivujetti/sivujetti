@@ -34,6 +34,16 @@ class FloatingDialog2 extends preact.Component {
         }
     }
     /**
+     * @returns {{Renderer: preact.AnyComponent; rendererProps: {[key: string]: any;};}}
+     * @access public
+     */
+    getCurrentDialogInfo() {
+        return {
+            Renderer: this.state.Renderer,
+            rendererProps: this.rendererProps,
+        };
+    }
+    /**
      * @param {preact.AnyComponent} Renderer
      * @param {FloatingDialog2SettingsInput} settings = {}
      * @param {{[key: string]: any;}} rendererProps = {}

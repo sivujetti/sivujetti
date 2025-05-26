@@ -144,6 +144,7 @@ interface MainPopperSettings {
 interface FloatingDialog2 extends preact.Component {
     open(Renderer: preact.AnyComponent, settings?: FloatingDialog2SettingsInput, rendererProps?: Object): void;
     close(): void;
+    getCurrentDialogInfo(): {Renderer: preact.AnyComponent; rendererProps: {[key: string]: any;};};
 }
 
 interface FloatingDialog2SettingsInput {

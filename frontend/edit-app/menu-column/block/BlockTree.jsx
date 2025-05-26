@@ -23,9 +23,9 @@ import {
     cloneBlock,
     convertBlockToGlobal,
     createAddContentPlacementCfg,
-    createDeleteBlockOp,
     createGetTreeBlocksFn,
     createPartialState,
+    deleteBlock,
     findUiStateEntry,
     findVisibleLi,
     getActiveBehaviours,
@@ -34,6 +34,7 @@ import {
     getVisibleLisCount,
     hasBehaviour,
     hideOrShowChildren,
+    isBlockOrItsChildOpenInDialog,
     saveBlockAsReusable,
     setAsCollapsed,
     showBlockTreeHelpPopup,
@@ -327,10 +328,7 @@ class BlockTree extends preact.Component {
     deleteBlock(blockVisible, blockToDeleteId, blockToDeleteTrid) {
         const wasCurrentlySelectedBlock = this.isCurrentlySelectedBlock(blockVisible);
         if (wasCurrentlySelectedBlock) this.selectedRoot = null;
-        //
-        const saveButton = api.saveButton.getInstance();
-        const op = createDeleteBlockOp(blockToDeleteId, blockToDeleteTrid, wasCurrentlySelectedBlock);
-        saveButton.pushOp(...op);
+        deleteBlock(blockToDeleteId, blockToDeleteTrid, wasCurrentlySelectedBlock);
     }
     /**
      * @param {Block} block
@@ -338,11 +336,7 @@ class BlockTree extends preact.Component {
      * @access private
      */
     isCurrentlySelectedBlock(block) {
-        if (!this.selectedRoot)
-            return false;
-        return this.selectedRoot.id === block.id ||
-            (block.children.length && blockTreeUtils.findRecursively(block.children,
-                b => b.id === this.selectedRoot.id));
+        return this.selectedRoot ? isBlockOrItsChildOpenInDialog(block, this.selectedRoot.id) : false;
     }
     /**
      * @param {Block} block

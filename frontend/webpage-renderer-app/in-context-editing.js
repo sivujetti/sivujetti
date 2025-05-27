@@ -188,7 +188,8 @@ function createInContextEditingApp() {
                         /** @type {[any, string]} */
                         const [_, clickedLinkId] = e.data;
                         hoverLockIsOn = false;
-                        if (clickedLinkId === 'save-to-library') self.clearAll();
+                        if (['save-to-library', 'move-up', 'move-down'].indexOf(clickedLinkId) > -1)
+                            self.clearAll();
                     });
                     reRenderingWebPage.messagePortToEditApp.postMessage(['onMoreButtonClicked',
                         rect.getAttribute('data-block-id'),

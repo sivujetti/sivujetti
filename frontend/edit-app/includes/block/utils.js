@@ -136,6 +136,14 @@ function createDefProps(type, additions) {
  * @param {Block} block
  * @returns {boolean}
  */
+function isCellBlock(block) {
+    return block.type === 'Wrapper' && block.isCell;
+}
+
+/**
+ * @param {Block} block
+ * @returns {boolean}
+ */
 function isRowBlock(block) {
     return block.type === 'Columns' && block.isRow;
 }
@@ -153,6 +161,7 @@ export {
     createBlockFromType,
     getIsStoredToTreeIdFrom,
     isBrokenBlockId,
+    isCellBlock,
     isMetaBlock,
     isRowBlock,
     treeToTransferable,

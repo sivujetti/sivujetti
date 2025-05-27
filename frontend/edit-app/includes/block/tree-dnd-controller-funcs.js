@@ -78,18 +78,18 @@ function createBlockTreeMoveToOps(dragInf, dropInf, dropPos) {
 }
 
 /**
- * @param {string} dragBlockId
- * @param {string} dropBlockId
+ * @param {string} block1Id
+ * @param {string} block2Id
  * @param {dropPosition} dropPos
  * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
  */
-function createMoveWithinMainTreeOp(dragBlockId, dropBlockId, dropPos) {
+function createMoveWithinMainTreeOp(block1Id, block2Id, dropPos) {
     return [
         'theBlockTree',
         blockTreeUtils.createMutation(blockTreeUtils.getMainTree(), newTreeCopy => {
-            const [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragBlockId, newTreeCopy);
-            const [dropBlock, dropBranch] = blockTreeUtils.findBlock(dropBlockId, newTreeCopy);
-            swapBlocksSameTree(dragBlock, dragBranch, dropBlock, dropBranch, dropPos);
+            const [block1, branch1] = blockTreeUtils.findBlock(block1Id, newTreeCopy);
+            const [block2, branch2] = blockTreeUtils.findBlock(block2Id, newTreeCopy);
+            swapBlocksSameTree(block1, branch1, block2, branch2, dropPos);
             return newTreeCopy;
         }),
         {event: 'move-block-within'}
@@ -312,6 +312,7 @@ function getRealTarget(target, dropOrInsertPos) {
 export {
     createBlockTreeInsertOrReplaceAtOp,
     createBlockTreeMoveToOps,
+    createMoveWithinMainTreeOp,
     getRealTarget,
     removeFrom,
     replaceAt,
